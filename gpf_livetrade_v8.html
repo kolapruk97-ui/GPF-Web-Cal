@@ -480,7 +480,7 @@ function onAllocChange() {
   const total = getAllocTotal();
   const el    = document.getElementById('alloc-sum-val');
   el.textContent = total;
-  el.className   = Math.abs(total - 100) < 0.1 ? 'ok' : 'bad';
+  el.className   = Math.abs(total - 100) <= 0.01 ? 'ok' : 'bad';
   save();
 }
 function getAllocTotal() {
@@ -597,17 +597,29 @@ function runSignal() {
     return;
   }
 
+  // State bypass warning: ถ้า MM=100% แต่ไม่มี lastExitDate → เตือน
+  const allocStr  = getAllocStr();
+  const isInMM100 = allocStr === 'Money_Market:100';
+  const lastExit  = document.getElementById('last-exit').value;
+  if (isInMM100 && !lastExit) {
+    showError(
+      '⚠️ พอร์ตปัจจุบันเป็น Money_Market 100%\n' +
+      'กรุณากรอก "วัน EXIT_DD ล่าสุด" ด้วย — มิฉะนั้นระบบจะไม่ตรวจสอบ Exit Cooldown และ Reentry Score\n' +
+      '(ถ้ายังไม่เคย EXIT ให้เว้นว่างได้ แต่ต้องแน่ใจว่าเข้า MM โดยระบบ)'
+    );
+    return;
+  }
+
   // Fix: current > peak → auto-update peak หรือ error
   const curVal  = parseFloat(document.getElementById('current-value').value) || 0;
   const peakVal = parseFloat(document.getElementById('peak-value').value) || 0;
-  if (curVal > 0 && peakVal > 0 && curVal > peakVal) {
-    showError(
-      '⚠️ Current Value (' + curVal.toLocaleString() + '฿) สูงกว่า Peak Value (' + peakVal.toLocaleString() + '฿)\n' +
-      'พอร์ตทำ All-Time High ใหม่ — กรุณาอัปเดต Peak Value ให้เป็น ' + curVal.toLocaleString() + '฿ ก่อนรัน'
-    );
-    // Auto-fill peak with current for convenience
+  if (curVal > 0 && (peakVal === 0 || curVal > peakVal)) {
+    const msg = peakVal === 0
+      ? '⚠️ กรุณากรอก Peak Value (มูลค่าสูงสุดตลอดกาล)\nถ้ายังไม่มี Peak — ใส่ค่าเดียวกับ Current Value (' + curVal.toLocaleString() + '฿) ได้เลย'
+      : '⚠️ Current Value (' + curVal.toLocaleString() + '฿) สูงกว่า Peak Value (' + peakVal.toLocaleString() + '฿)\nพอร์ตทำ All-Time High ใหม่ — อัปเดต Peak Value เป็น ' + curVal.toLocaleString() + '฿';
     document.getElementById('peak-value').value = curVal;
     save();
+    showError(msg);
     return;
   }
 
