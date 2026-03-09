@@ -2,6 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>กบข. Portfolio Analysis</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -310,6 +311,8 @@ const TX_COLS = {
 let NAV=[], TX=[], portCh, allocCh, fundCh, navCh, curPeriod=30;
 const CS = {db:'idle', tx:'idle'};
 const el = id => document.getElementById(id);
+// ── XSS sanitizer: escape HTML special chars from CSV data before DOM insertion
+const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const fmt = (n,d=2) => n==null||isNaN(n)?'-':n.toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d});
 const fmtS = n => { if(n==null||isNaN(n))return'-'; return(n>=0?'+':'')+n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}); };
 const pNum = s => { if(!s||!s.trim())return null; const v=parseFloat(s.replace(/,/g,'')); return isNaN(v)?null:v; };
@@ -632,7 +635,7 @@ function renderCards(hold,nav,tx){
     {l:'กำไร/ขาดทุน (฿)',    v:fmtS(a.pnl),              s:fmtS(a.pp)+'%',                c:a.pnl>=0?'cG':'cr', clr:co(a.pnl)},
     {l:'% ผลตอบแทน (TWR)',   v:fmtS(a.pp)+'%',           s:'เทียบต้นทุนรวม',               c:a.pp>=0?'cG':'cr',  clr:co(a.pp)},
     {l:'เปลี่ยนแปลง 1 วัน',  v:fmtS(a.dc),               s:fmtS(a.dp)+'%',                c:a.dc>=0?'cG':'cr',  clr:co(a.dc)},
-    {l:'แผนลงทุนปัจจุบัน',   v:a.currentPlan,            s:'Transaction ล่าสุด',           c:'cb', clr:'var(--blue)'},
+    {l:'แผนลงทุนปัจจุบัน',   v:esc(a.currentPlan),            s:'Transaction ล่าสุด',           c:'cb', clr:'var(--blue)'},
   ];
 
   // ── Row 2: Advanced Analytics
@@ -732,9 +735,9 @@ function renderTxTbl(tx){
     }).join(' ');
     return '<tr>'
       +'<td>'+fDt(t.date)+'</td>'
-      +'<td class="'+tc(t.type)+'">'+ti(t.type)+' '+t.type+'</td>'
-      +'<td style="color:var(--text-2);font-size:12px">'+(t.plan||'-')+'</td>'
-      +'<td style="color:var(--text-3);font-size:12px">'+(t.note||'-')+'</td>'
+      +'<td class="'+tc(t.type)+'">'+ti(t.type)+' '+esc(t.type)+'</td>'
+      +'<td style="color:var(--text-2);font-size:12px">'+esc(t.plan||'-')+'</td>'
+      +'<td style="color:var(--text-3);font-size:12px">'+esc(t.note||'-')+'</td>'
       +'<td>'+(t.comp!=null?fmt(t.comp,2):'-')+'</td>'
       +'<td>'+(t.accum!=null?fmt(t.accum,2):'-')+'</td>'
       +'<td>'+(t.match!=null?fmt(t.match,2):'-')+'</td>'
