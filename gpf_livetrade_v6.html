@@ -592,8 +592,22 @@ function runSignal() {
   if (!gasUrl || !sheetId) { showError('กรุณาทดสอบการเชื่อมต่อก่อน'); return; }
 
   const total = getAllocTotal();
-  if (Math.abs(total - 100) > 0.5) {
+  if (Math.abs(total - 100) > 0.01) {
     showError('ผลรวม Allocation = ' + total + '% ต้องเท่ากับ 100% ก่อนรัน');
+    return;
+  }
+
+  // Fix: current > peak → auto-update peak หรือ error
+  const curVal  = parseFloat(document.getElementById('current-value').value) || 0;
+  const peakVal = parseFloat(document.getElementById('peak-value').value) || 0;
+  if (curVal > 0 && peakVal > 0 && curVal > peakVal) {
+    showError(
+      '⚠️ Current Value (' + curVal.toLocaleString() + '฿) สูงกว่า Peak Value (' + peakVal.toLocaleString() + '฿)\n' +
+      'พอร์ตทำ All-Time High ใหม่ — กรุณาอัปเดต Peak Value ให้เป็น ' + curVal.toLocaleString() + '฿ ก่อนรัน'
+    );
+    // Auto-fill peak with current for convenience
+    document.getElementById('peak-value').value = curVal;
+    save();
     return;
   }
 
@@ -603,7 +617,7 @@ function runSignal() {
     sheetId:       sheetId,
     sheetName:     document.getElementById('sheet-name').value.trim() || 'Database',
     currentAlloc:  getAllocStr(),
-    quotaUsed:     document.getElementById('quota-used').value || '0',
+    quotaUsed:     String(Math.min(12, Math.max(0, parseInt(document.getElementById('quota-used').value) || 0))),
     lastRebalDate: document.getElementById('last-rebal').value,
     lastExitDate:  document.getElementById('last-exit').value,
     prevExitDate:  document.getElementById('prev-exit')?.value || '',
