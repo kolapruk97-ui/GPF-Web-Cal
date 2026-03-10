@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com https://query1.finance.yahoo.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
-<title>GPF Live Trade v14</title>
+<title>GPF Live Trade v15</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -1030,9 +1030,9 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 
 <div id="run-time"></div>
 <div class="sig-footer">
-  v4.7 (v14) · n_top=2 · cooldown=15bd · gap=0.20 · exit_dd=-6% · ext signals (G/F/TH)<br>
+  v4.7 (v15) · n_top=2 · cooldown=15bd · gap=0.20 · exit_dd=-6% · ext signals (G/F/TH)<br>
   signal_lag=0 (DB มี natural lag 2วันทำการอยู่แล้ว) · quota=12/yr<br>
-  <span class="calib-badge">⚙ Calibrated: v4.7b backtest · 10 มี.ค. 2569 · EXIT_DD=-6% · AllTime Peak · Sharpe=0.80 (ดีสุดใน 8 variations)</span>
+  <span class="calib-badge">⚙ Calibrated: v4.7b backtest · 10 มี.ค. 2569 · EXIT_DD=-6% · AllTime Peak · Sharpe=0.80 · PR_CAP=20% (v15)</span>
 </div>
 
 </div><!-- /sig-wrap -->
@@ -1141,7 +1141,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 // ================================================================
 //  CONSTANTS — v4.7b backtest optimal
 // ================================================================
-const ALGO_VERSION  = 'v4.7.14';
+const ALGO_VERSION  = 'v4.7.15';
 const N_TOP         = 2;
 const COOLDOWN_DAYS = 15;
 const SCORE_GAP_MIN = 0.20;
@@ -1149,7 +1149,8 @@ const EXIT_DD_PCT   = -6.0;
 const EXIT_COOLDOWN = 10;
 const REENTRY_SCORE = 0.55;
 const CONSEC_PAUSE  = 30;
-const G_CAP         = 0.25;
+const G_CAP         = 0.25;    // ทองคำ cap 25%
+const PR_CAP        = 0.20;    // อสังหาฯ cap 20% (v15)
 const QUOTA_PER_YR  = 12;
 const CHANGE_THRESH = 0.05;
 const MIN_HIST_DAYS = 120;
@@ -1169,7 +1170,7 @@ const MIX = [
   {key:'Base_Plan',name:'แผนหลัก'},
 ];
 const ALL_PLAN_DEFS = [...DIY,...MIX];
-const STORE_KEY    = 'gpf_live_v14';
+const STORE_KEY    = 'gpf_live_v15';
 const EXIT_LOG_KEY = 'gpf_exit_log_v12'; // keep same key — reuse existing exit log
 
 // Fund map for portfolio
@@ -2281,8 +2282,10 @@ function makeDecision({scores,currentAlloc,quotaUsed,lastRebStr,lastExitStr,prev
   let rawAlloc={};
   const tot=topN.reduce((s,x)=>s+x[1],0);
   topN.forEach(([p,s])=>{rawAlloc[p]=tot>0?s/tot:1/topN.length;});
-  // G_CAP
+  // G_CAP: ทองคำ ≤ 25%
   if((rawAlloc['G']||0)>G_CAP){const excess=rawAlloc['G']-G_CAP;rawAlloc['G']=G_CAP;const others=Object.keys(rawAlloc).filter(p=>p!=='G');const os=others.reduce((s,p)=>s+(rawAlloc[p]||0),0);if(os>0)others.forEach(p=>{rawAlloc[p]+=excess*(rawAlloc[p]/os);});else rawAlloc['Money_Market']=(rawAlloc['Money_Market']||0)+excess;const tw=Object.values(rawAlloc).reduce((s,v)=>s+v,0);if(tw>0)Object.keys(rawAlloc).forEach(p=>{rawAlloc[p]/=tw;});}
+  // PR_CAP: อสังหาฯ ≤ 20% (v15)
+  if((rawAlloc['PR']||0)>PR_CAP){const excess=rawAlloc['PR']-PR_CAP;rawAlloc['PR']=PR_CAP;const others=Object.keys(rawAlloc).filter(p=>p!=='PR');const os=others.reduce((s,p)=>s+(rawAlloc[p]||0),0);if(os>0)others.forEach(p=>{rawAlloc[p]+=excess*(rawAlloc[p]/os);});else rawAlloc['Money_Market']=(rawAlloc['Money_Market']||0)+excess;const tw=Object.values(rawAlloc).reduce((s,v)=>s+v,0);if(tw>0)Object.keys(rawAlloc).forEach(p=>{rawAlloc[p]/=tw;});}
   // Round to 5%
   let sum=0;Object.keys(rawAlloc).forEach(p=>{rawAlloc[p]=Math.round(rawAlloc[p]*100/5)*5/100;sum+=rawAlloc[p];});
   const diff=Math.round((1-sum)*100);if(diff!==0){const top=Object.keys(rawAlloc).reduce((a,b)=>rawAlloc[a]>=rawAlloc[b]?a:b);rawAlloc[top]=Math.round(rawAlloc[top]*100+diff)/100;}
@@ -2681,7 +2684,26 @@ function renderResults(data){
 }
 function applyGCapAndRound(rawAlloc){
   const alloc=Object.assign({},rawAlloc);
-  if((alloc['G']||0)>G_CAP){const excess=alloc['G']-G_CAP;alloc['G']=G_CAP;const others=Object.keys(alloc).filter(p=>p!=='G');const os=others.reduce((s,p)=>s+(alloc[p]||0),0);if(os>0)others.forEach(p=>{alloc[p]+=excess*(alloc[p]/os);});else alloc['Money_Market']=(alloc['Money_Market']||0)+excess;const tw=Object.values(alloc).reduce((s,v)=>s+v,0);if(tw>0)Object.keys(alloc).forEach(p=>{alloc[p]/=tw;});}
+  // G cap: ทองคำ ≤ 25%
+  if((alloc['G']||0)>G_CAP){
+    const excess=alloc['G']-G_CAP;alloc['G']=G_CAP;
+    const others=Object.keys(alloc).filter(p=>p!=='G');
+    const os=others.reduce((s,p)=>s+(alloc[p]||0),0);
+    if(os>0)others.forEach(p=>{alloc[p]+=excess*(alloc[p]/os);});
+    else alloc['Money_Market']=(alloc['Money_Market']||0)+excess;
+    const tw=Object.values(alloc).reduce((s,v)=>s+v,0);
+    if(tw>0)Object.keys(alloc).forEach(p=>{alloc[p]/=tw;});
+  }
+  // PR cap: อสังหาฯ ≤ 20% (v15)
+  if((alloc['PR']||0)>PR_CAP){
+    const excess=alloc['PR']-PR_CAP;alloc['PR']=PR_CAP;
+    const others=Object.keys(alloc).filter(p=>p!=='PR');
+    const os=others.reduce((s,p)=>s+(alloc[p]||0),0);
+    if(os>0)others.forEach(p=>{alloc[p]+=excess*(alloc[p]/os);});
+    else alloc['Money_Market']=(alloc['Money_Market']||0)+excess;
+    const tw=Object.values(alloc).reduce((s,v)=>s+v,0);
+    if(tw>0)Object.keys(alloc).forEach(p=>{alloc[p]/=tw;});
+  }
   let sum=0;Object.keys(alloc).forEach(p=>{alloc[p]=Math.round(alloc[p]*100/5)*5/100;sum+=alloc[p];});
   const diff=Math.round((1-sum)*100);if(diff!==0){const top=Object.keys(alloc).reduce((a,b)=>alloc[a]>=alloc[b]?a:b);alloc[top]=Math.round(alloc[top]*100+diff)/100;}
   return alloc;
@@ -2901,8 +2923,8 @@ function showProgress(step){
 //  CONSTANTS CHECK
 // ================================================================
 function logConstantsCheck(){
-  const expected={N_TOP:2,COOLDOWN_DAYS:15,SCORE_GAP_MIN:0.20,EXIT_DD_PCT:-6.0,EXIT_COOLDOWN:10,REENTRY_SCORE:0.55,CONSEC_PAUSE:30,G_CAP:0.25,QUOTA_PER_YR:12,CHANGE_THRESH:0.05,MIN_HIST_DAYS:120,SIGNAL_LAG:0};
-  const actual={N_TOP,COOLDOWN_DAYS,SCORE_GAP_MIN,EXIT_DD_PCT,EXIT_COOLDOWN,REENTRY_SCORE,CONSEC_PAUSE,G_CAP,QUOTA_PER_YR,CHANGE_THRESH,MIN_HIST_DAYS,SIGNAL_LAG};
+  const expected={N_TOP:2,COOLDOWN_DAYS:15,SCORE_GAP_MIN:0.20,EXIT_DD_PCT:-6.0,EXIT_COOLDOWN:10,REENTRY_SCORE:0.55,CONSEC_PAUSE:30,G_CAP:0.25,PR_CAP:0.20,QUOTA_PER_YR:12,CHANGE_THRESH:0.05,MIN_HIST_DAYS:120,SIGNAL_LAG:0};
+  const actual={N_TOP,COOLDOWN_DAYS,SCORE_GAP_MIN,EXIT_DD_PCT,EXIT_COOLDOWN,REENTRY_SCORE,CONSEC_PAUSE,G_CAP,PR_CAP,QUOTA_PER_YR,CHANGE_THRESH,MIN_HIST_DAYS,SIGNAL_LAG};
   let allOk=true;const lines=['🔍 GPF v13 — Constants vs Backtest v4.7b'];
   Object.entries(expected).forEach(([k,exp])=>{const act=actual[k];const ok=act===exp;if(!ok)allOk=false;lines.push((ok?'✅':'❌')+' '+k+': actual='+act+' | expected='+exp);});
   lines.push(allOk?'✅ All constants match backtest!':'⚠️ Mismatch found');
