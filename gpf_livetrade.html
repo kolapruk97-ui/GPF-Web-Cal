@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GPF Live Signal — v4.7 (v11.1)</title>
+<title>GPF Live Signal — v4.7 (v12)</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -241,6 +241,60 @@ details summary{ cursor:pointer; user-select:none; padding:4px 0; list-style:non
 details summary::-webkit-details-marker{ display:none; }
 .divider{ border:0; border-top:1px solid var(--b2); margin:12px 0; }
 .footer{ font-size:10px; color:var(--t2); text-align:center; padding:8px 0; line-height:1.8; font-family:var(--mono); }
+
+/* ── V12 NEW: DD Progress Bar ── */
+.dd-bar-wrap{
+  margin-top:10px; padding:10px 14px; border-radius:8px;
+  background:var(--s2); border:1px solid var(--b2);
+}
+.dd-bar-label{ display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.dd-bar-title{ font-size:10px; color:var(--t2); font-weight:600; text-transform:uppercase; letter-spacing:0.08em; }
+.dd-bar-pct{ font-family:var(--mono); font-size:13px; font-weight:700; }
+.dd-bar-pct.safe  { color:var(--green); }
+.dd-bar-pct.warn  { color:var(--amber); }
+.dd-bar-pct.danger{ color:var(--red); }
+.dd-track{ width:100%; height:10px; border-radius:5px; background:var(--s3); position:relative; overflow:hidden; }
+.dd-fill { height:100%; border-radius:5px; transition:width 0.4s ease; }
+.dd-fill.safe  { background:linear-gradient(90deg,#00b248,#00e676); }
+.dd-fill.warn  { background:linear-gradient(90deg,#cc7700,#ffaa00); }
+.dd-fill.danger{ background:linear-gradient(90deg,#cc002b,#ff3d5a); }
+.dd-ticks{ display:flex; justify-content:space-between; margin-top:4px; font-size:9px; color:var(--t2); font-family:var(--mono); }
+.dd-status-row{ margin-top:6px; font-size:11px; display:flex; align-items:center; gap:6px; }
+
+/* ── V12 NEW: Exit DD Year Tracker ── */
+.exit-tracker{ margin-top:4px; }
+.exit-year-grid{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+.exit-year-pill{
+  padding:5px 10px; border-radius:6px; font-size:11px; font-family:var(--mono);
+  background:var(--s3); border:1px solid var(--b2); color:var(--t2);
+  display:flex; align-items:center; gap:5px;
+}
+.exit-year-pill .ey-yr{ color:#e8f4ff; font-weight:600; }
+.exit-year-pill .ey-cnt{ font-weight:700; }
+.exit-year-pill.hot{ border-color:rgba(255,61,90,0.4); background:rgba(255,61,90,0.07); }
+.exit-year-pill.hot .ey-cnt{ color:var(--red); }
+.exit-year-pill.ok .ey-cnt{ color:var(--green); }
+.exit-year-pill.mid .ey-cnt{ color:var(--amber); }
+.exit-log-btn{
+  padding:6px 12px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;
+  background:rgba(255,61,90,0.10); border:1px solid rgba(255,61,90,0.35); color:var(--red);
+  transition:all 0.15s;
+}
+.exit-log-btn:hover{ background:rgba(255,61,90,0.18); }
+.exit-undo-btn{
+  padding:6px 12px; border-radius:6px; font-size:11px; font-weight:600; cursor:pointer;
+  background:rgba(120,136,168,0.10); border:1px solid var(--b2); color:var(--t2);
+  transition:all 0.15s;
+}
+.exit-undo-btn:hover{ background:rgba(255,255,255,0.05); }
+
+/* ── V12: Calibration badge ── */
+.calib-badge{
+  display:inline-flex; align-items:center; gap:5px;
+  padding:3px 9px; border-radius:5px; font-size:10px;
+  background:rgba(255,193,32,0.08); border:1px solid rgba(255,193,32,0.2);
+  color:var(--gold); font-family:var(--mono); margin-top:4px;
+}
 </style>
 </head>
 <body>
@@ -252,7 +306,7 @@ details summary::-webkit-details-marker{ display:none; }
     <div class="logo">G</div>
     <div>
       <div class="header-title">GPF Live Signal</div>
-      <div class="header-sub">v4.7 (v11.1) · Ext Signals Auto · No GAS</div>
+      <div class="header-sub">v4.7 (v12) · Ext Signals Auto · No GAS</div>
     </div>
   </div>
   <div id="run-time" style="font-family:var(--mono);font-size:10px;color:var(--t2)"></div>
@@ -467,6 +521,27 @@ details summary::-webkit-details-marker{ display:none; }
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════
+     V12 CARD: Exit DD Year Tracker
+     ══════════════════════════════════════════ -->
+<div class="card" id="exit-tracker-card">
+  <div class="card-head" style="color:var(--red)">
+    <span style="color:var(--red)">🚨</span> Exit DD Tracker
+    <span style="margin-left:auto;font-size:10px;color:var(--t2);letter-spacing:0;text-transform:none;font-weight:400">จาก backtest: -6% AllTime = ดีที่สุด</span>
+  </div>
+  <div class="exit-tracker">
+    <div style="font-size:11px;color:var(--t2);margin-bottom:8px">
+      บันทึกทุกครั้งที่ระบบ EXIT_DD เกิดขึ้นจริง เพื่อ audit trail และ monitor ความถี่
+    </div>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
+      <button class="exit-log-btn" onclick="logExitDD()">🚨 บันทึก EXIT วันนี้</button>
+      <button class="exit-undo-btn" onclick="undoExitDD()">↩ ยกเลิกล่าสุด</button>
+    </div>
+    <div id="exit-year-grid" class="exit-year-grid"></div>
+    <div id="exit-total-row" style="margin-top:8px;font-size:11px;color:var(--t2);font-family:var(--mono)"></div>
+  </div>
+</div>
+
 <!-- Date Navigator -->
 <div class="date-nav" id="date-nav" style="display:none">
   <button class="date-nav-btn active" id="mode-today"   onclick="setViewMode('today')">▶ วันนี้</button>
@@ -509,6 +584,21 @@ details summary::-webkit-details-marker{ display:none; }
     <div class="stat-cell"><div class="stat-label">NAV Rows</div><div class="stat-val" id="stat-rows">—</div></div>
   </div>
 
+  <!-- V12: DD Progress Bar -->
+  <div class="dd-bar-wrap" id="dd-bar-section" style="display:none">
+    <div class="dd-bar-label">
+      <span class="dd-bar-title">🛡 Drawdown Monitor (EXIT_DD threshold = -6%)</span>
+      <span class="dd-bar-pct safe" id="dd-bar-pct-label">0.00%</span>
+    </div>
+    <div class="dd-track">
+      <div class="dd-fill safe" id="dd-bar-fill" style="width:0%"></div>
+    </div>
+    <div class="dd-ticks">
+      <span>0%</span><span>-2%</span><span>-4%</span><span>-5.5%</span><span>-6% ⛔</span>
+    </div>
+    <div class="dd-status-row" id="dd-bar-status"></div>
+  </div>
+
   <div class="card" style="padding:12px 14px">
     <div class="card-head">Signal Scores</div>
     <table class="score-tbl">
@@ -524,8 +614,9 @@ details summary::-webkit-details-marker{ display:none; }
 </div>
 
 <div class="footer">
-  v4.7 (v11.1) · n_top=2 · cooldown=15d · gap=0.20 · exit_dd=-6% · ext signals (G/F/TH) · คำนวณใน browser<br>
-  signal_lag=0 (DB มี natural lag 2วันทำการอยู่แล้ว) · quota=12/yr
+  v4.7 (v12) · n_top=2 · cooldown=15bd · gap=0.20 · exit_dd=-6% · ext signals (G/F/TH) · คำนวณใน browser<br>
+  signal_lag=0 (DB มี natural lag 2วันทำการอยู่แล้ว) · quota=12/yr<br>
+  <span class="calib-badge">⚙ Calibrated: v4.7b backtest · 10 มี.ค. 2569 · EXIT_DD=-6% · AllTime Peak · Sharpe=0.80 (ดีสุดใน 8 variations)</span>
 </div>
 
 </div><!-- /app -->
@@ -535,7 +626,7 @@ details summary::-webkit-details-marker{ display:none; }
 //  CONSTANTS (ตรงกับ Backtest v4.7 = v_extAll config)
 //  EXIT_DD_PCT = -6.0  ← best from backtest (v_extAll: CAGR+11.2% Era6)
 // ================================================================
-const ALGO_VERSION  = 'v4.7.11.1';
+const ALGO_VERSION  = 'v4.7.12';
 const N_TOP         = 2;
 const COOLDOWN_DAYS = 15;
 const SCORE_GAP_MIN = 0.20;
@@ -711,7 +802,8 @@ const MIX = [
   {key:'Base_Plan',name:'แผนหลัก'},
 ];
 const ALL_PLAN_DEFS = [...DIY, ...MIX];
-const STORE_KEY = 'gpf_live_v11';
+const STORE_KEY = 'gpf_live_v12';
+const EXIT_LOG_KEY = 'gpf_exit_log_v12'; // V12: exit DD tracker
 
 // ================================================================
 //  EXT SIGNALS LOADER
@@ -1726,6 +1818,8 @@ function renderResults(data) {
   document.getElementById('stat-quota').textContent = (decision.quotaLeft ?? '—') + ' / 12';
   document.getElementById('stat-rows').textContent  = (dataRows||'?').toLocaleString?.() || dataRows;
 
+  renderDDBar(dd);           // V12: DD progress bar
+
   renderDecision(decision);
   renderTargetAllocBox(decision);
   renderScores(topScores, rawVals, decision, hasExt);
@@ -1967,6 +2061,150 @@ function fmtDate(iso) {
   } catch(e){ return iso; }
 }
 
+// ================================================================
+//  V12: EXIT DD TRACKER (localStorage)
+// ================================================================
+function getExitLog() {
+  try { return JSON.parse(localStorage.getItem(EXIT_LOG_KEY) || '[]'); } catch(e){ return []; }
+}
+function saveExitLog(log) {
+  try { localStorage.setItem(EXIT_LOG_KEY, JSON.stringify(log)); } catch(e){}
+}
+
+function logExitDD() {
+  const today = new Date().toISOString().slice(0,10);
+  const log   = getExitLog();
+  // prevent duplicate same-day
+  if (log.length && log[log.length-1] === today) {
+    if (!confirm('วันนี้บันทึก EXIT แล้ว — บันทึกซ้ำอีกครั้ง?')) return;
+  }
+  log.push(today);
+  saveExitLog(log);
+  renderExitTracker();
+  // Flash feedback
+  const btn = document.querySelector('.exit-log-btn');
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = '✅ บันทึกแล้ว!';
+    btn.style.color = 'var(--green)';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 1500);
+  }
+}
+
+function undoExitDD() {
+  const log = getExitLog();
+  if (!log.length) return;
+  if (!confirm('ยกเลิก EXIT ล่าสุด (' + log[log.length-1] + ')?')) return;
+  log.pop();
+  saveExitLog(log);
+  renderExitTracker();
+}
+
+function renderExitTracker() {
+  const log   = getExitLog();
+  const grid  = document.getElementById('exit-year-grid');
+  const total = document.getElementById('exit-total-row');
+  if (!grid) return;
+
+  // Group by year
+  const byYear = {};
+  log.forEach(d => {
+    const yr = d.slice(0,4);
+    byYear[yr] = (byYear[yr] || 0) + 1;
+  });
+
+  const years = Object.keys(byYear).sort();
+  if (years.length === 0) {
+    grid.innerHTML  = '<span style="font-size:11px;color:var(--t2)">ยังไม่มีประวัติ EXIT_DD</span>';
+    total.innerHTML = '';
+    return;
+  }
+
+  grid.innerHTML = years.map(yr => {
+    const cnt = byYear[yr];
+    const cls = cnt >= 4 ? 'hot' : cnt >= 2 ? 'mid' : 'ok';
+    const now = new Date().getFullYear().toString();
+    const isCur = (yr === now);
+    return `<div class="exit-year-pill ${cls}" ${isCur?'style="outline:1px solid rgba(0,200,240,0.3)"':''}>
+      <span class="ey-yr">${yr}${isCur?' ←':''}</span>
+      <span class="ey-cnt">${cnt}ครั้ง</span>
+    </div>`;
+  }).join('');
+
+  const totalCnt = log.length;
+  const lastDate = log[log.length - 1];
+  total.innerHTML = `รวมทั้งหมด: <span style="color:var(--text);font-weight:700">${totalCnt} ครั้ง</span>`
+    + ` &nbsp;|&nbsp; ล่าสุด: <span style="color:var(--amber)">${fmtDate(lastDate)}</span>`
+    + ` &nbsp;|&nbsp; <span style="color:var(--t2)">backtest 15ปี: 14 ครั้ง (avg 0.9/ปี)</span>`;
+}
+
+// ================================================================
+//  V12: DD PROGRESS BAR
+// ================================================================
+function renderDDBar(ddPct) {
+  const sec = document.getElementById('dd-bar-section');
+  if (!sec) return;
+  if (ddPct === null || ddPct === undefined) { sec.style.display = 'none'; return; }
+
+  sec.style.display = 'block';
+  const THRESHOLD = EXIT_DD_PCT; // -6.0
+  const pct  = Math.min(100, Math.max(0, (ddPct / THRESHOLD) * 100)); // 0-100%
+  const fill = document.getElementById('dd-bar-fill');
+  const lbl  = document.getElementById('dd-bar-pct-label');
+  const stat = document.getElementById('dd-bar-status');
+
+  // Color zone
+  let zone, emoji, msg;
+  if (ddPct > -3) {
+    zone = 'safe';
+    emoji = '🟢';
+    msg  = 'ปลอดภัย — ห่างจาก EXIT อีก ' + (ddPct - THRESHOLD).toFixed(2) + '%';
+  } else if (ddPct > -5) {
+    zone = 'warn';
+    emoji = '🟡';
+    msg  = 'เฝ้าระวัง — ห่างจาก EXIT อีก ' + (ddPct - THRESHOLD).toFixed(2) + '%';
+  } else {
+    zone = 'danger';
+    emoji = '🔴';
+    msg  = 'ใกล้ EXIT_DD! เหลือ ' + (ddPct - THRESHOLD).toFixed(2) + '% — เตรียม Money_Market';
+  }
+
+  fill.style.width  = pct + '%';
+  fill.className    = 'dd-fill ' + zone;
+  lbl.textContent   = ddPct.toFixed(2) + '%';
+  lbl.className     = 'dd-bar-pct ' + zone;
+  stat.innerHTML    = emoji + ' <span style="color:var(--t2);font-size:11px">' + msg
+    + ' &nbsp;|&nbsp; ' + pct.toFixed(0) + '% ของ threshold ถูกใช้แล้ว</span>';
+}
+
+// ================================================================
+//  V12: Constants verification log
+// ================================================================
+function logConstantsCheck() {
+  const expected = {
+    N_TOP:2, COOLDOWN_DAYS:15, SCORE_GAP_MIN:0.20, EXIT_DD_PCT:-6.0,
+    EXIT_COOLDOWN:10, REENTRY_SCORE:0.55, CONSEC_PAUSE:30,
+    G_CAP:0.25, QUOTA_PER_YR:12, CHANGE_THRESH:0.05,
+    MIN_HIST_DAYS:120, SIGNAL_LAG:0
+  };
+  const actual = {
+    N_TOP, COOLDOWN_DAYS, SCORE_GAP_MIN, EXIT_DD_PCT,
+    EXIT_COOLDOWN, REENTRY_SCORE, CONSEC_PAUSE,
+    G_CAP, QUOTA_PER_YR, CHANGE_THRESH, MIN_HIST_DAYS, SIGNAL_LAG
+  };
+  let allOk = true;
+  const lines = ['🔍 GPF v12 — Constants vs Backtest v4.7b'];
+  Object.entries(expected).forEach(([k, exp]) => {
+    const act = actual[k];
+    const ok  = act === exp;
+    if (!ok) allOk = false;
+    lines.push((ok ? '✅' : '❌') + ' ' + k + ': actual=' + act + ' | expected=' + exp);
+  });
+  lines.push(allOk ? '✅ All constants match backtest!' : '⚠️ Mismatch found');
+  lines.push('ALGO_VERSION: ' + ALGO_VERSION);
+  console.log(lines.join('\n'));
+}
+
 // ── Bootstrap ─────────────────────────────────────────────────
 window.addEventListener('DOMContentLoaded', function() {
   buildGrid('grid-diy', DIY);
@@ -1975,6 +2213,8 @@ window.addEventListener('DOMContentLoaded', function() {
   bindSave();
   onAllocChange();
   updateQuotaBar();
+  renderExitTracker();       // V12: init exit tracker
+  logConstantsCheck();       // V12: log constants to console
   document.getElementById('quota-used').addEventListener('input', function(){ updateQuotaBar(); save(); });
   // Restore ext mode (default = auto)
   try {
