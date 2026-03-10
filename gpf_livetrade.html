@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GPF Live Signal — v4.4 Aggressive</title>
+<title>GPF Live Signal — v4.6</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -178,16 +178,20 @@ input[type="number"]{ text-align:right; }
 .tag-dcy{ background:rgba(255,170,0,0.15); color:var(--amber); }
 #results-section{ display:none; flex-direction:column; gap:10px; }
 
+/* info-badge */
+.info-badge{
+  display:inline-flex; align-items:center; gap:5px;
+  padding:4px 10px; border-radius:6px; font-size:10px; font-weight:600;
+  background:rgba(0,200,240,0.08); border:1px solid rgba(0,200,240,0.2);
+  color:var(--acc); font-family:var(--mono); margin-top:6px;
+}
+
 /* Guide */
 .guide{ background:var(--s2); border:1px solid var(--b2); border-radius:8px; padding:12px 14px; font-size:11px; color:var(--t2); line-height:1.8; }
 .guide b{ color:var(--text); }
 .guide code{ font-family:var(--mono); color:var(--acc); background:rgba(0,200,240,0.08); padding:1px 5px; border-radius:3px; }
-.guide ol{ margin-left:16px; }
-.guide li{ margin-bottom:4px; }
-.step-num{ display:inline-block; width:18px; height:18px; background:var(--acc); color:#001a20; border-radius:50%; text-align:center; line-height:18px; font-size:10px; font-weight:700; margin-right:6px; flex-shrink:0; }
 details summary{ cursor:pointer; user-select:none; padding:4px 0; list-style:none; color:var(--amber); font-size:11px; }
 details summary::-webkit-details-marker{ display:none; }
-
 .divider{ border:0; border-top:1px solid var(--b2); margin:12px 0; }
 .footer{ font-size:10px; color:var(--t2); text-align:center; padding:8px 0; line-height:1.8; font-family:var(--mono); }
 </style>
@@ -201,7 +205,7 @@ details summary::-webkit-details-marker{ display:none; }
     <div class="logo">G</div>
     <div>
       <div class="header-title">GPF Live Signal</div>
-      <div class="header-sub">v4.4 Aggressive · Signal v4.3</div>
+      <div class="header-sub">v4.6 · Signal v4.3 · No GAS Required</div>
     </div>
   </div>
   <div id="run-time" style="font-family:var(--mono);font-size:10px;color:var(--t2)"></div>
@@ -211,80 +215,54 @@ details summary::-webkit-details-marker{ display:none; }
 <div id="error-box"></div>
 
 <!-- ══════════════════════════════════════════
-     CARD 1: การเชื่อมต่อ + Guide
+     CARD 1: เชื่อมต่อ Google Sheet โดยตรง
      ══════════════════════════════════════════ -->
 <div class="card">
-  <div class="card-head">การเชื่อมต่อ Google Apps Script</div>
+  <div class="card-head">เชื่อมต่อ Google Sheet โดยตรง</div>
 
-  <!-- Setup Guide (collapsible) -->
   <details style="margin-bottom:12px">
-    <summary>📋 ขั้นตอนตั้งค่าครั้งแรก (กดดูวิธี)</summary>
+    <summary>📋 วิธีตั้งค่าครั้งแรก (กดดูวิธี)</summary>
     <div class="guide" style="margin-top:8px">
-      <b>วิธี Deploy GAS (ทำครั้งเดียว):</b><br><br>
-      <ol>
-        <li>เปิด Google Sheet ที่มีข้อมูล NAV</li>
-        <li>เมนู <b>Extensions (ส่วนขยาย) → Apps Script</b></li>
-        <li>ลบ code เดิมทิ้งทั้งหมด → วาง code จากไฟล์ <code>GPF_GAS_v3.js</code></li>
-        <li>กด <b>Save</b> (Ctrl+S)</li>
-        <li><b>⚠️ ทดสอบก่อน Deploy (สำคัญมาก!):</b>
-          <ul style="margin-left:14px;margin-top:4px">
-            <li>ใส่ Sheet ID ของคุณที่บรรทัด <code>DEBUG_SHEET_ID = '...'</code></li>
-            <li>เลือก <b>testRun</b> จาก dropdown (ด้านบน)</li>
-            <li>กด <b>▶ Run</b></li>
-            <li>ถ้ามี popup ขอ Permission → กด <b>Review permissions → Allow</b></li>
-            <li>ดู Execution log ด้านล่าง → ต้องเห็น ✅</li>
-          </ul>
-        </li>
-        <li><b>Deploy → New deployment</b>
-          <ul style="margin-left:14px;margin-top:4px">
-            <li>Type: <b>Web App</b></li>
-            <li>Execute as: <b>Me</b></li>
-            <li>Who has access: <b>Anyone</b></li>
-          </ul>
-        </li>
-        <li>กด <b>Deploy</b> → Copy URL ที่ได้มาใส่ด้านล่าง</li>
-      </ol>
-      <br>
-      <b>⚠️ ข้อผิดพลาดที่พบบ่อย:</b><br>
-      • ลืม Allow Permission ตอน testRun → script ทำงานไม่ได้<br>
-      • ใช้ "Anyone with Google account" แทน "Anyone" → block คนอื่น<br>
-      • Sheet ไม่ได้ Share หรือ Share แค่ "Restricted" → เปิดเป็น Viewer ได้เลย<br>
-      • แก้ Code แล้วไม่ Deploy ใหม่ → URL เดิมยังรัน code เก่า
+      <b>ไม่ต้องใช้ GAS อีกต่อไป! ✅</b><br><br>
+      วิธีที่ 1 — <b>Publish to web (แนะนำ, ทำครั้งเดียว):</b><br>
+      1. เปิด Google Sheet (Database)<br>
+      2. <b>File → Share → Publish to web</b><br>
+      3. เลือก sheet <code>Database</code> → เลือก <code>Comma-separated values (.csv)</code><br>
+      4. กด <b>Publish</b> → คัดลอก URL ทั้งหมด<br>
+      5. วาง URL นั้นในช่อง Sheet ID/URL ด้านล่าง<br><br>
+      วิธีที่ 2 — <b>ใช้ Sheet ID ธรรมดา:</b><br>
+      คัดลอก ID จาก URL: <code>spreadsheets/d/<b style="color:var(--gold)">SHEET_ID</b>/edit</code><br>
+      → Sheet ต้อง Share เป็น <b>Anyone with the link can view</b><br><br>
+      <b>ข้อดีเทียบกับ GAS เดิม:</b><br>
+      • ไม่ต้อง Deploy, ไม่ต้อง Allow Permission<br>
+      • Signal Date ถูกต้อง (ไม่ lag ซ้ำซ้อน)<br>
+      • คำนวณใน browser โดยตรง เร็วกว่าเดิม
     </div>
   </details>
 
   <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:12px">
     <div>
-      <label>GAS Web App URL</label>
-      <input type="url" id="gas-url"
-        placeholder="https://script.google.com/macros/s/.../exec">
-      <div class="field-note">ได้จากการ Deploy → Web App → Copy URL</div>
+      <label>Google Sheet ID หรือ URL (Database)</label>
+      <input type="text" id="sheet-id"
+        placeholder="Sheet ID หรือ Publish to web URL">
+      <div class="field-note">ID จาก URL: /d/<b style="color:var(--acc)">SHEET_ID</b>/edit  หรือวาง Publish URL ตรงๆ</div>
     </div>
-    <div class="row2">
-      <div>
-        <label>Google Sheet ID</label>
-        <input type="text" id="sheet-id" placeholder="1BxiMVs0XRA5n...">
-        <div class="field-note">URL ของ Sheet: /d/<b style="color:var(--acc)">ID</b>/edit</div>
-      </div>
-      <div>
-        <label>Sheet Name (ชื่อ Tab)</label>
-        <input type="text" id="sheet-name" value="Database">
-        <div class="field-note">ชื่อ Tab ที่มี NAV</div>
-      </div>
+    <div>
+      <label>Sheet Name (ชื่อ Tab)</label>
+      <input type="text" id="sheet-name" value="Database">
+      <div class="field-note">ชื่อ Tab ที่มีข้อมูล NAV</div>
     </div>
     <div style="font-size:10px;color:var(--t2);background:var(--s2);border:1px solid var(--b2);
                 padding:8px 10px;border-radius:6px">
-      💾 ค่าทั้งหมดจะถูกจำไว้ใน browser อัตโนมัติ ไม่ต้องกรอกใหม่ทุกวัน
+      💾 ค่าทั้งหมดถูกจำไว้ใน browser อัตโนมัติ ไม่ต้องกรอกใหม่ทุกวัน
     </div>
   </div>
 
-  <!-- Test button -->
   <button class="btn-test" id="test-btn" onclick="testConnection()">
     <div class="spinner" id="test-spinner"></div>
     <span id="test-btn-txt">🔌 ทดสอบการเชื่อมต่อ</span>
   </button>
 
-  <!-- Connection status (รายละเอียดชัดเจน) -->
   <div id="conn-status">
     <div class="status-head" id="conn-status-head"></div>
     <div id="conn-status-body"></div>
@@ -342,7 +320,6 @@ details summary::-webkit-details-marker{ display:none; }
     </div>
   </div>
 
-  <!-- EXIT_DD explanation -->
   <details style="margin-bottom:4px">
     <summary style="color:var(--t2)">❓ EXIT_DD คืออะไร?</summary>
     <div style="margin-top:8px;padding:10px;background:var(--s2);border:1px solid var(--b2);border-radius:8px;font-size:11px;color:var(--t2);line-height:1.8">
@@ -355,9 +332,7 @@ details summary::-webkit-details-marker{ display:none; }
         <li>รอ <b style="color:var(--acc)">10 วันทำการ</b> (Exit Cooldown)</li>
         <li>รอให้ Signal กลับมาแข็งแกร่ง (score ≥ 0.55)</li>
         <li>ถ้า EXIT 2ครั้งใน 30วัน → รอพักเพิ่มอีก (Extra Pause)</li>
-      </ul><br>
-      <b style="color:var(--amber)">ตลอด 4.84 ปีที่ทดสอบ ระบบยังไม่เคย trigger EXIT_DD เลย</b><br>
-      (Max Drawdown จริงอยู่ที่ -4.46% ไม่ถึง -6%)
+      </ul>
     </div>
   </details>
 
@@ -371,7 +346,7 @@ details summary::-webkit-details-marker{ display:none; }
       <div>
         <label>วัน EXIT_DD ครั้งก่อนหน้า</label>
         <input type="date" id="prev-exit">
-        <div class="field-note">GAS จะ auto-คำนวณ Extra Pause ให้อัตโนมัติ</div>
+        <div class="field-note">Auto-คำนวณ Extra Pause อัตโนมัติ</div>
       </div>
     </div>
     <div style="margin-top:8px;padding:8px 10px;background:var(--s2);border:1px solid var(--b2);border-radius:6px;font-size:11px;color:var(--t2)">
@@ -402,29 +377,27 @@ details summary::-webkit-details-marker{ display:none; }
      RESULTS
      ══════════════════════════════════════════ -->
 <div id="results-section">
-
-  <!-- ══ คำแนะนำวันนี้ (prominent) ══ -->
   <div id="decision-banner">
     <div class="banner-pill" id="banner-pill">—</div>
     <div class="banner-reason" id="banner-reason"></div>
     <div class="banner-meta"   id="banner-meta"></div>
     <div class="target-row"    id="target-row"></div>
   </div>
-  <!-- Target allocation big display -->
+
   <div id="target-alloc-box" style="display:none;background:var(--s1);border:1px solid var(--b1);border-radius:12px;padding:14px 16px;"></div>
+
   <div class="stats-row">
     <div class="stat-cell"><div class="stat-label">Signal Date</div><div class="stat-val" id="stat-date">—</div></div>
     <div class="stat-cell"><div class="stat-label">Drawdown</div><div class="stat-val" id="stat-dd">—</div></div>
     <div class="stat-cell"><div class="stat-label">Quota เหลือ</div><div class="stat-val" id="stat-quota">—</div></div>
     <div class="stat-cell"><div class="stat-label">NAV Rows</div><div class="stat-val" id="stat-rows">—</div></div>
   </div>
+
   <div class="card" style="padding:12px 14px">
     <div class="card-head">Signal Scores</div>
     <table class="score-tbl">
       <thead>
-        <tr>
-          <th>แผน</th><th>Score</th><th>mom5%</th><th>mom20%</th><th>mom60%</th><th>Flag</th>
-        </tr>
+        <tr><th>แผน</th><th>Score</th><th>mom5%</th><th>mom20%</th><th>mom60%</th><th>Flag</th></tr>
       </thead>
       <tbody id="scores-body"></tbody>
     </table>
@@ -435,14 +408,35 @@ details summary::-webkit-details-marker{ display:none; }
 </div>
 
 <div class="footer">
-  v4.4 Aggressive · n_top=2 · cooldown=15d · gap=0.15 · exit_dd=-6%<br>
-  รันทุกวันทำการก่อน 15:00 · signal_lag=2d · quota=12/yr
+  v4.6 · n_top=2 · cooldown=15d · gap=0.20 · exit_dd=-6% · คำนวณใน browser (ไม่ใช้ GAS)<br>
+  signal_lag=0 (DB มี natural lag 2วันทำการอยู่แล้ว) · quota=12/yr
 </div>
 
 </div><!-- /app -->
 
 <script>
-// ── Plan definitions ──────────────────────────────────────────
+// ================================================================
+//  CONSTANTS (ตรงกับ Backtest v4.6)
+// ================================================================
+const ALGO_VERSION  = 'v4.6';
+const N_TOP         = 2;
+const COOLDOWN_DAYS = 15;
+const SCORE_GAP_MIN = 0.20;
+const EXIT_DD_PCT   = -6.0;
+const EXIT_COOLDOWN = 10;
+const REENTRY_SCORE = 0.55;
+const CONSEC_PAUSE  = 30;
+const G_CAP         = 0.25;
+const QUOTA_PER_YR  = 12;
+const CHANGE_THRESH = 0.05;
+const MIN_HIST_DAYS = 120;
+const SIGNAL_LAG    = 0;   // ✅ 0 เพราะ DB มี natural lag 2วันทำการอยู่แล้ว
+
+const W5=0.10, W20=0.28, W60=0.22, WR=0.15, W_ALIGN=0.10, W_RSMM=0.05, W_VS=0.10;
+
+const ALL_PLANS = ['A35','Base_Plan','B','Money_Market','A20','A65','TH','PR','F','Global_Bond','G','A75'];
+
+// ── Plan definitions (UI) ──────────────────────────────────────
 const DIY = [
   {key:'F',           name:'หุ้นต่างประเทศ'},
   {key:'TH',          name:'ตราสารทุนไทย'},
@@ -459,53 +453,500 @@ const MIX = [
   {key:'A20',      name:'แผนผสมหุ้น 20%'},
   {key:'Base_Plan',name:'แผนหลัก'},
 ];
-const ALL_PLANS = [...DIY, ...MIX];
-const STORE_KEY = 'gpf_live_v44c';
+const ALL_PLAN_DEFS = [...DIY, ...MIX];
+const STORE_KEY = 'gpf_live_v9';
 
-// ── Build Alloc Grid ──────────────────────────────────────────
+// ================================================================
+//  CSV FETCH — ตรงกับ Portfolio Analysis (ไม่ใช้ GAS)
+// ================================================================
+function getId(url) {
+  const m = (url||'').match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : url.trim();
+}
+
+function buildCsvUrl(input, sheetName) {
+  const s = (input||'').trim();
+  const pubMatch = s.match(/spreadsheets\/d\/e\/([^\/\?]+)/);
+  if (pubMatch) {
+    return 'https://docs.google.com/spreadsheets/d/e/' + pubMatch[1] + '/pub?output=csv';
+  }
+  const id = getId(s);
+  if (!id) return null;
+  const name = encodeURIComponent(sheetName || 'Database');
+  return 'https://docs.google.com/spreadsheets/d/' + id + '/gviz/tq?tqx=out:csv&sheet=' + name;
+}
+
+async function tryFetch(url) {
+  try {
+    const r = await fetch(url, {mode:'cors'});
+    if (r.ok) {
+      const t = await r.text();
+      if (t && t.length > 20 && !t.trim().startsWith('<')) return t;
+    }
+  } catch(e) {}
+  const proxies = [
+    'https://api.allorigins.win/raw?url=',
+    'https://corsproxy.io/?',
+    'https://api.codetabs.com/v1/proxy?quest=',
+  ];
+  for (const proxy of proxies) {
+    try {
+      const r = await fetch(proxy + encodeURIComponent(url));
+      if (r.ok) {
+        const t = await r.text();
+        if (t && t.length > 20 && !t.trim().startsWith('<') && !t.includes('"error"')) return t;
+      }
+    } catch(e) {}
+  }
+  return null;
+}
+
+async function fetchSheet(sheetId, sheetName) {
+  const csvUrl = buildCsvUrl(sheetId, sheetName);
+  if (!csvUrl) throw new Error('URL หรือ Sheet ID ไม่ถูกต้อง');
+  const text = await tryFetch(csvUrl);
+  if (!text) throw new Error(
+    'เชื่อมต่อไม่ได้ผ่านทุก proxy\n\nวิธีแก้: ใช้ File → Share → Publish to web → CSV\nแล้ววาง URL ที่ได้ในช่อง Sheet ID'
+  );
+  return text;
+}
+
+// ================================================================
+//  CSV PARSER
+// ================================================================
+function parseCSV(text) {
+  const rows = [];
+  const lines = text.split(/\r?\n/);
+  for (const line of lines) {
+    if (!line.trim()) continue;
+    const cells = []; let cur = '', inQ = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') { inQ = !inQ; continue; }
+      if (c === ',' && !inQ) { cells.push(cur.trim()); cur = ''; }
+      else cur += c;
+    }
+    cells.push(cur.trim());
+    rows.push(cells);
+  }
+  return rows;
+}
+
+// ================================================================
+//  NAV LOADER — แปลง CSV → navMatrix, dates, plans
+// ================================================================
+function loadNavFromCSV(csvText) {
+  const rows = parseCSV(csvText);
+  if (rows.length < 2) throw new Error('Sheet ว่างเปล่า หรือข้อมูลน้อยเกินไป');
+
+  const headers = rows[0].map(h => h.trim());
+  const dateCol = headers.findIndex(h => {
+    const l = h.toLowerCase();
+    return l === 'date' || l === 'วันที่' || l.includes('date');
+  });
+  if (dateCol < 0) throw new Error('ไม่พบคอลัมน์ Date — Headers: ' + headers.slice(0,8).join(', '));
+
+  const planCols = {};
+  ALL_PLANS.forEach(plan => {
+    const idx = headers.findIndex(h => h === plan);
+    if (idx >= 0) planCols[plan] = idx;
+  });
+  const plans = ALL_PLANS.filter(p => planCols[p] !== undefined);
+  if (plans.length === 0) throw new Error('ไม่พบคอลัมน์แผนใดเลย — Headers: ' + headers.join(', '));
+
+  const rowsRaw = [];
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const rawDate = row[dateCol];
+    if (!rawDate) continue;
+    const d = new Date(rawDate);
+    if (isNaN(d.getTime())) continue;
+    const navRow = {};
+    plans.forEach(plan => {
+      const v = parseFloat(row[planCols[plan]]);
+      navRow[plan] = isNaN(v) ? null : v;
+    });
+    rowsRaw.push({d, navRow});
+  }
+
+  if (rowsRaw.length === 0) throw new Error('ไม่พบแถวข้อมูลที่ parse ได้');
+  rowsRaw.sort((a, b) => a.d - b.d);
+
+  const fmtDate = d => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
+  };
+
+  return {
+    navMatrix: rowsRaw.map(x => x.navRow),
+    dates:     rowsRaw.map(x => fmtDate(x.d)),
+    plans,
+  };
+}
+
+// ================================================================
+//  SIGNAL ENGINE v4.3 (port จาก GAS — SIGNAL_LAG=0 เพราะ DB lag อยู่แล้ว)
+// ================================================================
+function pctAt(arr, idx, period) {
+  if (idx < period) return 0;
+  const c = arr[idx], p = arr[idx - period];
+  if (c == null || p == null || p === 0) return 0;
+  return (c - p) / p;
+}
+function dailyRets(arr, idx, win) {
+  const r = [];
+  for (let i = Math.max(1, idx-win+1); i <= idx; i++) {
+    if (arr[i] != null && arr[i-1] != null && arr[i-1] > 0)
+      r.push((arr[i] - arr[i-1]) / arr[i-1]);
+  }
+  return r;
+}
+function mean(a) { return a.length === 0 ? 0 : a.reduce((s,v) => s+v, 0) / a.length; }
+function stdDev(a) {
+  if (a.length < 2) return 0;
+  const m = mean(a);
+  return Math.sqrt(a.reduce((s,v) => s+(v-m)*(v-m), 0) / (a.length-1));
+}
+function computeEMA(arr, span, idx) {
+  const alpha = 2 / (span+1);
+  let ema = null;
+  for (let i = 0; i <= idx; i++) {
+    if (arr[i] == null) continue;
+    ema = ema === null ? arr[i] : alpha*arr[i] + (1-alpha)*ema;
+  }
+  return ema;
+}
+function csRank(plans, fn) {
+  if (plans.length === 0) return {};
+  if (plans.length === 1) { const r={}; r[plans[0]]=0.5; return r; }
+  const vals = plans.map(fn);
+  const indexed = vals.map((v,i) => ({v,i})).sort((a,b) => a.v-b.v);
+  const n = plans.length, ranks = new Array(n);
+  let i = 0;
+  while (i < n) {
+    let j = i;
+    while (j < n && indexed[j].v === indexed[i].v) j++;
+    const avg = (i+j-1)/2/(n-1);
+    for (let k = i; k < j; k++) ranks[indexed[k].i] = avg;
+    i = j;
+  }
+  const res = {};
+  plans.forEach((p,i) => { res[p] = ranks[i]; });
+  return res;
+}
+function bdays(d1, d2) {
+  let count = 0;
+  const cur = new Date(d1); cur.setHours(0,0,0,0);
+  const end = new Date(d2); end.setHours(0,0,0,0);
+  while (cur < end) {
+    cur.setDate(cur.getDate()+1);
+    const day = cur.getDay();
+    if (day !== 0 && day !== 6) count++;
+  }
+  return count;
+}
+function addBdays(d, n) {
+  const cur = new Date(d); cur.setHours(0,0,0,0);
+  let added = 0;
+  while (added < n) {
+    cur.setDate(cur.getDate()+1);
+    if (cur.getDay() !== 0 && cur.getDay() !== 6) added++;
+  }
+  return cur;
+}
+function fmtLocalDate(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  const day = String(d.getDate()).padStart(2,'0');
+  return y + '-' + m + '-' + day;
+}
+function parseAlloc(str) {
+  const alloc = {};
+  if (!str) return {'Money_Market': 1.0};
+  str.split(',').forEach(part => {
+    const bits = part.trim().split(':');
+    if (bits[0] && bits[1]) alloc[bits[0].trim()] = parseFloat(bits[1]) / 100;
+  });
+  const total = Object.values(alloc).reduce((s,v) => s+v, 0);
+  if (total > 0) Object.keys(alloc).forEach(p => { alloc[p] /= total; });
+  return alloc;
+}
+
+function computeSignalV43(navMatrix, dates, plans) {
+  const n   = navMatrix.length;
+  const idx = n - 1 - SIGNAL_LAG;   // SIGNAL_LAG=0 → ใช้ข้อมูลล่าสุด (DB lag อยู่แล้ว)
+  if (idx < MIN_HIST_DAYS) {
+    throw new Error('ข้อมูลน้อยเกินไป: มี ' + n + ' แถว ต้องการ ' + (MIN_HIST_DAYS+2) + ' ขึ้นไป');
+  }
+
+  const signalDate = dates[idx];
+  const navArr = {};
+  plans.forEach(p => { navArr[p] = navMatrix.map(r => r[p]); });
+
+  const raw = {};
+  plans.forEach(plan => {
+    const nav = navArr[plan];
+    if (!nav[idx]) { raw[plan] = null; return; }
+    let valid = 0;
+    for (let i = 0; i <= idx; i++) if (nav[i] != null) valid++;
+    if (valid < MIN_HIST_DAYS) { raw[plan] = null; return; }
+
+    const mom5  = pctAt(nav, idx, 5);
+    const mom20 = pctAt(nav, idx, 20);
+    const mom60 = pctAt(nav, idx, 60);
+    const dr20  = dailyRets(nav, idx, 20);
+    const mu20  = mean(dr20);
+    const sg20  = stdDev(dr20);
+    const sharpe20   = sg20 > 0 ? mu20/sg20 : 0;
+    const mmNav      = navArr['Money_Market'];
+    const mmM20      = mmNav ? pctAt(mmNav, idx, 20) : 0;
+    const relStr     = mom20 - mmM20;
+    const volScaled  = sg20 > 0 ? mom20/(sg20*Math.sqrt(20)) : 0;
+    const align      = (mom5>0&&mom20>0&&mom60>0) ? 1 : (mom5<0&&mom20<0&&mom60<0) ? -1 : 0;
+    const ema60      = computeEMA(nav, 60, idx);
+    raw[plan] = { mom5, mom20, mom60, sharpe20, align, relStr, volScaled, nav:nav[idx], ema60, sg20 };
+  });
+
+  const vp     = plans.filter(p => raw[p] !== null);
+  const r5     = csRank(vp, p => raw[p].mom5);
+  const r20    = csRank(vp, p => raw[p].mom20);
+  const r60    = csRank(vp, p => raw[p].mom60);
+  const radj   = csRank(vp, p => raw[p].sharpe20);
+  const rAlign = csRank(vp, p => raw[p].align);
+  const rRsmm  = csRank(vp, p => raw[p].relStr);
+  const rVs    = csRank(vp, p => raw[p].volScaled);
+
+  const scores = {};
+  vp.forEach(plan => {
+    let s = W5*r5[plan] + W20*r20[plan] + W60*r60[plan]
+          + WR*radj[plan] + W_ALIGN*rAlign[plan]
+          + W_RSMM*rRsmm[plan] + W_VS*rVs[plan];
+    if (raw[plan].nav < raw[plan].ema60)            s *= 0.75;
+    if (raw[plan].mom5 < 0 && raw[plan].mom20 > 0) s *= 0.90;
+    scores[plan] = s;
+  });
+  plans.filter(p => !raw[p]).forEach(p => { scores[p] = 0; });
+
+  const vals = Object.values(scores);
+  const minV = Math.min(...vals), maxV = Math.max(...vals);
+  const range = maxV - minV;
+  if (range > 0) plans.forEach(p => { scores[p] = (scores[p]-minV)/range; });
+
+  const rawVals = {};
+  vp.forEach(p => {
+    rawVals[p] = {
+      mom5:    +(raw[p].mom5  * 100).toFixed(2),
+      mom20:   +(raw[p].mom20 * 100).toFixed(2),
+      mom60:   +(raw[p].mom60 * 100).toFixed(2),
+      sharpe20: +raw[p].sharpe20.toFixed(3),
+      ema_ok:  raw[p].nav >= raw[p].ema60,
+      decay:   raw[p].mom5 < 0 && raw[p].mom20 > 0,
+    };
+  });
+
+  return { scores, rawVals, signalDate };
+}
+
+// ================================================================
+//  DECISION ENGINE
+// ================================================================
+function makeDecision({ scores, currentAlloc, quotaUsed,
+                        lastRebStr, lastExitStr, prevExitStr,
+                        peakValue, currentValue }) {
+  const today    = new Date(); today.setHours(0,0,0,0);
+  const quotaLeft = QUOTA_PER_YR - quotaUsed;
+  const ddPct    = peakValue > 0 ? (currentValue/peakValue - 1)*100 : 0;
+  const isInMM   = Object.keys(currentAlloc).length===1 && (currentAlloc['Money_Market']||0) >= 0.99;
+
+  // Auto-compute extra pause
+  let extraPauseStr = '';
+  if (lastExitStr && prevExitStr) {
+    const bdBetween = bdays(new Date(prevExitStr), new Date(lastExitStr));
+    if (bdBetween <= CONSEC_PAUSE) {
+      const pauseEnd = addBdays(new Date(lastExitStr), CONSEC_PAUSE);
+      extraPauseStr = fmtLocalDate(pauseEnd);
+    }
+  }
+
+  // 1. EXIT_DD
+  if (ddPct < EXIT_DD_PCT && !isInMM) {
+    return {
+      action:'EXIT_DD', level:'CRITICAL',
+      reason:'Drawdown ' + ddPct.toFixed(2) + '% ต่ำกว่า threshold ' + EXIT_DD_PCT + '%',
+      targetAlloc:{'Money_Market':1.0}, ddPct, quotaLeft:Math.max(0,quotaLeft-1),
+    };
+  }
+
+  // 2. Post-exit cooldown
+  if (isInMM && lastExitStr) {
+    if (extraPauseStr && today < new Date(extraPauseStr)) {
+      return {
+        action:'HOLD_EXTRA_PAUSE', level:'WARNING',
+        reason:'Extra pause (EXIT 2ครั้งใน30วัน) จนถึง ' + extraPauseStr,
+        targetAlloc:currentAlloc, ddPct, quotaLeft,
+      };
+    }
+    const bdSince = bdays(new Date(lastExitStr), today);
+    if (bdSince < EXIT_COOLDOWN) {
+      return {
+        action:'HOLD_EXIT_COOLDOWN', level:'WARNING',
+        reason:'Exit cooldown: ผ่านมา ' + bdSince + '/' + EXIT_COOLDOWN + ' วันทำการ',
+        daysLeft:EXIT_COOLDOWN - bdSince, targetAlloc:currentAlloc, ddPct, quotaLeft,
+      };
+    }
+    const topScore = Math.max(...Object.values(scores));
+    if (topScore < REENTRY_SCORE) {
+      return {
+        action:'HOLD_REENTRY', level:'WARNING',
+        reason:'Top score ' + topScore.toFixed(3) + ' < reentry threshold ' + REENTRY_SCORE,
+        targetAlloc:currentAlloc, ddPct, quotaLeft,
+      };
+    }
+  }
+
+  // 3. Quota
+  if (quotaLeft <= 0) {
+    return {
+      action:'HOLD_QUOTA', level:'INFO',
+      reason:'Quota หมดปีนี้ (' + quotaUsed + '/' + QUOTA_PER_YR + ')',
+      targetAlloc:currentAlloc, ddPct, quotaLeft:0,
+    };
+  }
+
+  // 4. Cooldown
+  if (lastRebStr) {
+    const bdSince = bdays(new Date(lastRebStr), today);
+    if (bdSince < COOLDOWN_DAYS) {
+      return {
+        action:'HOLD_COOLDOWN', level:'INFO',
+        reason:'Cooldown: ผ่านมาแล้ว ' + bdSince + '/' + COOLDOWN_DAYS + ' วันทำการ',
+        daysLeft:COOLDOWN_DAYS - bdSince, targetAlloc:currentAlloc, ddPct, quotaLeft,
+      };
+    }
+  }
+
+  // 5. Build target allocation
+  const topN = Object.entries(scores)
+    .filter(([,s]) => s > 0)
+    .sort(([,a],[,b]) => b-a)
+    .slice(0, N_TOP);
+  const totalS = topN.reduce((s,[,v]) => s+v, 0);
+  const targetAlloc = {};
+  topN.forEach(([plan,score]) => {
+    targetAlloc[plan] = totalS > 0 ? score/totalS : 1/N_TOP;
+  });
+
+  // G cap
+  if ((targetAlloc['G']||0) > G_CAP) {
+    const excess = targetAlloc['G'] - G_CAP;
+    targetAlloc['G'] = G_CAP;
+    const others = Object.keys(targetAlloc).filter(p => p !== 'G');
+    if (others.length > 0) {
+      const os = others.reduce((s,p) => s+(targetAlloc[p]||0), 0);
+      others.forEach(p => { targetAlloc[p] += excess*(targetAlloc[p]/os); });
+    } else { targetAlloc['Money_Market'] = (targetAlloc['Money_Market']||0) + excess; }
+  }
+  const tw = Object.values(targetAlloc).reduce((s,v) => s+v, 0);
+  if (tw > 0) Object.keys(targetAlloc).forEach(p => { targetAlloc[p] /= tw; });
+
+  // Round to 5%
+  let roundedSum = 0;
+  Object.keys(targetAlloc).forEach(p => {
+    targetAlloc[p] = Math.round(targetAlloc[p]*100/5)*5/100;
+    roundedSum += targetAlloc[p];
+  });
+  const roundDiff = Math.round((1-roundedSum)*100);
+  if (roundDiff !== 0) {
+    const topPlan = Object.keys(targetAlloc).reduce((a,b) => targetAlloc[a]>=targetAlloc[b]?a:b);
+    targetAlloc[topPlan] = Math.round((targetAlloc[topPlan]*100 + roundDiff))/100;
+  }
+
+  // 6. Score gap
+  if (!isInMM && Object.keys(currentAlloc).length > 0) {
+    let curWeightedScore = 0;
+    Object.entries(currentAlloc).forEach(([k,v]) => { curWeightedScore += (scores[k]||0)*v; });
+    const newTop = topN[0];
+    if (newTop) {
+      const gap = (scores[newTop[0]]||0) - curWeightedScore;
+      if (gap < SCORE_GAP_MIN) {
+        return {
+          action:'HOLD_GAP', level:'INFO',
+          reason:'Score gap ' + gap.toFixed(4) + ' < min ' + SCORE_GAP_MIN,
+          signalGap:gap, targetAlloc:currentAlloc, ddPct, quotaLeft,
+        };
+      }
+    }
+  }
+
+  // 7. Change threshold
+  const allP = [...new Set([...Object.keys(targetAlloc), ...Object.keys(currentAlloc)])];
+  const maxChange = Math.max(...allP.map(p => Math.abs((targetAlloc[p]||0)-(currentAlloc[p]||0))));
+  if (maxChange < CHANGE_THRESH && !isInMM) {
+    return {
+      action:'HOLD_SMALL_CHANGE', level:'INFO',
+      reason:'Max change ' + (maxChange*100).toFixed(1) + '% < threshold ' + (CHANGE_THRESH*100) + '%',
+      targetAlloc:currentAlloc, ddPct, quotaLeft,
+    };
+  }
+
+  // 8. REBALANCE
+  let curWS = 0;
+  Object.entries(currentAlloc).forEach(([k,v]) => { curWS += (scores[k]||0)*v; });
+  const rebNewTop = topN[0];
+  const signalGap = rebNewTop ? (scores[rebNewTop[0]]||0) - curWS : 0;
+
+  return {
+    action:'REBALANCE', level:'ACTION',
+    reason:'Signal gap ' + signalGap.toFixed(4) + ' | max change ' + (maxChange*100).toFixed(1) + '%',
+    signalGap, targetAlloc, ddPct, quotaLeft,
+    quotaAfter: quotaLeft - 1,
+  };
+}
+
+// ================================================================
+//  BUILD ALLOC GRID
+// ================================================================
 function buildGrid(containerId, plans) {
   const el = document.getElementById(containerId);
   plans.forEach(p => {
     const d = document.createElement('div');
     d.className = 'alloc-item';
-    d.innerHTML = `
-      <label>${p.name} <span>(${p.key})</span></label>
-      <input type="number" id="a_${p.key}" value="0" min="0" max="100"
-        oninput="onAllocChange()">`;
+    d.innerHTML = `<label>${p.name} <span>(${p.key})</span></label>
+      <input type="number" id="a_${p.key}" value="0" min="0" max="100" oninput="onAllocChange()">`;
     el.appendChild(d);
   });
 }
 
 function onAllocChange() {
   const total = getAllocTotal();
-  const el    = document.getElementById('alloc-sum-val');
+  const el = document.getElementById('alloc-sum-val');
   el.textContent = total;
-  el.className   = Math.abs(total - 100) <= 0.01 ? 'ok' : 'bad';
+  el.className = Math.abs(total-100) <= 0.01 ? 'ok' : 'bad';
   save();
 }
 function getAllocTotal() {
-  return ALL_PLANS.reduce((s, p) => s + (parseFloat(document.getElementById('a_'+p.key)?.value) || 0), 0);
+  return ALL_PLAN_DEFS.reduce((s,p) => s+(parseFloat(document.getElementById('a_'+p.key)?.value)||0), 0);
 }
 function getAllocStr() {
   const parts = [];
-  ALL_PLANS.forEach(p => {
-    const v = parseFloat(document.getElementById('a_'+p.key)?.value) || 0;
-    if (v > 0) parts.push(p.key + ':' + v);
+  ALL_PLAN_DEFS.forEach(p => {
+    const v = parseFloat(document.getElementById('a_'+p.key)?.value)||0;
+    if (v > 0) parts.push(p.key+':'+v);
   });
   return parts.length ? parts.join(',') : 'Money_Market:100';
 }
 
-// ── localStorage ──────────────────────────────────────────────
-const FIELDS = [
-  'gas-url','sheet-id','sheet-name',
-  'current-value','peak-value','last-rebal',
-  'quota-used','last-exit','prev-exit',
-];
+// ================================================================
+//  LOCALSTORAGE
+// ================================================================
+const FIELDS = ['sheet-id','sheet-name','current-value','peak-value','last-rebal','quota-used','last-exit','prev-exit'];
 function save() {
   try {
     const obj = {};
     FIELDS.forEach(id => { const el=document.getElementById(id); if(el) obj[id]=el.value; });
-    ALL_PLANS.forEach(p => { const el=document.getElementById('a_'+p.key); if(el) obj['a_'+p.key]=el.value; });
+    ALL_PLAN_DEFS.forEach(p => { const el=document.getElementById('a_'+p.key); if(el) obj['a_'+p.key]=el.value; });
     localStorage.setItem(STORE_KEY, JSON.stringify(obj));
   } catch(e){}
 }
@@ -513,110 +954,108 @@ function load() {
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
     FIELDS.forEach(id => { if(s[id]!==undefined){const el=document.getElementById(id);if(el)el.value=s[id];} });
-    ALL_PLANS.forEach(p => { const k='a_'+p.key; if(s[k]!==undefined){const el=document.getElementById(k);if(el)el.value=s[k];} });
+    ALL_PLAN_DEFS.forEach(p => { const k='a_'+p.key; if(s[k]!==undefined){const el=document.getElementById(k);if(el)el.value=s[k];} });
   } catch(e){}
 }
 function bindSave() {
-  FIELDS.forEach(id => { const el=document.getElementById(id); if(el) el.addEventListener('change', save); });
+  FIELDS.forEach(id => { const el=document.getElementById(id); if(el) el.addEventListener('change',save); });
 }
 
-// ── Quota bar ─────────────────────────────────────────────────
+// ================================================================
+//  QUOTA BAR
+// ================================================================
 function updateQuotaBar() {
   const used = parseInt(document.getElementById('quota-used')?.value||'0', 10);
   const pips = document.getElementById('quota-pips');
   pips.innerHTML = '';
   for (let i = 1; i <= 12; i++) {
     const pip = document.createElement('div');
-    pip.className = 'quota-pip' + (i<=used ? ' used' : i>=11 ? ' buf' : '');
+    pip.className = 'quota-pip' + (i<=used?' used':i>=11?' buf':'');
     pips.appendChild(pip);
   }
   const left = 12 - used;
-  const txt  = document.getElementById('quota-text');
+  const txt = document.getElementById('quota-text');
   txt.textContent = used + ' / 12';
   txt.style.color = left<=2 ? 'var(--amber)' : 'var(--t2)';
 }
 
 // ================================================================
-//  TEST CONNECTION — ใช้ JSONP (proven สำหรับ GAS)
-//  ✅ ไม่มีปัญหา CORS เพราะใช้ script-tag แทน fetch()
+//  TEST CONNECTION
 // ================================================================
-function testConnection() {
+async function testConnection() {
   hideError();
-  const gasUrl    = document.getElementById('gas-url').value.trim();
   const sheetId   = document.getElementById('sheet-id').value.trim();
   const sheetName = document.getElementById('sheet-name').value.trim() || 'Database';
-
-  if (!gasUrl) { showError('❌ กรุณากรอก GAS Web App URL'); return; }
-  if (!sheetId){ showError('❌ กรุณากรอก Google Sheet ID'); return; }
-  if (!gasUrl.startsWith('https://script.google.com/macros/s/')) {
-    showError('❌ GAS URL ดูไม่ถูกต้อง — ต้องขึ้นต้นด้วย https://script.google.com/macros/s/');
-    return;
-  }
+  if (!sheetId) { showError('❌ กรุณากรอก Sheet ID หรือ URL'); return; }
 
   setTestLoading(true);
   document.getElementById('conn-status').style.display = 'none';
 
-  callGAS({ action:'test', sheetId, sheetName }, function(data) {
-    setTestLoading(false);
-    if (data.success) {
-      const connEl = document.getElementById('conn-status');
-      connEl.className = 'ok';
-      connEl.style.display = 'block';
-      document.getElementById('conn-status-head').textContent = '✅ เชื่อมต่อสำเร็จ';
-      document.getElementById('conn-status-body').innerHTML =
-        '<div class="status-row" style="font-size:13px;margin-bottom:6px">' +
-        'NAV ล่าสุด: <span style="color:var(--green);font-size:14px;font-weight:700">' + fmtDate(data.lastDate) + '</span></div>' +
-        '<div class="status-row">ข้อมูลทั้งหมด: <span>' + (data.dataRows||0).toLocaleString() + ' แถว</span></div>' +
-        '<div class="status-row">แผนที่พบ: <span>' + (data.foundPlans||data.plans||[]).length + ' แผน (' + (data.foundPlans||data.plans||[]).join(', ') + ')</span></div>' +
-        '<div style="margin-top:8px;padding:7px 10px;background:rgba(0,230,118,0.08);border-radius:6px;font-size:11px;color:var(--green)">✅ พร้อมรัน Signal — กด ▶ รัน Signal วันนี้ ด้านล่างได้เลย</div>';
-      document.getElementById('run-btn').disabled = false;
-    } else {
-      showConnError('GAS ตอบกลับ error: ' + (data.error || 'unknown'));
-    }
+  try {
+    const csv = await fetchSheet(sheetId, sheetName);
+    const { navMatrix, dates, plans } = loadNavFromCSV(csv);
+    const lastDate = dates[dates.length-1];
+    const signalDate = dates[dates.length-1-SIGNAL_LAG];
+
+    const connEl = document.getElementById('conn-status');
+    connEl.className = 'ok';
+    connEl.style.display = 'block';
+    document.getElementById('conn-status-head').textContent = '✅ เชื่อมต่อสำเร็จ';
+    document.getElementById('conn-status-body').innerHTML =
+      '<div class="status-row" style="font-size:13px;margin-bottom:6px">' +
+      'NAV ล่าสุด: <span style="color:var(--green);font-size:14px;font-weight:700">' + fmtDate(lastDate) + '</span></div>' +
+      '<div class="status-row">Signal Date: <span>' + fmtDate(signalDate) + '</span></div>' +
+      '<div class="status-row">ข้อมูลทั้งหมด: <span>' + navMatrix.length.toLocaleString() + ' แถว</span></div>' +
+      '<div class="status-row">แผนที่พบ: <span>' + plans.length + ' แผน (' + plans.join(', ') + ')</span></div>' +
+      '<div style="margin-top:8px;padding:7px 10px;background:rgba(0,230,118,0.08);border-radius:6px;font-size:11px;color:var(--green)">✅ พร้อมรัน Signal — กด ▶ รัน Signal วันนี้ ด้านล่างได้เลย</div>';
+    document.getElementById('run-btn').disabled = false;
     save();
-  }, function(err) {
+  } catch(e) {
+    const connEl = document.getElementById('conn-status');
+    connEl.className = 'err';
+    connEl.style.display = 'block';
+    document.getElementById('conn-status-head').textContent = '❌ เชื่อมต่อไม่สำเร็จ';
+    document.getElementById('conn-status-body').innerHTML =
+      '<div class="status-row" style="color:var(--red);white-space:pre-wrap">' + e.message + '</div>' +
+      '<div class="status-row" style="margin-top:6px">วิธีแก้:<br>' +
+      '• ลอง File → Share → Publish to web → CSV แล้ววาง URL ในช่อง<br>' +
+      '• หรือตรวจสอบว่า Sheet ตั้ง "Anyone with the link can view"</div>';
+  } finally {
     setTestLoading(false);
-    showConnError(err);
-  });
+  }
 }
 
 // ================================================================
 //  RUN SIGNAL
 // ================================================================
-function runSignal() {
+async function runSignal() {
   save();
   hideError();
 
-  const gasUrl  = document.getElementById('gas-url').value.trim();
-  const sheetId = document.getElementById('sheet-id').value.trim();
-  if (!gasUrl || !sheetId) { showError('กรุณาทดสอบการเชื่อมต่อก่อน'); return; }
+  const sheetId   = document.getElementById('sheet-id').value.trim();
+  const sheetName = document.getElementById('sheet-name').value.trim() || 'Database';
+  if (!sheetId) { showError('กรุณาทดสอบการเชื่อมต่อก่อน'); return; }
 
   const total = getAllocTotal();
-  if (Math.abs(total - 100) > 0.01) {
+  if (Math.abs(total-100) > 0.01) {
     showError('ผลรวม Allocation = ' + total + '% ต้องเท่ากับ 100% ก่อนรัน');
     return;
   }
 
-  // State bypass warning: ถ้า MM=100% แต่ไม่มี lastExitDate → เตือน
-  const allocStr  = getAllocStr();
+  const allocStr = getAllocStr();
   const isInMM100 = allocStr === 'Money_Market:100';
   const lastExit  = document.getElementById('last-exit').value;
   if (isInMM100 && !lastExit) {
-    showError(
-      '⚠️ พอร์ตปัจจุบันเป็น Money_Market 100%\n' +
-      'กรุณากรอก "วัน EXIT_DD ล่าสุด" ด้วย — มิฉะนั้นระบบจะไม่ตรวจสอบ Exit Cooldown และ Reentry Score\n' +
-      '(ถ้ายังไม่เคย EXIT ให้เว้นว่างได้ แต่ต้องแน่ใจว่าเข้า MM โดยระบบ)'
-    );
+    showError('⚠️ พอร์ตปัจจุบันเป็น Money_Market 100%\nกรุณากรอก "วัน EXIT_DD ล่าสุด" ด้วย\n(ถ้ายังไม่เคย EXIT ให้เว้นว่างได้ แต่ต้องแน่ใจ)');
     return;
   }
 
-  // Fix: current > peak → auto-update peak หรือ error
-  const curVal  = parseFloat(document.getElementById('current-value').value) || 0;
-  const peakVal = parseFloat(document.getElementById('peak-value').value) || 0;
+  const curVal  = parseFloat(document.getElementById('current-value').value)||0;
+  const peakVal = parseFloat(document.getElementById('peak-value').value)||0;
   if (curVal > 0 && (peakVal === 0 || curVal > peakVal)) {
     const msg = peakVal === 0
-      ? '⚠️ กรุณากรอก Peak Value (มูลค่าสูงสุดตลอดกาล)\nถ้ายังไม่มี Peak — ใส่ค่าเดียวกับ Current Value (' + curVal.toLocaleString() + '฿) ได้เลย'
-      : '⚠️ Current Value (' + curVal.toLocaleString() + '฿) สูงกว่า Peak Value (' + peakVal.toLocaleString() + '฿)\nพอร์ตทำ All-Time High ใหม่ — อัปเดต Peak Value เป็น ' + curVal.toLocaleString() + '฿';
+      ? '⚠️ กรุณากรอก Peak Value\nถ้ายังไม่มี Peak — ใส่ค่าเดียวกับ Current Value (' + curVal.toLocaleString() + '฿)'
+      : '⚠️ Current Value สูงกว่า Peak Value\nพอร์ตทำ All-Time High ใหม่ — อัปเดต Peak Value เป็น ' + curVal.toLocaleString() + '฿';
     document.getElementById('peak-value').value = curVal;
     save();
     showError(msg);
@@ -624,79 +1063,49 @@ function runSignal() {
   }
 
   setRunLoading(true);
-  callGAS({
-    action:        'signal',
-    sheetId:       sheetId,
-    sheetName:     document.getElementById('sheet-name').value.trim() || 'Database',
-    currentAlloc:  getAllocStr(),
-    quotaUsed:     String(Math.min(12, Math.max(0, parseInt(document.getElementById('quota-used').value) || 0))),
-    lastRebalDate: document.getElementById('last-rebal').value,
-    lastExitDate:  document.getElementById('last-exit').value,
-    prevExitDate:  document.getElementById('prev-exit')?.value || '',
-    peakValue:     document.getElementById('peak-value').value || '0',
-    currentValue:  document.getElementById('current-value').value || '0',
-  }, function(data) {
-    setRunLoading(false);
-    if (!data.success) { showError('GAS error: ' + (data.error||'unknown')); return; }
-    renderResults(data);
+  try {
+    // 1. Fetch CSV
+    const csv = await fetchSheet(sheetId, sheetName);
+    // 2. Parse NAV
+    const { navMatrix, dates, plans } = loadNavFromCSV(csv);
+    // 3. Compute Signal
+    const { scores, rawVals, signalDate } = computeSignalV43(navMatrix, dates, plans);
+    // 4. Make Decision
+    const currentAlloc = parseAlloc(allocStr);
+    const quotaUsed    = Math.min(12, Math.max(0, parseInt(document.getElementById('quota-used').value)||0));
+    const decision     = makeDecision({
+      scores, currentAlloc, quotaUsed,
+      lastRebStr:  document.getElementById('last-rebal').value,
+      lastExitStr: document.getElementById('last-exit').value,
+      prevExitStr: document.getElementById('prev-exit').value||'',
+      peakValue:   peakVal,
+      currentValue:curVal,
+    });
+
+    // 5. Build topScores
+    const topScores = plans
+      .map(pl => ({plan:pl, score:+(scores[pl]||0).toFixed(4)}))
+      .sort((a,b) => b.score-a.score);
+
+    // 6. Render
+    renderResults({ decision, topScores, rawVals, signalDate, dataRows:navMatrix.length });
     document.getElementById('run-time').textContent = 'อัปเดต: ' + new Date().toLocaleTimeString('th-TH');
-  // Show auto-computed extra pause end
-  var pauseEl = document.getElementById('auto-pause-result');
-  if (pauseEl) {
-    if (data.extraPauseEnd) {
-      pauseEl.textContent = '⚡ Auto-computed Extra Pause สิ้นสุด: ' + fmtDate(data.extraPauseEnd);
-    } else {
-      pauseEl.textContent = '';
+
+    // Extra pause display
+    const pauseEl = document.getElementById('auto-pause-result');
+    if (pauseEl && decision.action === 'HOLD_EXTRA_PAUSE') {
+      pauseEl.textContent = '⚡ Extra Pause สิ้นสุด: ' + fmtDate(decision.reason.split('จนถึง ')[1]||'');
     }
-  }
-  }, function(err) {
+  } catch(e) {
+    showError('รัน Signal ไม่สำเร็จ:\n' + e.message);
+  } finally {
     setRunLoading(false);
-    showError('รัน Signal ไม่สำเร็จ: ' + err);
-  });
-}
-
-// ================================================================
-//  JSONP HELPER — เรียก GAS โดยไม่มีปัญหา CORS
-//  ทำงานได้แน่นอนกับ GAS Web App "Anyone" access
-// ================================================================
-function callGAS(params, onSuccess, onError) {
-  const cbName = '_gpf_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6);
-  const gasUrl = document.getElementById('gas-url').value.trim();
-
-  // Timeout 40 วินาที
-  const timer = setTimeout(function() {
-    cleanup();
-    onError('Timeout (40s) — GAS ไม่ตอบสนอง ตรวจสอบว่า Deploy เสร็จแล้ว และ URL ถูกต้อง');
-  }, 40000);
-
-  function cleanup() {
-    clearTimeout(timer);
-    delete window[cbName];
-    const old = document.getElementById('_gas_script_' + cbName);
-    if (old && old.parentNode) old.parentNode.removeChild(old);
   }
-
-  // GAS จะเรียก window[cbName](data)
-  window[cbName] = function(data) {
-    cleanup();
-    onSuccess(data);
-  };
-
-  // สร้าง script-tag — วิธีเดียวที่ข้าม CORS ได้สำหรับ GAS
-  const qs  = Object.entries(Object.assign({callback: cbName}, params))
-    .map(function(kv){ return encodeURIComponent(kv[0]) + '=' + encodeURIComponent(kv[1]); })
-    .join('&');
-  const scr = document.createElement('script');
-  scr.id    = '_gas_script_' + cbName;
-  scr.src   = gasUrl + '?' + qs;
-  scr.onerror = function() {
-    cleanup();
-    onError('โหลด GAS script ล้มเหลว — ตรวจสอบ URL อีกครั้ง\n\nข้อควรตรวจสอบ:\n• URL ต้องขึ้นต้นด้วย https://script.google.com/macros/s/\n• Deploy ต้อง "Who has access: Anyone" (ไม่ใช่ Anyone with Google account)\n• หลัง Deploy ใหม่ URL จะเปลี่ยน ต้อง copy URL ใหม่');
-  };
-  document.body.appendChild(scr);
 }
 
-// ── Render ────────────────────────────────────────────────────
+// ================================================================
+//  RENDER
+// ================================================================
 const ACTION_MAP = {
   'REBALANCE':         {cls:'action',   label:'✅ REBALANCE'},
   'EXIT_DD':           {cls:'critical', label:'🚨 EXIT_DD'},
@@ -717,7 +1126,7 @@ function renderResults(data) {
   document.getElementById('stat-dd').textContent    = dd.toFixed(2) + '%';
   document.getElementById('stat-dd').className      = 'stat-val ' + (dd < -3 ? 'red' : dd < -1 ? 'amber' : 'green');
   document.getElementById('stat-quota').textContent = (decision.quotaLeft ?? '—') + ' / 12';
-  document.getElementById('stat-rows').textContent  = (dataRows || '?').toLocaleString?.() || dataRows;
+  document.getElementById('stat-rows').textContent  = (dataRows||'?').toLocaleString?.() || dataRows;
 
   renderDecision(decision);
   renderTargetAllocBox(decision);
@@ -725,7 +1134,7 @@ function renderResults(data) {
 
   const sec = document.getElementById('results-section');
   sec.style.display = 'flex';
-  setTimeout(function(){ sec.scrollIntoView({behavior:'smooth', block:'start'}); }, 100);
+  setTimeout(() => sec.scrollIntoView({behavior:'smooth', block:'start'}), 100);
 }
 
 function renderDecision(d) {
@@ -747,7 +1156,7 @@ function renderDecision(d) {
     lbl.className = 'target-label';
     lbl.textContent = isAct ? '⟶ Target:' : 'Current:';
     row.appendChild(lbl);
-    Object.entries(d.targetAlloc).sort(function(a,b){ return b[1]-a[1]; }).forEach(function(kv) {
+    Object.entries(d.targetAlloc).sort((a,b) => b[1]-a[1]).forEach(kv => {
       const pill = document.createElement('span');
       pill.className = 'tpill' + (isAct ? ' new' : '');
       pill.textContent = kv[0] + ': ' + (kv[1]*100).toFixed(0) + '%';
@@ -762,7 +1171,6 @@ function renderDecision(d) {
   }
 }
 
-// render target alloc as a big prominent box
 function renderTargetAllocBox(d) {
   const box = document.getElementById('target-alloc-box');
   if (!box) return;
@@ -771,7 +1179,7 @@ function renderTargetAllocBox(d) {
   box.style.display = 'block';
   let html2 = '<div style="font-size:10px;color:var(--t2);font-weight:600;letter-spacing:0.10em;text-transform:uppercase;margin-bottom:8px">สัดส่วนแผนที่แนะนำ (เป้าหมาย)</div>';
   html2 += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
-  Object.entries(d.targetAlloc).sort(function(a,b){return b[1]-a[1];}).forEach(function(kv) {
+  Object.entries(d.targetAlloc).sort((a,b) => b[1]-a[1]).forEach(kv => {
     const planName = getPlanName(kv[0]);
     const pct = (kv[1]*100).toFixed(0);
     html2 += '<div style="flex:1;min-width:120px;background:rgba(0,230,118,0.08);border:1px solid rgba(0,230,118,0.3);border-radius:10px;padding:12px 14px;text-align:center;">' +
@@ -785,7 +1193,7 @@ function renderTargetAllocBox(d) {
 }
 
 function getPlanName(key) {
-  var names = {
+  const names = {
     'F':'หุ้นต่างประเทศ','TH':'ตราสารทุนไทย','G':'ทองคำ',
     'PR':'อสังหาฯ','Global_Bond':'ตราสารหนี้ตปท.','B':'ตราสารหนี้',
     'Money_Market':'ตลาดเงิน','A75':'แผนผสม 75%','A65':'แผนผสม 65%',
@@ -795,13 +1203,13 @@ function getPlanName(key) {
 }
 
 function renderScores(topScores, rawVals, decision) {
-  const tgtSet  = new Set(Object.keys(decision.targetAlloc || {}));
-  const curSet  = new Set(getAllocStr().split(',').map(function(p){ return p.split(':')[0]; }));
-  const isAct   = decision.action === 'REBALANCE' || decision.action === 'EXIT_DD';
-  const tbody   = document.getElementById('scores-body');
+  const tgtSet = new Set(Object.keys(decision.targetAlloc||{}));
+  const curSet = new Set(getAllocStr().split(',').map(p => p.split(':')[0]));
+  const isAct  = decision.action === 'REBALANCE' || decision.action === 'EXIT_DD';
+  const tbody  = document.getElementById('scores-body');
   tbody.innerHTML = '';
 
-  topScores.forEach(function(item) {
+  topScores.forEach(item => {
     const plan = item.plan, score = item.score;
     const rv   = (rawVals && rawVals[plan]) || {};
     const inT  = isAct && tgtSet.has(plan);
@@ -826,23 +1234,10 @@ function renderScores(topScores, rawVals, decision) {
   });
 }
 
-// ── Error / Loading helpers ───────────────────────────────────
-function showConnError(msg) {
-  const connEl = document.getElementById('conn-status');
-  connEl.className = 'err';
-  connEl.style.display = '';
-  document.getElementById('conn-status-head').textContent = '❌ เชื่อมต่อไม่สำเร็จ';
-  document.getElementById('conn-status-body').innerHTML =
-    '<div class="status-row" style="color:var(--red);white-space:pre-wrap">' + msg + '</div>' +
-    '<div class="status-row" style="margin-top:6px">ข้อควรตรวจสอบ:<br>' +
-    '• ขั้นตอน "ทดสอบก่อน Deploy" (testRun) ทำแล้วหรือยัง?<br>' +
-    '• กด Allow Permission ตอน testRun แล้วหรือยัง?<br>' +
-    '• Who has access ตั้งเป็น <b>Anyone</b> (ไม่ใช่ Anyone with Google account)?<br>' +
-    '• URL ที่วางมาจาก Deploy ล่าสุดใช่ไหม?</div>';
-}
+// ── Helpers ───────────────────────────────────────────────────
 function showError(msg) {
   const el = document.getElementById('error-box');
-  el.innerHTML = msg.replace(/\n/g, '<br>');
+  el.innerHTML = msg.replace(/\n/g,'<br>');
   el.style.display = '';
 }
 function hideError() { document.getElementById('error-box').style.display = 'none'; }
@@ -869,9 +1264,8 @@ window.addEventListener('DOMContentLoaded', function() {
   buildGrid('grid-mix', MIX);
   load();
   bindSave();
-  onAllocChange();   // update sum display
+  onAllocChange();
   updateQuotaBar();
-
   document.getElementById('quota-used').addEventListener('input', function(){ updateQuotaBar(); save(); });
 });
 </script>
