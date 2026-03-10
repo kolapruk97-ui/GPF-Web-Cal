@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GPF Live Signal — v4.7</title>
+<title>GPF Live Signal — v4.7 (v11.1)</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -252,7 +252,7 @@ details summary::-webkit-details-marker{ display:none; }
     <div class="logo">G</div>
     <div>
       <div class="header-title">GPF Live Signal</div>
-      <div class="header-sub">v4.7 · Ext Signals (G/F/TH) · No GAS</div>
+      <div class="header-sub">v4.7 (v11.1) · Ext Signals Auto · No GAS</div>
     </div>
   </div>
   <div id="run-time" style="font-family:var(--mono);font-size:10px;color:var(--t2)"></div>
@@ -524,7 +524,7 @@ details summary::-webkit-details-marker{ display:none; }
 </div>
 
 <div class="footer">
-  v4.7 · n_top=2 · cooldown=15d · gap=0.20 · exit_dd=-6% · ext signals (G/F/TH) · คำนวณใน browser<br>
+  v4.7 (v11.1) · n_top=2 · cooldown=15d · gap=0.20 · exit_dd=-6% · ext signals (G/F/TH) · คำนวณใน browser<br>
   signal_lag=0 (DB มี natural lag 2วันทำการอยู่แล้ว) · quota=12/yr
 </div>
 
@@ -535,7 +535,7 @@ details summary::-webkit-details-marker{ display:none; }
 //  CONSTANTS (ตรงกับ Backtest v4.7 = v_extAll config)
 //  EXIT_DD_PCT = -6.0  ← best from backtest (v_extAll: CAGR+11.2% Era6)
 // ================================================================
-const ALGO_VERSION  = 'v4.7';
+const ALGO_VERSION  = 'v4.7.11.1';
 const N_TOP         = 2;
 const COOLDOWN_DAYS = 15;
 const SCORE_GAP_MIN = 0.20;
@@ -564,13 +564,21 @@ function setExtMode(mode) {
   const manFields= document.getElementById('ext-manual-fields');
   if (!autoBtn) return;
   if (mode === 'auto') {
-    autoBtn.style.cssText  += ';background:rgba(0,230,118,0.12);border-color:rgba(0,230,118,0.4);color:var(--green)';
-    manBtn.style.cssText   += ';background:var(--s2);border-color:var(--b2);color:var(--t2)';
+    autoBtn.style.background  = 'rgba(0,230,118,0.12)';
+    autoBtn.style.borderColor = 'rgba(0,230,118,0.4)';
+    autoBtn.style.color       = 'var(--green)';
+    manBtn.style.background   = 'var(--s2)';
+    manBtn.style.borderColor  = 'var(--b2)';
+    manBtn.style.color        = 'var(--t2)';
     if (autoInfo)  autoInfo.style.display  = 'block';
     if (manFields) manFields.style.display = 'none';
   } else {
-    manBtn.style.cssText   += ';background:rgba(0,200,240,0.12);border-color:rgba(0,200,240,0.4);color:var(--acc)';
-    autoBtn.style.cssText  += ';background:var(--s2);border-color:var(--b2);color:var(--t2)';
+    manBtn.style.background   = 'rgba(0,200,240,0.12)';
+    manBtn.style.borderColor  = 'rgba(0,200,240,0.4)';
+    manBtn.style.color        = 'var(--acc)';
+    autoBtn.style.background  = 'var(--s2)';
+    autoBtn.style.borderColor = 'var(--b2)';
+    autoBtn.style.color       = 'var(--t2)';
     if (manFields) manFields.style.display = 'flex';
     if (autoInfo)  autoInfo.style.display  = 'none';
   }
@@ -589,8 +597,12 @@ function setExtMode(mode) {
 //            SET         = ^SET.BK
 // ================================================================
 async function fetchYahoo(ticker) {
+  // range=1y (~252 trading days) ensures:
+  //   - mom60 covered for dates up to ~170 calendar days back  ✅
+  //   - EMA60 warmup converged (residual <0.2% after 252td)    ✅
+  //   - was range=180d (~128td): EMA60 residual 1.4%, history limit ~95d
   const url = 'https://query1.finance.yahoo.com/v8/finance/chart/'
-    + encodeURIComponent(ticker) + '?interval=1d&range=180d';
+    + encodeURIComponent(ticker) + '?interval=1d&range=1y';
   for (const proxy of [
     'https://api.allorigins.win/raw?url=',
     'https://corsproxy.io/?',
@@ -651,6 +663,8 @@ async function fetchExtSignalsAuto(dates) {
       F_composite: urth ? urth * fx : null,
       SET:         setv || null,
       USD_THB:     fx,
+      gc_usd:      gc,        // keep raw components for display
+      urth_usd:    urth || null,
     });
   });
 
@@ -697,7 +711,7 @@ const MIX = [
   {key:'Base_Plan',name:'แผนหลัก'},
 ];
 const ALL_PLAN_DEFS = [...DIY, ...MIX];
-const STORE_KEY = 'gpf_live_v10';
+const STORE_KEY = 'gpf_live_v11';
 
 // ================================================================
 //  EXT SIGNALS LOADER
@@ -745,6 +759,21 @@ function loadExtFromCSV(csvText) {
 
 // Merge ext signals into nav dates via left join + forward-fill (Thai calendar)
 // Returns { G: float[], F: float[], TH: float[] } indexed same as navMatrix/dates
+// Return the actual ext entry (with date) that would be used via ffill for a given targetDate
+function getExtAtDate(extMap, targetDate) {
+  if (!extMap || !targetDate) return null;
+  const extDates = [...extMap.keys()].sort();
+  // Binary search for last date ≤ targetDate
+  let lo = 0, hi = extDates.length - 1, found = null;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if (extDates[mid] <= targetDate) { found = extDates[mid]; lo = mid + 1; }
+    else hi = mid - 1;
+  }
+  if (!found) return null;
+  return { date: found, ...extMap.get(found) };
+}
+
 function buildExtArrays(dates, extMap) {
   if (!extMap || extMap.size === 0) return null;
 
@@ -1104,7 +1133,7 @@ function makeDecision({ scores, currentAlloc, quotaUsed,
   let extraPauseStr = '';
   if (lastExitStr && prevExitStr) {
     const bdBetween = bdays(new Date(prevExitStr), new Date(lastExitStr));
-    if (bdBetween <= CONSEC_PAUSE) {
+    if (bdBetween > 0 && bdBetween <= CONSEC_PAUSE) {
       const pauseEnd = addBdays(new Date(lastExitStr), CONSEC_PAUSE);
       extraPauseStr = fmtLocalDate(pauseEnd);
     }
@@ -1537,21 +1566,66 @@ async function runSignal() {
         if (extEl2) { extEl2.className='ext-off'; extEl2.style.display='block'; extEl2.innerHTML='กำลังดึง Yahoo Finance…'; }
         const { extMap, lastDate, counts, tickers } = await fetchExtSignalsAuto(dates);
         extArrays = buildExtArrays(dates, extMap);
+
         if (extEl2) {
-          const stale = isHistory && sliceLabel && lastDate < sliceLabel;
-          const fmt2  = v => v != null ? v.toLocaleString('th-TH',{maximumFractionDigits:2}) : '—';
-          // XAU/THB = GC × USDTHB
-          const xauThb = (tickers.gc && tickers.fx) ? tickers.gc.val * tickers.fx.val : null;
-          const urthThb= (tickers.urth && tickers.fx) ? tickers.urth.val * tickers.fx.val : null;
-          const rows = [
-            `<span style="color:var(--gold)">G XAU/THB</span> ${fmt2(xauThb)} ฿ &nbsp;<span style="color:var(--t2);font-size:10px">(GC=${fmt2(tickers.gc?.val)} × ${fmt2(tickers.fx?.val)} | ${tickers.gc?.date||'?'})</span>`,
-            `<span style="color:var(--acc)">F URTH×THB</span> ${fmt2(urthThb)} ฿ &nbsp;<span style="color:var(--t2);font-size:10px">(URTH=${fmt2(tickers.urth?.val)} | ${tickers.urth?.date||'?'})</span>`,
-            `<span style="color:var(--green)">TH SET</span> ${fmt2(tickers.set?.val)} &nbsp;<span style="color:var(--t2);font-size:10px">(${tickers.set?.date||'?'})</span>`,
-          ].join('<br>');
+          // ── Determine which date's prices to show ──────────────
+          // For history: show prices actually used at signalDate (= last sliced date)
+          // For today:   show latest prices from Yahoo
+          const signalDateStr = dates[dates.length - 1];
+          const isHistMode    = isHistory && histDateVal;
+
+          let dispEntry, dispLabel;
+          if (isHistMode) {
+            // Actual ext entry used at the history signal date
+            dispEntry = getExtAtDate(extMap, signalDateStr);
+            const isFfill = dispEntry && dispEntry.date !== signalDateStr;
+            // Warn if histDate is older than Yahoo coverage (~252td ≈ 365 cal days with range=1y)
+            const daysAgo = Math.floor((Date.now() - new Date(signalDateStr).getTime()) / 86400000);
+            const coverageWarn = daysAgo > 340
+              ? ` <span style="color:var(--amber);font-size:10px">⚠ ย้อนหลัง ${daysAgo}d — อาจเกิน 1y Yahoo range → ffill</span>`
+              : daysAgo > 250
+              ? ` <span style="color:var(--amber);font-size:10px">⚠ ย้อนหลัง ${daysAgo}d — EMA60 warmup อาจไม่ครบ</span>`
+              : '';
+            dispLabel = dispEntry
+              ? `<b style="font-size:11px">Yahoo Finance: ✓ สำเร็จ</b> <span style="color:var(--amber);font-size:10px">📅 ย้อนหลัง — ราคา ณ ${dispEntry.date}${isFfill ? ' (ffill)' : ''}</span>${coverageWarn}`
+              : `<b style="font-size:11px;color:var(--amber)">Yahoo Finance: ⚠ ไม่มีข้อมูล ณ วันที่เลือก → ffill</b>`;
+          } else {
+            // Today mode: use latest ticker values (same as before)
+            dispEntry = {
+              date:        tickers.gc?.date || '?',
+              XAU_THB:     (tickers.gc && tickers.fx) ? tickers.gc.val * tickers.fx.val : null,
+              F_composite: (tickers.urth && tickers.fx) ? tickers.urth.val * tickers.fx.val : null,
+              SET:         tickers.set?.val || null,
+              USD_THB:     tickers.fx?.val || null,
+              gc_usd:      tickers.gc?.val || null,
+              urth_usd:    tickers.urth?.val || null,
+              // For today, URTH date may differ from GC date — track separately
+              _urthDate:   tickers.urth?.date,
+              _setDate:    tickers.set?.date,
+            };
+            dispLabel = `<b style="font-size:11px">Yahoo Finance: ✓ ล่าสุด</b>`;
+          }
+
+          const fmt2 = v => v != null ? (+v).toLocaleString('th-TH',{maximumFractionDigits:2}) : '—';
+          const fmtComp = (entry, isHist) => {
+            if (!entry) return ['—', '—', '—'];
+            const gcFmt   = entry.gc_usd   ? `GC=${fmt2(entry.gc_usd)} × ${fmt2(entry.USD_THB)}` : '';
+            const urthFmt = entry.urth_usd ? `URTH=${fmt2(entry.urth_usd)}` : '';
+            // date suffix: for today show per-ticker date (GC vs URTH may differ), for hist show single date
+            const gcDate   = isHist ? '' : ` | ${entry.date}`;
+            const urthDate = isHist ? '' : ` | ${entry._urthDate || entry.date}`;
+            const setDate  = isHist ? '' : ` | ${entry._setDate  || entry.date}`;
+            return [
+              `<span style="color:var(--gold)">G  XAU/THB</span>  <b>${fmt2(entry.XAU_THB)}</b> ฿ &nbsp;<span style="color:var(--t2);font-size:10px">(${gcFmt}${gcDate})</span>`,
+              `<span style="color:var(--acc)">F  URTH×THB</span> <b>${fmt2(entry.F_composite)}</b> ฿ &nbsp;<span style="color:var(--t2);font-size:10px">(${urthFmt}${urthDate})</span>`,
+              `<span style="color:var(--green)">TH SET</span>       <b>${fmt2(entry.SET)}</b> &nbsp;<span style="color:var(--t2);font-size:10px">(${setDate.replace(' | ','') || entry.date})</span>`,
+            ];
+          };
+
+          const stale = isHistMode && dispEntry && dispEntry.date < signalDateStr;
+          const rows  = fmtComp(dispEntry, isHistMode).join('<br>');
           extEl2.className = extArrays ? 'ext-ok' : 'ext-off';
-          extEl2.innerHTML = `<b style="font-size:11px">Yahoo Finance: ${extArrays?'✓ สำเร็จ':'ข้อมูลไม่พอ'}</b>`
-            + (stale ? ` <span style="color:var(--amber);font-size:10px">⚠ ข้อมูลไม่ครอบคลุมวันที่เลือก → ffill</span>` : '')
-            + `<br><div style="margin-top:5px;line-height:2;font-size:11px;font-family:var(--mono)">${rows}</div>`;
+          extEl2.innerHTML = `${dispLabel}<br><div style="margin-top:5px;line-height:2.1;font-size:11px;font-family:var(--mono)">${rows}</div>`;
         }
       } else {
         const extId   = document.getElementById('ext-sheet-id').value.trim();
