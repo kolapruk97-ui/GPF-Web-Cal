@@ -630,6 +630,13 @@ async function fetchExtSignalsAuto(dates) {
     fetchYahoo('^SET.BK'),
   ]);
 
+  // Per-ticker last date + price for status display
+  const lastOf = m => { const d=[...m.keys()].sort(); return d.length ? {date:d[d.length-1], val:m.get(d[d.length-1])} : null; };
+  const gcLast   = lastOf(gcMap);
+  const fxLast   = lastOf(fxMap);
+  const urthLast = lastOf(urthMap);
+  const setLast  = lastOf(setMap);
+
   // ── Merge into extMap<dateStr, {XAU_THB, F_composite, SET, USD_THB}> ──
   const allDates = [...new Set([...gcMap.keys(),...fxMap.keys(),...urthMap.keys(),...setMap.keys()])].sort();
   const extMap = new Map();
@@ -657,7 +664,14 @@ async function fetchExtSignalsAuto(dates) {
     extMap, lastDate,
     counts: { xau: xauN,
               f:   [...extMap.values()].filter(v=>v.F_composite).length,
-              set: [...extMap.values()].filter(v=>v.SET).length }
+              set: [...extMap.values()].filter(v=>v.SET).length },
+    // Per-ticker last data for status display
+    tickers: {
+      gc:   gcLast,   // {date, val} in USD
+      fx:   fxLast,   // USDTHB rate
+      urth: urthLast, // URTH USD price
+      set:  setLast,  // SET index
+    }
   };
 }
 
@@ -1478,6 +1492,7 @@ async function runSignal() {
   setRunLoading(true);
   try {
     // 1. Fetch NAV CSV
+    showProgress(1);
     const csv = await fetchSheet(sheetId, sheetName);
     // 2. Parse NAV (full history)
     let { navMatrix, dates, plans } = loadNavFromCSV(csv);
@@ -1514,20 +1529,29 @@ async function runSignal() {
     }
 
     // 5. Fetch ext signals
+    showProgress(2);
     let extArrays = null;
     const extEl2  = document.getElementById('ext-status');
     try {
       if (currentExtMode === 'auto') {
         if (extEl2) { extEl2.className='ext-off'; extEl2.style.display='block'; extEl2.innerHTML='กำลังดึง Yahoo Finance…'; }
-        const { extMap, lastDate, counts } = await fetchExtSignalsAuto(dates);
+        const { extMap, lastDate, counts, tickers } = await fetchExtSignalsAuto(dates);
         extArrays = buildExtArrays(dates, extMap);
         if (extEl2) {
           const stale = isHistory && sliceLabel && lastDate < sliceLabel;
+          const fmt2  = v => v != null ? v.toLocaleString('th-TH',{maximumFractionDigits:2}) : '—';
+          // XAU/THB = GC × USDTHB
+          const xauThb = (tickers.gc && tickers.fx) ? tickers.gc.val * tickers.fx.val : null;
+          const urthThb= (tickers.urth && tickers.fx) ? tickers.urth.val * tickers.fx.val : null;
+          const rows = [
+            `<span style="color:var(--gold)">G XAU/THB</span> ${fmt2(xauThb)} ฿ &nbsp;<span style="color:var(--t2);font-size:10px">(GC=${fmt2(tickers.gc?.val)} × ${fmt2(tickers.fx?.val)} | ${tickers.gc?.date||'?'})</span>`,
+            `<span style="color:var(--acc)">F URTH×THB</span> ${fmt2(urthThb)} ฿ &nbsp;<span style="color:var(--t2);font-size:10px">(URTH=${fmt2(tickers.urth?.val)} | ${tickers.urth?.date||'?'})</span>`,
+            `<span style="color:var(--green)">TH SET</span> ${fmt2(tickers.set?.val)} &nbsp;<span style="color:var(--t2);font-size:10px">(${tickers.set?.date||'?'})</span>`,
+          ].join('<br>');
           extEl2.className = extArrays ? 'ext-ok' : 'ext-off';
-          extEl2.innerHTML = 'Yahoo Finance: ' + (extArrays?'สำเร็จ':'ข้อมูลไม่พอ') +
-            ' | ล่าสุด: ' + fmtDate(lastDate) +
-            (stale ? ' <span style="color:var(--amber)">(ข้อมูลไม่ครอบคลุมวันที่เลือก → ffill)</span>' : '') +
-            ' | G:' + counts.xau + ' F:' + counts.f + ' SET:' + counts.set;
+          extEl2.innerHTML = `<b style="font-size:11px">Yahoo Finance: ${extArrays?'✓ สำเร็จ':'ข้อมูลไม่พอ'}</b>`
+            + (stale ? ` <span style="color:var(--amber);font-size:10px">⚠ ข้อมูลไม่ครอบคลุมวันที่เลือก → ffill</span>` : '')
+            + `<br><div style="margin-top:5px;line-height:2;font-size:11px;font-family:var(--mono)">${rows}</div>`;
         }
       } else {
         const extId   = document.getElementById('ext-sheet-id').value.trim();
@@ -1553,6 +1577,7 @@ async function runSignal() {
     }
 
     // 6. Compute Signal
+    showProgress(3);
     const { scores, rawVals, signalDate } = computeSignalV43(navMatrix, dates, plans, extArrays);
 
     // 7. Build topScores
@@ -1637,16 +1662,43 @@ function renderResults(data) {
 }
 
 // ── History mode render ───────────────────────────────────────────────
+function applyGCapAndRound(rawAlloc) {
+  // Apply G_CAP=0.25 and round to 5% — same logic as makeDecision
+  const alloc = Object.assign({}, rawAlloc);
+  if ((alloc['G']||0) > G_CAP) {
+    const excess = alloc['G'] - G_CAP;
+    alloc['G'] = G_CAP;
+    const others = Object.keys(alloc).filter(p => p !== 'G');
+    const os = others.reduce((s,p) => s+(alloc[p]||0), 0);
+    if (os > 0) others.forEach(p => { alloc[p] += excess*(alloc[p]/os); });
+    else alloc['Money_Market'] = (alloc['Money_Market']||0) + excess;
+    // re-normalise
+    const tw = Object.values(alloc).reduce((s,v)=>s+v,0);
+    if (tw>0) Object.keys(alloc).forEach(p=>{alloc[p]/=tw;});
+  }
+  // Round to 5%
+  let sum=0;
+  Object.keys(alloc).forEach(p => { alloc[p]=Math.round(alloc[p]*100/5)*5/100; sum+=alloc[p]; });
+  const diff = Math.round((1-sum)*100);
+  if (diff!==0) { const top=Object.keys(alloc).reduce((a,b)=>alloc[a]>=alloc[b]?a:b); alloc[top]=Math.round(alloc[top]*100+diff)/100; }
+  return alloc;
+}
+
 function renderHistoryResults({ topScores, rawVals, signalDate, dataRows, hasExt }) {
-  // Show hist banner, hide decision banner
+  // Build capped + rounded alloc from top2 scores
+  const top2 = topScores.slice(0,2);
+  const tot  = top2.reduce((s,x)=>s+x.score, 0);
+  const rawAlloc = {};
+  top2.forEach(x => { rawAlloc[x.plan] = tot > 0 ? x.score/tot : 0.5; });
+  const cappedAlloc = applyGCapAndRound(rawAlloc);
+
+  // Show hist banner
   const hb = document.getElementById('hist-banner');
   if (hb) {
-    const top2 = topScores.slice(0,2);
-    const totalS = top2.reduce((s,x) => s+x.score, 0);
-    const pills  = top2.map(x => {
-      const pct = totalS > 0 ? Math.round(x.score/totalS*100/5)*5 : 50;
-      return `<span style="font-family:var(--mono);font-weight:700;color:var(--gold)">${x.plan}:${pct}%</span>`;
-    }).join(' + ');
+    const pills = Object.entries(cappedAlloc)
+      .sort((a,b)=>b[1]-a[1])
+      .map(([p,v]) => `<span style="font-family:var(--mono);font-weight:700;color:var(--gold)">${p}:${Math.round(v*100)}%</span>`)
+      .join(' + ');
     hb.innerHTML = `<b>📅 ย้อนหลัง — ${fmtDate(signalDate)}</b> &nbsp;|&nbsp; Signal top2: ${pills}<br>`
       + `<span style="font-size:10px;color:var(--t2)">ย้อนหลัง: แสดง signal scores เท่านั้น — ไม่รวม cooldown / quota / DD ของพอร์ต</span>`;
     hb.style.display = 'block';
@@ -1663,18 +1715,8 @@ function renderHistoryResults({ topScores, rawVals, signalDate, dataRows, hasExt
   document.getElementById('stat-quota').textContent = '—';
   document.getElementById('stat-rows').textContent  = (dataRows||'?').toLocaleString?.() || dataRows;
 
-  // Scores with top2 highlighted
-  const fakeDecision = {
-    action: 'HISTORY',
-    targetAlloc: (() => {
-      const top2 = topScores.slice(0,2);
-      const tot  = top2.reduce((s,x) => s+x.score, 0);
-      const alloc = {};
-      top2.forEach(x => { alloc[x.plan] = tot > 0 ? x.score/tot : 0.5; });
-      return alloc;
-    })(),
-    ddPct: 0
-  };
+  // Pass cappedAlloc as targetAlloc so score table highlights correct plans
+  const fakeDecision = { action: 'HISTORY', targetAlloc: cappedAlloc, ddPct: 0 };
   renderScores(topScores, rawVals, fakeDecision, hasExt);
 
   const sec = document.getElementById('results-section');
@@ -1819,10 +1861,30 @@ function setTestLoading(on) {
   document.getElementById('test-spinner').style.display = on ? 'block' : 'none';
   document.getElementById('test-btn-txt').textContent = on ? 'กำลังทดสอบ...' : '🔌 ทดสอบการเชื่อมต่อ';
 }
+// ── Progress steps ────────────────────────────────────────────────
+function showProgress(step) {
+  // step: 0=idle, 1=fetching NAV, 2=fetching ext, 3=computing, 4=done/error
+  const steps = [
+    { id:1, label:'ดึง NAV' },
+    { id:2, label:'ดึง Ext Signals' },
+    { id:3, label:'คำนวณ Signal' },
+  ];
+  const txt = document.getElementById('run-btn-txt');
+  const sp  = document.getElementById('run-spinner');
+  if (!txt) return;
+  if (step === 0) {
+    txt.textContent = viewMode==='history' ? '▶ รัน (ย้อนหลัง)' : '▶ รัน Signal วันนี้';
+    if (sp) sp.style.display = 'none';
+    return;
+  }
+  if (sp) sp.style.display = 'block';
+  const cur = steps.find(s => s.id === step);
+  if (cur) txt.textContent = '● ' + cur.label + '…';
+}
 function setRunLoading(on) {
-  document.getElementById('run-btn').disabled = on;
-  document.getElementById('run-spinner').style.display = on ? 'block' : 'none';
-  document.getElementById('run-btn-txt').textContent = on ? 'กำลังคำนวณ...' : '▶ รัน Signal วันนี้';
+  const btn = document.getElementById('run-btn');
+  if (btn) btn.disabled = on;
+  if (!on) showProgress(0);
 }
 function fmtDate(iso) {
   if (!iso) return '—';
