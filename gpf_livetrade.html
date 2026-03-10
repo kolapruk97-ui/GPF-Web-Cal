@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>GPF Live Signal — v4.6</title>
+<title>GPF Live Signal — v4.7</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Thai:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -184,6 +184,37 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{ opacity:1; }
 .tag-dcy{ background:rgba(255,170,0,0.15); color:var(--amber); }
 #results-section{ display:none; flex-direction:column; gap:10px; }
 
+/* Date navigator */
+.date-nav{
+  display:flex; align-items:center; gap:8px;
+  background:var(--s1); border:1px solid var(--b1); border-radius:10px;
+  padding:10px 14px;
+}
+.date-nav-btn{
+  padding:6px 12px; border-radius:6px; font-size:12px; font-weight:600;
+  cursor:pointer; border:1px solid var(--b2); background:var(--s2);
+  color:var(--t2); transition:all 0.15s; white-space:nowrap;
+}
+.date-nav-btn.active{ background:rgba(0,200,240,0.12); border-color:rgba(0,200,240,0.4); color:var(--acc); }
+.date-nav-btn.hist-active{ background:rgba(255,170,0,0.10); border-color:rgba(255,170,0,0.4); color:var(--amber); }
+.date-nav-btn:hover:not(.active):not(.hist-active){ background:rgba(255,255,255,0.04); }
+#hist-date-wrap{ display:none; flex:1; align-items:center; gap:6px; }
+#hist-date{ flex:1; }
+.date-step{
+  width:30px; height:30px; display:flex; align-items:center; justify-content:center;
+  border-radius:5px; font-size:14px; cursor:pointer;
+  background:var(--s2); border:1px solid var(--b2); color:var(--t2);
+  transition:background 0.12s; user-select:none; flex-shrink:0;
+}
+.date-step:hover{ background:rgba(255,255,255,0.06); color:var(--text); }
+/* History banner */
+#hist-banner{
+  display:none; padding:10px 14px; border-radius:8px;
+  background:rgba(255,170,0,0.07); border:1px solid rgba(255,170,0,0.3);
+  font-size:12px; color:var(--amber); font-family:var(--mono);
+}
+#hist-banner b{ color:var(--gold); }
+
 /* info-badge */
 .info-badge{
   display:inline-flex; align-items:center; gap:5px;
@@ -192,7 +223,17 @@ input[type="date"]::-webkit-calendar-picker-indicator:hover{ opacity:1; }
   color:var(--acc); font-family:var(--mono); margin-top:6px;
 }
 
-/* Guide */
+/* Ext signals badge */
+.ext-badge{
+  display:inline-block; padding:1px 6px; border-radius:4px; font-size:9px;
+  font-family:var(--mono); font-weight:600; vertical-align:middle; margin-left:4px;
+}
+.ext-badge.xau{ background:rgba(255,193,32,0.18); color:var(--gold); border:1px solid rgba(255,193,32,0.3);}
+.ext-badge.fc { background:rgba(0,200,240,0.12);  color:var(--acc);  border:1px solid rgba(0,200,240,0.25);}
+.ext-badge.set{ background:rgba(0,230,118,0.12);  color:var(--green);border:1px solid rgba(0,230,118,0.25);}
+.ext-badge.nav{ background:rgba(120,136,168,0.12);color:var(--t2);   border:1px solid rgba(120,136,168,0.2);}
+.ext-ok { background:rgba(0,230,118,0.07); border:1px solid rgba(0,230,118,0.25); border-radius:8px; padding:8px 12px; font-size:11px; color:var(--green); margin-top:8px; }
+.ext-off{ background:rgba(120,136,168,0.07); border:1px solid rgba(120,136,168,0.2); border-radius:8px; padding:8px 12px; font-size:11px; color:var(--t2); margin-top:8px; }
 .guide{ background:var(--s2); border:1px solid var(--b2); border-radius:8px; padding:12px 14px; font-size:11px; color:var(--t2); line-height:1.8; }
 .guide b{ color:var(--text); }
 .guide code{ font-family:var(--mono); color:var(--acc); background:rgba(0,200,240,0.08); padding:1px 5px; border-radius:3px; }
@@ -211,7 +252,7 @@ details summary::-webkit-details-marker{ display:none; }
     <div class="logo">G</div>
     <div>
       <div class="header-title">GPF Live Signal</div>
-      <div class="header-sub">v4.6 · Signal v4.3 · No GAS Required</div>
+      <div class="header-sub">v4.7 · Ext Signals (G/F/TH) · No GAS</div>
     </div>
   </div>
   <div id="run-time" style="font-family:var(--mono);font-size:10px;color:var(--t2)"></div>
@@ -273,6 +314,59 @@ details summary::-webkit-details-marker{ display:none; }
     <div class="status-head" id="conn-status-head"></div>
     <div id="conn-status-body"></div>
   </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     CARD 1b: Ext Signals — Auto-fetch Yahoo Finance
+     ══════════════════════════════════════════ -->
+<div class="card">
+  <div class="card-head" style="margin-bottom:8px">
+    External Signals
+    <span style="margin-left:auto;font-size:10px;color:var(--green);font-family:var(--mono);letter-spacing:0;text-transform:none;font-weight:400">+7%/yr alpha · auto-fetch</span>
+  </div>
+
+  <div style="font-size:11px;color:var(--t2);line-height:1.8;margin-bottom:10px;padding:8px 10px;background:var(--s2);border:1px solid var(--b2);border-radius:6px">
+    ดึงราคาตลาดล่าสุดอัตโนมัติจาก Yahoo Finance ไม่ต้องอัปโหลดไฟล์:<br>
+    <span style="color:var(--gold);font-family:var(--mono)">G</span> → <b style="color:var(--gold)">XAU/THB</b> (GC=F × USDTHB=X) &nbsp;|&nbsp;
+    <span style="color:var(--acc);font-family:var(--mono)">F</span> → <b style="color:var(--acc)">URTH × USDTHB=X</b> &nbsp;|&nbsp;
+    <span style="color:var(--green);font-family:var(--mono)">TH</span> → <b style="color:var(--green)">^SET.BK</b>
+  </div>
+
+  <!-- Toggle: Auto vs Manual -->
+  <div style="display:flex;gap:8px;margin-bottom:12px">
+    <button id="ext-mode-auto" onclick="setExtMode('auto')"
+      style="flex:1;padding:8px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;
+             background:rgba(0,230,118,0.12);border:1px solid rgba(0,230,118,0.4);color:var(--green)">
+      ⚡ Auto (Yahoo Finance)
+    </button>
+    <button id="ext-mode-manual" onclick="setExtMode('manual')"
+      style="flex:1;padding:8px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;
+             background:var(--s2);border:1px solid var(--b2);color:var(--t2)">
+      📋 Manual (Google Sheet)
+    </button>
+  </div>
+
+  <!-- Auto mode info -->
+  <div id="ext-auto-info" style="padding:8px 10px;background:rgba(0,230,118,0.05);border:1px solid rgba(0,230,118,0.2);border-radius:7px;font-size:11px;color:var(--t2);line-height:1.7">
+    ดึงข้อมูล 180 วันล่าสุดจาก Yahoo Finance ผ่าน CORS proxy<br>
+    <span style="color:var(--green)">GC=F</span> + <span style="color:var(--green)">USDTHB=X</span> + <span style="color:var(--green)">URTH</span> + <span style="color:var(--green)">^SET.BK</span><br>
+    <span style="font-size:10px">ไม่ต้องตั้งค่า — กด "รัน Signal" ได้เลย</span>
+  </div>
+
+  <!-- Manual mode fields -->
+  <div id="ext-manual-fields" style="display:none;flex-direction:column;gap:8px">
+    <div>
+      <label>Ext Signals Sheet URL หรือ ID</label>
+      <input type="text" id="ext-sheet-id" placeholder="Publish to web URL หรือ Sheet ID">
+      <div class="field-note">คอลัมน์: Date, SET, F_composite, XAU_THB, USD_THB</div>
+    </div>
+    <div>
+      <label>Sheet Name</label>
+      <input type="text" id="ext-sheet-name" value="Sheet1">
+    </div>
+  </div>
+
+  <div id="ext-status" class="ext-off" style="display:none;margin-top:8px"></div>
 </div>
 
 <!-- ══════════════════════════════════════════
@@ -373,7 +467,19 @@ details summary::-webkit-details-marker{ display:none; }
   </div>
 </div>
 
-<!-- Run button -->
+<!-- Date Navigator -->
+<div class="date-nav" id="date-nav" style="display:none">
+  <button class="date-nav-btn active" id="mode-today"   onclick="setViewMode('today')">▶ วันนี้</button>
+  <button class="date-nav-btn"        id="mode-history" onclick="setViewMode('history')">📅 ย้อนหลัง</button>
+  <div id="hist-date-wrap">
+    <span class="date-step" id="step-prev" title="วันก่อนหน้า">‹</span>
+    <input type="date" id="hist-date" style="flex:1">
+    <span class="date-step" id="step-next" title="วันถัดไป">›</span>
+    <button class="date-nav-btn hist-active" onclick="runSignal()" style="padding:6px 14px">รัน</button>
+  </div>
+</div>
+
+<!-- Run button (today mode) -->
 <button id="run-btn" onclick="runSignal()" disabled>
   <div class="spinner" id="run-spinner"></div>
   <span id="run-btn-txt">▶ รัน Signal วันนี้</span>
@@ -383,6 +489,10 @@ details summary::-webkit-details-marker{ display:none; }
      RESULTS
      ══════════════════════════════════════════ -->
 <div id="results-section">
+
+  <!-- History mode banner -->
+  <div id="hist-banner"></div>
+
   <div id="decision-banner">
     <div class="banner-pill" id="banner-pill">—</div>
     <div class="banner-reason" id="banner-reason"></div>
@@ -403,18 +513,18 @@ details summary::-webkit-details-marker{ display:none; }
     <div class="card-head">Signal Scores</div>
     <table class="score-tbl">
       <thead>
-        <tr><th>แผน</th><th>Score</th><th>mom5%</th><th>mom20%</th><th>mom60%</th><th>Flag</th></tr>
+        <tr><th>แผน</th><th>Score</th><th>mom5%</th><th>mom20%</th><th>mom60%</th><th>Signal</th><th>Flag</th></tr>
       </thead>
       <tbody id="scores-body"></tbody>
     </table>
     <div style="margin-top:8px;font-size:10px;color:var(--t2)">
-      🔴 EMA = ต่ำกว่า EMA60 (×0.75) &nbsp;|&nbsp; 🟡 DCY = Decay (×0.90)
+      EMA = ต่ำกว่า EMA60 (×0.75) &nbsp;|&nbsp; DCY = Decay (×0.90)
     </div>
   </div>
 </div>
 
 <div class="footer">
-  v4.6 · n_top=2 · cooldown=15d · gap=0.20 · exit_dd=-6% · คำนวณใน browser (ไม่ใช้ GAS)<br>
+  v4.7 · n_top=2 · cooldown=15d · gap=0.20 · exit_dd=-6% · ext signals (G/F/TH) · คำนวณใน browser<br>
   signal_lag=0 (DB มี natural lag 2วันทำการอยู่แล้ว) · quota=12/yr
 </div>
 
@@ -422,13 +532,14 @@ details summary::-webkit-details-marker{ display:none; }
 
 <script>
 // ================================================================
-//  CONSTANTS (ตรงกับ Backtest v4.6)
+//  CONSTANTS (ตรงกับ Backtest v4.7 = v_extAll config)
+//  EXIT_DD_PCT = -6.0  ← best from backtest (v_extAll: CAGR+11.2% Era6)
 // ================================================================
-const ALGO_VERSION  = 'v4.6';
+const ALGO_VERSION  = 'v4.7';
 const N_TOP         = 2;
 const COOLDOWN_DAYS = 15;
 const SCORE_GAP_MIN = 0.20;
-const EXIT_DD_PCT   = -6.0;
+const EXIT_DD_PCT   = -6.0;   // v_extAll config — best full-period result
 const EXIT_COOLDOWN = 10;
 const REENTRY_SCORE = 0.55;
 const CONSEC_PAUSE  = 30;
@@ -437,6 +548,118 @@ const QUOTA_PER_YR  = 12;
 const CHANGE_THRESH = 0.05;
 const MIN_HIST_DAYS = 120;
 const SIGNAL_LAG    = 0;   // ✅ 0 เพราะ DB มี natural lag 2วันทำการอยู่แล้ว
+
+// External signal plan mapping (backtest v4.7 = v_extAll)
+const EXT_PLAN_MAP = { 'G': 'XAU_THB', 'F': 'F_composite', 'TH': 'SET' };
+
+// ================================================================
+//  EXT MODE TOGGLE UI
+// ================================================================
+let currentExtMode = 'auto';
+function setExtMode(mode) {
+  currentExtMode = mode;
+  const autoBtn  = document.getElementById('ext-mode-auto');
+  const manBtn   = document.getElementById('ext-mode-manual');
+  const autoInfo = document.getElementById('ext-auto-info');
+  const manFields= document.getElementById('ext-manual-fields');
+  if (!autoBtn) return;
+  if (mode === 'auto') {
+    autoBtn.style.cssText  += ';background:rgba(0,230,118,0.12);border-color:rgba(0,230,118,0.4);color:var(--green)';
+    manBtn.style.cssText   += ';background:var(--s2);border-color:var(--b2);color:var(--t2)';
+    if (autoInfo)  autoInfo.style.display  = 'block';
+    if (manFields) manFields.style.display = 'none';
+  } else {
+    manBtn.style.cssText   += ';background:rgba(0,200,240,0.12);border-color:rgba(0,200,240,0.4);color:var(--acc)';
+    autoBtn.style.cssText  += ';background:var(--s2);border-color:var(--b2);color:var(--t2)';
+    if (manFields) manFields.style.display = 'flex';
+    if (autoInfo)  autoInfo.style.display  = 'none';
+  }
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
+    s['ext-mode'] = mode;
+    localStorage.setItem(STORE_KEY, JSON.stringify(s));
+  } catch(e) {}
+}
+
+// ================================================================
+//  YAHOO FINANCE AUTO-FETCH
+//  Tickers:  GC=F (gold USD/oz)  USDTHB=X  URTH (MSCI World ETF)  ^SET.BK
+//  Formulas: XAU_THB    = GC=F  × USDTHB=X
+//            F_composite = URTH × USDTHB=X
+//            SET         = ^SET.BK
+// ================================================================
+async function fetchYahoo(ticker) {
+  const url = 'https://query1.finance.yahoo.com/v8/finance/chart/'
+    + encodeURIComponent(ticker) + '?interval=1d&range=180d';
+  for (const proxy of [
+    'https://api.allorigins.win/raw?url=',
+    'https://corsproxy.io/?',
+    'https://api.codetabs.com/v1/proxy?quest=',
+  ]) {
+    try {
+      const r = await fetch(proxy + encodeURIComponent(url));
+      if (!r.ok) continue;
+      const data = await r.json();
+      const res  = data?.chart?.result?.[0];
+      if (!res) continue;
+      const ts  = res.timestamp;
+      const cls = res.indicators?.adjclose?.[0]?.adjclose
+               || res.indicators?.quote?.[0]?.close;
+      if (!ts || !cls) continue;
+      const map = new Map();
+      for (let i = 0; i < ts.length; i++) {
+        if (cls[i] == null) continue;
+        const d = new Date(ts[i] * 1000);
+        const k = d.getUTCFullYear() + '-'
+                + String(d.getUTCMonth()+1).padStart(2,'0') + '-'
+                + String(d.getUTCDate()).padStart(2,'0');
+        map.set(k, cls[i]);
+      }
+      return map;
+    } catch(e) {}
+  }
+  throw new Error('Yahoo fetch failed: ' + ticker);
+}
+
+async function fetchExtSignalsAuto(dates) {
+  // ── Fetch 4 tickers in parallel ──────────────────────────────
+  const [gcMap, fxMap, urthMap, setMap] = await Promise.all([
+    fetchYahoo('GC=F'),
+    fetchYahoo('USDTHB=X'),
+    fetchYahoo('URTH'),
+    fetchYahoo('^SET.BK'),
+  ]);
+
+  // ── Merge into extMap<dateStr, {XAU_THB, F_composite, SET, USD_THB}> ──
+  const allDates = [...new Set([...gcMap.keys(),...fxMap.keys(),...urthMap.keys(),...setMap.keys()])].sort();
+  const extMap = new Map();
+  allDates.forEach(d => {
+    const gc   = gcMap.get(d);
+    const fx   = fxMap.get(d);
+    const urth = urthMap.get(d);
+    const setv = setMap.get(d);
+    if (!gc || !fx) return;
+    extMap.set(d, {
+      XAU_THB:     gc * fx,
+      F_composite: urth ? urth * fx : null,
+      SET:         setv || null,
+      USD_THB:     fx,
+    });
+  });
+
+  const xauN = [...extMap.values()].filter(v => v.XAU_THB > 0).length;
+  if (xauN < MIN_HIST_DAYS)
+    throw new Error('Yahoo: ข้อมูลไม่เพียงพอ (' + xauN + ' rows)');
+
+  const extDates = [...extMap.keys()].sort();
+  const lastDate = extDates[extDates.length - 1];
+  return {
+    extMap, lastDate,
+    counts: { xau: xauN,
+              f:   [...extMap.values()].filter(v=>v.F_composite).length,
+              set: [...extMap.values()].filter(v=>v.SET).length }
+  };
+}
 
 const W5=0.10, W20=0.28, W60=0.22, WR=0.15, W_ALIGN=0.10, W_RSMM=0.05, W_VS=0.10;
 
@@ -460,7 +683,88 @@ const MIX = [
   {key:'Base_Plan',name:'แผนหลัก'},
 ];
 const ALL_PLAN_DEFS = [...DIY, ...MIX];
-const STORE_KEY = 'gpf_live_v9';
+const STORE_KEY = 'gpf_live_v10';
+
+// ================================================================
+//  EXT SIGNALS LOADER
+//  Parses gpf_ext_signals.csv — columns: Date, SET, F_composite, XAU_THB, USD_THB
+//  Returns Map<dateStr, {SET, F_composite, XAU_THB, USD_THB}>
+// ================================================================
+function loadExtFromCSV(csvText) {
+  const rows = parseCSV(csvText);
+  if (rows.length < 2) return null;
+
+  const headers = rows[0].map(h => h.trim());
+  const dateIdx = headers.findIndex(h => h.toLowerCase() === 'date' || h.toLowerCase().includes('date'));
+  if (dateIdx < 0) throw new Error('Ext sheet: ไม่พบคอลัมน์ Date');
+
+  const colIdx = {};
+  ['SET','F_composite','XAU_THB','USD_THB'].forEach(c => {
+    const i = headers.findIndex(h => h === c);
+    if (i >= 0) colIdx[c] = i;
+  });
+  if (!colIdx['XAU_THB']) throw new Error('Ext sheet: ไม่พบคอลัมน์ XAU_THB');
+
+  const extMap = new Map();
+  const fmtDate = d => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return y + '-' + m + '-' + day;
+  };
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (!row[dateIdx]) continue;
+    const d = new Date(row[dateIdx]);
+    if (isNaN(d.getTime())) continue;
+    const key = fmtDate(d);
+    const entry = {};
+    Object.entries(colIdx).forEach(([col, ci]) => {
+      const v = parseFloat(row[ci]);
+      entry[col] = isNaN(v) ? null : v;
+    });
+    extMap.set(key, entry);
+  }
+  return extMap;  // Map<'YYYY-MM-DD', {SET, F_composite, XAU_THB, ...}>
+}
+
+// Merge ext signals into nav dates via left join + forward-fill (Thai calendar)
+// Returns { G: float[], F: float[], TH: float[] } indexed same as navMatrix/dates
+function buildExtArrays(dates, extMap) {
+  if (!extMap || extMap.size === 0) return null;
+
+  // Sort ext dates for forward-fill
+  const extDates = [...extMap.keys()].sort();
+
+  // For each Thai trading date, find the most recent ext value (ffill)
+  let lastExt = null;
+  const result = { G: [], F: [], TH: [] };
+
+  dates.forEach(dateStr => {
+    // Find the latest ext date ≤ dateStr
+    // Binary search in extDates
+    let lo = 0, hi = extDates.length - 1, found = null;
+    while (lo <= hi) {
+      const mid = (lo + hi) >> 1;
+      if (extDates[mid] <= dateStr) { found = extDates[mid]; lo = mid + 1; }
+      else hi = mid - 1;
+    }
+    const ext = found ? extMap.get(found) : null;
+    if (ext) lastExt = ext;
+
+    result.G.push(lastExt ? lastExt['XAU_THB']  : null);
+    result.F.push(lastExt ? lastExt['F_composite'] : null);
+    result.TH.push(lastExt ? lastExt['SET']      : null);
+  });
+
+  // Validate: check non-null count
+  const nG = result.G.filter(v => v !== null).length;
+  const nF = result.F.filter(v => v !== null).length;
+  if (nG < MIN_HIST_DAYS) return null;  // ข้อมูลไม่พอ fallback to NAV
+
+  return result;  // { G: [float|null,...], F: [float|null,...], TH: [float|null,...] }
+}
 
 // ================================================================
 //  CSV FETCH — ตรงกับ Portfolio Analysis (ไม่ใช้ GAS)
@@ -680,7 +984,9 @@ function parseAlloc(str) {
   return alloc;
 }
 
-function computeSignalV43(navMatrix, dates, plans) {
+function computeSignalV43(navMatrix, dates, plans, extArrays) {
+  // extArrays (optional): { G: float[], F: float[], TH: float[] }
+  // If provided, overrides NAV for those plans with better external signals
   const n   = navMatrix.length;
   const idx = n - 1 - SIGNAL_LAG;   // SIGNAL_LAG=0 → ใช้ข้อมูลล่าสุด (DB lag อยู่แล้ว)
   if (idx < MIN_HIST_DAYS) {
@@ -691,9 +997,22 @@ function computeSignalV43(navMatrix, dates, plans) {
   const navArr = {};
   plans.forEach(p => { navArr[p] = navMatrix.map(r => r[p]); });
 
+  // Apply external signal overrides (G→XAU_THB, F→F_composite, TH→SET)
+  const signalArr = {};  // effective array used for each plan (NAV or ext)
+  const signalSrc = {};  // source label for display
+  plans.forEach(p => {
+    if (extArrays && EXT_PLAN_MAP[p] && extArrays[p] && extArrays[p][idx] !== null) {
+      signalArr[p] = extArrays[p];
+      signalSrc[p] = EXT_PLAN_MAP[p];  // 'XAU_THB', 'F_composite', 'SET'
+    } else {
+      signalArr[p] = navArr[p];
+      signalSrc[p] = 'NAV';
+    }
+  });
+
   const raw = {};
   plans.forEach(plan => {
-    const nav = navArr[plan];
+    const nav = signalArr[plan];  // use effective array (ext or NAV)
     if (!nav[idx]) { raw[plan] = null; return; }
     let valid = 0;
     for (let i = 0; i <= idx; i++) if (nav[i] != null) valid++;
@@ -706,7 +1025,7 @@ function computeSignalV43(navMatrix, dates, plans) {
     const mu20  = mean(dr20);
     const sg20  = stdDev(dr20);
     const sharpe20   = sg20 > 0 ? mu20/sg20 : 0;
-    const mmNav      = navArr['Money_Market'];
+    const mmNav      = signalArr['Money_Market'] || navArr['Money_Market'];
     const mmM20      = mmNav ? pctAt(mmNav, idx, 20) : 0;
     const relStr     = mom20 - mmM20;
     const volScaled  = sg20 > 0 ? mom20/(sg20*Math.sqrt(20)) : 0;
@@ -749,6 +1068,7 @@ function computeSignalV43(navMatrix, dates, plans) {
       sharpe20: +raw[p].sharpe20.toFixed(3),
       ema_ok:  raw[p].nav >= raw[p].ema60,
       decay:   raw[p].mom5 < 0 && raw[p].mom20 > 0,
+      src:     signalSrc[p] || 'NAV',  // signal source label
     };
   });
 
@@ -947,7 +1267,7 @@ function getAllocStr() {
 // ================================================================
 //  LOCALSTORAGE
 // ================================================================
-const FIELDS = ['sheet-id','sheet-name','current-value','peak-value','last-rebal','quota-used','last-exit','prev-exit'];
+const FIELDS = ['sheet-id','sheet-name','ext-sheet-id','ext-sheet-name','ext-mode','current-value','peak-value','last-rebal','quota-used','last-exit','prev-exit'];
 function save() {
   try {
     const obj = {};
@@ -992,35 +1312,68 @@ async function testConnection() {
   hideError();
   const sheetId   = document.getElementById('sheet-id').value.trim();
   const sheetName = document.getElementById('sheet-name').value.trim() || 'Database';
-  if (!sheetId) { showError('❌ กรุณากรอก Sheet ID หรือ URL'); return; }
+  if (!sheetId) { showError('กรุณากรอก Sheet ID หรือ URL'); return; }
 
   setTestLoading(true);
   document.getElementById('conn-status').style.display = 'none';
 
   try {
+    // ── Test NAV sheet ─────────────────────────────────────────────
     const csv = await fetchSheet(sheetId, sheetName);
     const { navMatrix, dates, plans } = loadNavFromCSV(csv);
-    const lastDate = dates[dates.length-1];
+    const lastDate   = dates[dates.length-1];
     const signalDate = dates[dates.length-1-SIGNAL_LAG];
 
     const connEl = document.getElementById('conn-status');
     connEl.className = 'ok';
     connEl.style.display = 'block';
-    document.getElementById('conn-status-head').textContent = '✅ เชื่อมต่อสำเร็จ';
+    document.getElementById('conn-status-head').textContent = 'เชื่อมต่อสำเร็จ';
     document.getElementById('conn-status-body').innerHTML =
       '<div class="status-row" style="font-size:13px;margin-bottom:6px">' +
       'NAV ล่าสุด: <span style="color:var(--green);font-size:14px;font-weight:700">' + fmtDate(lastDate) + '</span></div>' +
       '<div class="status-row">Signal Date: <span>' + fmtDate(signalDate) + '</span></div>' +
       '<div class="status-row">ข้อมูลทั้งหมด: <span>' + navMatrix.length.toLocaleString() + ' แถว</span></div>' +
       '<div class="status-row">แผนที่พบ: <span>' + plans.length + ' แผน (' + plans.join(', ') + ')</span></div>' +
-      '<div style="margin-top:8px;padding:7px 10px;background:rgba(0,230,118,0.08);border-radius:6px;font-size:11px;color:var(--green)">✅ พร้อมรัน Signal — กด ▶ รัน Signal วันนี้ ด้านล่างได้เลย</div>';
+      '<div style="margin-top:8px;padding:7px 10px;background:rgba(0,230,118,0.08);border-radius:6px;font-size:11px;color:var(--green)">พร้อมรัน Signal — กด รัน Signal วันนี้ ด้านล่างได้เลย</div>';
+
+    // ── Test Ext Signals (auto or manual) ─────────────────────────
+    const extEl = document.getElementById('ext-status');
+    if (currentExtMode === 'auto') {
+      extEl.className = 'ext-off';
+      extEl.style.display = 'block';
+      extEl.innerHTML = 'Ext Signals (Auto): จะดึงจาก Yahoo Finance เมื่อกด รัน Signal';
+    } else {
+      const extId   = document.getElementById('ext-sheet-id').value.trim();
+      const extName = document.getElementById('ext-sheet-name').value.trim() || 'Sheet1';
+      if (extId) {
+        try {
+          const extCsv   = await fetchSheet(extId, extName);
+          const extMapM  = loadExtFromCSV(extCsv);
+          const extArrM  = extMapM ? buildExtArrays(dates, extMapM) : null;
+          const nG = extArrM ? extArrM.G.filter(v=>v!==null).length : 0;
+          const extLast  = extMapM ? [...extMapM.keys()].sort().pop() : '?';
+          extEl.className = 'ext-ok';
+          extEl.style.display = 'block';
+          extEl.innerHTML = 'Manual Sheet: เชื่อมต่อสำเร็จ | ' + nG + ' rows | ล่าสุด: ' + fmtDate(extLast);
+        } catch(e) {
+          extEl.className = 'ext-off';
+          extEl.style.display = 'block';
+          extEl.innerHTML = 'Manual Sheet: เชื่อมต่อไม่ได้ — ' + e.message;
+        }
+      } else {
+        extEl.className = 'ext-off';
+        extEl.style.display = 'block';
+        extEl.innerHTML = 'Manual Sheet: ไม่ได้กรอก URL — จะใช้ NAV กบข แทน';
+      }
+    }
+
     document.getElementById('run-btn').disabled = false;
     save();
   } catch(e) {
     const connEl = document.getElementById('conn-status');
     connEl.className = 'err';
     connEl.style.display = 'block';
-    document.getElementById('conn-status-head').textContent = '❌ เชื่อมต่อไม่สำเร็จ';
+    document.getElementById('conn-status-head').textContent = 'เชื่อมต่อไม่สำเร็จ';
     document.getElementById('conn-status-body').innerHTML =
       '<div class="status-row" style="color:var(--red);white-space:pre-wrap">' + e.message + '</div>' +
       '<div class="status-row" style="margin-top:6px">วิธีแก้:<br>' +
@@ -1034,6 +1387,55 @@ async function testConnection() {
 // ================================================================
 //  RUN SIGNAL
 // ================================================================
+// ================================================================
+//  VIEW MODE — today | history
+// ================================================================
+let viewMode    = 'today';
+let cachedDates = [];   // filled after first successful fetch — for date picker bounds
+
+function setViewMode(mode) {
+  viewMode = mode;
+  const todayBtn = document.getElementById('mode-today');
+  const histBtn  = document.getElementById('mode-history');
+  const histWrap = document.getElementById('hist-date-wrap');
+  const runBtn   = document.getElementById('run-btn');
+  if (!todayBtn) return;
+  if (mode === 'today') {
+    todayBtn.className = 'date-nav-btn active';
+    histBtn.className  = 'date-nav-btn';
+    histWrap.style.display = 'none';
+    runBtn.style.display   = 'flex';
+    document.getElementById('run-btn-txt').textContent = '▶ รัน Signal วันนี้';
+  } else {
+    histBtn.className  = 'date-nav-btn hist-active';
+    todayBtn.className = 'date-nav-btn';
+    histWrap.style.display = 'flex';
+    runBtn.style.display   = 'none';
+    // Set date picker bounds from cached DB dates
+    const dp = document.getElementById('hist-date');
+    if (cachedDates.length > 0) {
+      dp.min = cachedDates[MIN_HIST_DAYS] || cachedDates[0];
+      dp.max = cachedDates[cachedDates.length - 1];
+      if (!dp.value || dp.value > dp.max || dp.value < dp.min)
+        dp.value = dp.max;
+    }
+  }
+}
+
+function stepHistDate(delta) {
+  // Move date picker by delta trading days (using cachedDates)
+  const dp = document.getElementById('hist-date');
+  if (!dp || cachedDates.length === 0) return;
+  const cur = dp.value;
+  // Find closest index at or before cur
+  let idx = cachedDates.length - 1;
+  for (let i = 0; i < cachedDates.length; i++) {
+    if (cachedDates[i] >= cur) { idx = i; break; }
+  }
+  const newIdx = Math.max(MIN_HIST_DAYS, Math.min(cachedDates.length - 1, idx + delta));
+  dp.value = cachedDates[newIdx];
+}
+
 async function runSignal() {
   save();
   hideError();
@@ -1042,66 +1444,151 @@ async function runSignal() {
   const sheetName = document.getElementById('sheet-name').value.trim() || 'Database';
   if (!sheetId) { showError('กรุณาทดสอบการเชื่อมต่อก่อน'); return; }
 
-  const total = getAllocTotal();
-  if (Math.abs(total-100) > 0.01) {
-    showError('ผลรวม Allocation = ' + total + '% ต้องเท่ากับ 100% ก่อนรัน');
-    return;
-  }
+  // ── Mode: today vs history ────────────────────────────────────────
+  const isHistory = (viewMode === 'history');
+  const histDateVal = isHistory ? (document.getElementById('hist-date')?.value || '') : '';
 
-  const allocStr = getAllocStr();
-  const isInMM100 = allocStr === 'Money_Market:100';
-  const lastExit  = document.getElementById('last-exit').value;
-  if (isInMM100 && !lastExit) {
-    showError('⚠️ พอร์ตปัจจุบันเป็น Money_Market 100%\nกรุณากรอก "วัน EXIT_DD ล่าสุด" ด้วย\n(ถ้ายังไม่เคย EXIT ให้เว้นว่างได้ แต่ต้องแน่ใจ)');
-    return;
-  }
-
-  const curVal  = parseFloat(document.getElementById('current-value').value)||0;
-  const peakVal = parseFloat(document.getElementById('peak-value').value)||0;
-  if (curVal > 0 && (peakVal === 0 || curVal > peakVal)) {
-    const msg = peakVal === 0
-      ? '⚠️ กรุณากรอก Peak Value\nถ้ายังไม่มี Peak — ใส่ค่าเดียวกับ Current Value (' + curVal.toLocaleString() + '฿)'
-      : '⚠️ Current Value สูงกว่า Peak Value\nพอร์ตทำ All-Time High ใหม่ — อัปเดต Peak Value เป็น ' + curVal.toLocaleString() + '฿';
-    document.getElementById('peak-value').value = curVal;
-    save();
-    showError(msg);
-    return;
+  if (!isHistory) {
+    // Today mode: validate portfolio inputs as before
+    const total = getAllocTotal();
+    if (Math.abs(total-100) > 0.01) {
+      showError('ผลรวม Allocation = ' + total + '% ต้องเท่ากับ 100% ก่อนรัน');
+      return;
+    }
+    const allocStr  = getAllocStr();
+    const isInMM100 = allocStr === 'Money_Market:100';
+    const lastExit  = document.getElementById('last-exit').value;
+    if (isInMM100 && !lastExit) {
+      showError('⚠️ พอร์ตปัจจุบันเป็น Money_Market 100%\nกรุณากรอก "วัน EXIT_DD ล่าสุด" ด้วย');
+      return;
+    }
+    const curVal  = parseFloat(document.getElementById('current-value').value)||0;
+    const peakVal = parseFloat(document.getElementById('peak-value').value)||0;
+    if (curVal > 0 && (peakVal === 0 || curVal > peakVal)) {
+      const msg = peakVal === 0
+        ? '⚠️ กรุณากรอก Peak Value\nถ้ายังไม่มี Peak — ใส่ค่าเดียวกับ Current Value (' + curVal.toLocaleString() + '฿)'
+        : '⚠️ Current Value สูงกว่า Peak Value\nอัปเดต Peak Value เป็น ' + curVal.toLocaleString() + '฿';
+      document.getElementById('peak-value').value = curVal;
+      save();
+      showError(msg);
+      return;
+    }
   }
 
   setRunLoading(true);
   try {
-    // 1. Fetch CSV
+    // 1. Fetch NAV CSV
     const csv = await fetchSheet(sheetId, sheetName);
-    // 2. Parse NAV
-    const { navMatrix, dates, plans } = loadNavFromCSV(csv);
-    // 3. Compute Signal
-    const { scores, rawVals, signalDate } = computeSignalV43(navMatrix, dates, plans);
-    // 4. Make Decision
-    const currentAlloc = parseAlloc(allocStr);
-    const quotaUsed    = Math.min(12, Math.max(0, parseInt(document.getElementById('quota-used').value)||0));
-    const decision     = makeDecision({
-      scores, currentAlloc, quotaUsed,
-      lastRebStr:  document.getElementById('last-rebal').value,
-      lastExitStr: document.getElementById('last-exit').value,
-      prevExitStr: document.getElementById('prev-exit').value||'',
-      peakValue:   peakVal,
-      currentValue:curVal,
-    });
+    // 2. Parse NAV (full history)
+    let { navMatrix, dates, plans } = loadNavFromCSV(csv);
 
-    // 5. Build topScores
+    // 3. Cache dates for history date picker
+    cachedDates = dates;
+    const dateNav = document.getElementById('date-nav');
+    if (dateNav) {
+      dateNav.style.display = 'flex';
+      // Update hist picker bounds whenever we have fresh data
+      const dp = document.getElementById('hist-date');
+      if (dp) {
+        dp.min = dates[MIN_HIST_DAYS] || dates[0];
+        dp.max = dates[dates.length - 1];
+        if (isHistory && histDateVal) dp.value = histDateVal;
+        else if (!dp.value || dp.value > dp.max) dp.value = dp.max;
+      }
+    }
+
+    // 4. Slice to targetDate for history mode
+    let sliceLabel = '';
+    if (isHistory && histDateVal) {
+      // Find last index with date ≤ histDateVal
+      let cutIdx = dates.length - 1;
+      for (let i = dates.length - 1; i >= 0; i--) {
+        if (dates[i] <= histDateVal) { cutIdx = i; break; }
+      }
+      if (cutIdx < MIN_HIST_DAYS) {
+        throw new Error('วันที่เลือกข้อมูลน้อยเกินไป ต้องมีอย่างน้อย ' + MIN_HIST_DAYS + ' วันทำการก่อนหน้า');
+      }
+      navMatrix = navMatrix.slice(0, cutIdx + 1);
+      dates     = dates.slice(0, cutIdx + 1);
+      sliceLabel = dates[dates.length - 1];
+    }
+
+    // 5. Fetch ext signals
+    let extArrays = null;
+    const extEl2  = document.getElementById('ext-status');
+    try {
+      if (currentExtMode === 'auto') {
+        if (extEl2) { extEl2.className='ext-off'; extEl2.style.display='block'; extEl2.innerHTML='กำลังดึง Yahoo Finance…'; }
+        const { extMap, lastDate, counts } = await fetchExtSignalsAuto(dates);
+        extArrays = buildExtArrays(dates, extMap);
+        if (extEl2) {
+          const stale = isHistory && sliceLabel && lastDate < sliceLabel;
+          extEl2.className = extArrays ? 'ext-ok' : 'ext-off';
+          extEl2.innerHTML = 'Yahoo Finance: ' + (extArrays?'สำเร็จ':'ข้อมูลไม่พอ') +
+            ' | ล่าสุด: ' + fmtDate(lastDate) +
+            (stale ? ' <span style="color:var(--amber)">(ข้อมูลไม่ครอบคลุมวันที่เลือก → ffill)</span>' : '') +
+            ' | G:' + counts.xau + ' F:' + counts.f + ' SET:' + counts.set;
+        }
+      } else {
+        const extId   = document.getElementById('ext-sheet-id').value.trim();
+        const extName = document.getElementById('ext-sheet-name').value.trim() || 'Sheet1';
+        if (extId) {
+          const extCsv = await fetchSheet(extId, extName);
+          const extMap = loadExtFromCSV(extCsv);
+          extArrays    = extMap ? buildExtArrays(dates, extMap) : null;
+          const extLast = extMap ? [...extMap.keys()].sort().pop() : '?';
+          if (extEl2 && extArrays) {
+            extEl2.className = 'ext-ok'; extEl2.style.display='block';
+            extEl2.innerHTML = 'Manual Sheet: สำเร็จ | ล่าสุด: ' + fmtDate(extLast);
+          }
+        }
+      }
+    } catch(e) {
+      extArrays = null;
+      if (extEl2) {
+        extEl2.className='ext-off'; extEl2.style.display='block';
+        extEl2.innerHTML = (currentExtMode==='auto'?'Yahoo Finance':'Manual Sheet')
+          + ': ดึงไม่ได้ → fallback NAV กบข (' + e.message + ')';
+      }
+    }
+
+    // 6. Compute Signal
+    const { scores, rawVals, signalDate } = computeSignalV43(navMatrix, dates, plans, extArrays);
+
+    // 7. Build topScores
     const topScores = plans
       .map(pl => ({plan:pl, score:+(scores[pl]||0).toFixed(4)}))
       .sort((a,b) => b.score-a.score);
 
-    // 6. Render
-    renderResults({ decision, topScores, rawVals, signalDate, dataRows:navMatrix.length });
+    if (isHistory) {
+      // ── History mode: show signal recommendation only (no decision engine) ──
+      renderHistoryResults({ topScores, rawVals, signalDate,
+                             dataRows: navMatrix.length, hasExt: extArrays !== null });
+    } else {
+      // ── Today mode: full decision engine ─────────────────────────
+      const allocStr   = getAllocStr();
+      const curVal     = parseFloat(document.getElementById('current-value').value)||0;
+      const peakVal    = parseFloat(document.getElementById('peak-value').value)||0;
+      const currentAlloc = parseAlloc(allocStr);
+      const quotaUsed    = Math.min(12, Math.max(0, parseInt(document.getElementById('quota-used').value)||0));
+      const decision     = makeDecision({
+        scores, currentAlloc, quotaUsed,
+        lastRebStr:  document.getElementById('last-rebal').value,
+        lastExitStr: document.getElementById('last-exit').value,
+        prevExitStr: document.getElementById('prev-exit').value||'',
+        peakValue:   peakVal,
+        currentValue:curVal,
+      });
+      renderResults({ decision, topScores, rawVals, signalDate, dataRows:navMatrix.length,
+                      hasExt: extArrays !== null });
+      const pauseEl = document.getElementById('auto-pause-result');
+      if (pauseEl && decision.action === 'HOLD_EXTRA_PAUSE') {
+        pauseEl.textContent = '⚡ Extra Pause สิ้นสุด: ' + fmtDate(decision.reason.split('จนถึง ')[1]||'');
+      }
+    }
+
     document.getElementById('run-time').textContent = 'อัปเดต: ' + new Date().toLocaleTimeString('th-TH');
 
-    // Extra pause display
-    const pauseEl = document.getElementById('auto-pause-result');
-    if (pauseEl && decision.action === 'HOLD_EXTRA_PAUSE') {
-      pauseEl.textContent = '⚡ Extra Pause สิ้นสุด: ' + fmtDate(decision.reason.split('จนถึง ')[1]||'');
-    }
   } catch(e) {
     showError('รัน Signal ไม่สำเร็จ:\n' + e.message);
   } finally {
@@ -1125,8 +1612,14 @@ const ACTION_MAP = {
 };
 
 function renderResults(data) {
-  const {decision, topScores, rawVals, signalDate, dataRows} = data;
+  const {decision, topScores, rawVals, signalDate, dataRows, hasExt} = data;
   const dd = decision.ddPct || 0;
+
+  // Clear history banner in today mode
+  const hb = document.getElementById('hist-banner');
+  if (hb) hb.style.display = 'none';
+  const db2 = document.getElementById('decision-banner');
+  if (db2) db2.style.display = '';
 
   document.getElementById('stat-date').textContent  = fmtDate(signalDate);
   document.getElementById('stat-dd').textContent    = dd.toFixed(2) + '%';
@@ -1136,7 +1629,53 @@ function renderResults(data) {
 
   renderDecision(decision);
   renderTargetAllocBox(decision);
-  renderScores(topScores, rawVals, decision);
+  renderScores(topScores, rawVals, decision, hasExt);
+
+  const sec = document.getElementById('results-section');
+  sec.style.display = 'flex';
+  setTimeout(() => sec.scrollIntoView({behavior:'smooth', block:'start'}), 100);
+}
+
+// ── History mode render ───────────────────────────────────────────────
+function renderHistoryResults({ topScores, rawVals, signalDate, dataRows, hasExt }) {
+  // Show hist banner, hide decision banner
+  const hb = document.getElementById('hist-banner');
+  if (hb) {
+    const top2 = topScores.slice(0,2);
+    const totalS = top2.reduce((s,x) => s+x.score, 0);
+    const pills  = top2.map(x => {
+      const pct = totalS > 0 ? Math.round(x.score/totalS*100/5)*5 : 50;
+      return `<span style="font-family:var(--mono);font-weight:700;color:var(--gold)">${x.plan}:${pct}%</span>`;
+    }).join(' + ');
+    hb.innerHTML = `<b>📅 ย้อนหลัง — ${fmtDate(signalDate)}</b> &nbsp;|&nbsp; Signal top2: ${pills}<br>`
+      + `<span style="font-size:10px;color:var(--t2)">ย้อนหลัง: แสดง signal scores เท่านั้น — ไม่รวม cooldown / quota / DD ของพอร์ต</span>`;
+    hb.style.display = 'block';
+  }
+  const db2 = document.getElementById('decision-banner');
+  if (db2) db2.style.display = 'none';
+  const tab = document.getElementById('target-alloc-box');
+  if (tab) tab.style.display = 'none';
+
+  // Stats row
+  document.getElementById('stat-date').textContent  = fmtDate(signalDate);
+  document.getElementById('stat-dd').textContent    = '—';
+  document.getElementById('stat-dd').className      = 'stat-val';
+  document.getElementById('stat-quota').textContent = '—';
+  document.getElementById('stat-rows').textContent  = (dataRows||'?').toLocaleString?.() || dataRows;
+
+  // Scores with top2 highlighted
+  const fakeDecision = {
+    action: 'HISTORY',
+    targetAlloc: (() => {
+      const top2 = topScores.slice(0,2);
+      const tot  = top2.reduce((s,x) => s+x.score, 0);
+      const alloc = {};
+      top2.forEach(x => { alloc[x.plan] = tot > 0 ? x.score/tot : 0.5; });
+      return alloc;
+    })(),
+    ddPct: 0
+  };
+  renderScores(topScores, rawVals, fakeDecision, hasExt);
 
   const sec = document.getElementById('results-section');
   sec.style.display = 'flex';
@@ -1144,6 +1683,7 @@ function renderResults(data) {
 }
 
 function renderDecision(d) {
+  if (d.action === 'HISTORY') return;  // handled by renderHistoryResults
   const banner = document.getElementById('decision-banner');
   const info   = ACTION_MAP[d.action] || {cls:'info', label:d.action};
   banner.className = info.cls;
@@ -1208,12 +1748,20 @@ function getPlanName(key) {
   return names[key] || key;
 }
 
-function renderScores(topScores, rawVals, decision) {
+function renderScores(topScores, rawVals, decision, hasExt) {
   const tgtSet = new Set(Object.keys(decision.targetAlloc||{}));
   const curSet = new Set(getAllocStr().split(',').map(p => p.split(':')[0]));
   const isAct  = decision.action === 'REBALANCE' || decision.action === 'EXIT_DD';
   const tbody  = document.getElementById('scores-body');
   tbody.innerHTML = '';
+
+  // Source badge config
+  const SRC_BADGE = {
+    'XAU_THB':     {cls:'xau', label:'XAU/THB'},
+    'F_composite': {cls:'fc',  label:'MSCI'},
+    'SET':         {cls:'set', label:'SET'},
+    'NAV':         {cls:'nav', label:'NAV'},
+  };
 
   topScores.forEach(item => {
     const plan = item.plan, score = item.score;
@@ -1221,12 +1769,17 @@ function renderScores(topScores, rawVals, decision) {
     const inT  = isAct && tgtSet.has(plan);
     const inC  = curSet.has(plan);
     const cls  = 'pkey' + (inT?' tgt':inC?' cur':'');
-    const tbdg = inT ? '<span style="font-size:9px;color:var(--green);margin-left:5px">▶TARGET</span>' : '';
-    const cbdg = (inC&&!inT) ? '<span style="font-size:9px;color:var(--acc);margin-left:5px">◀NOW</span>' : '';
+    const tbdg = inT ? '<span style="font-size:9px;color:var(--green);margin-left:5px">TARGET</span>' : '';
+    const cbdg = (inC&&!inT) ? '<span style="font-size:9px;color:var(--acc);margin-left:5px">NOW</span>' : '';
     const fl   = [(rv.ema_ok===false?'<span class="tag tag-ema">EMA</span>':''),
                   (rv.decay===true  ?'<span class="tag tag-dcy">DCY</span>':'')].filter(Boolean).join(' ');
     const bg   = inT?'background:rgba(0,230,118,0.035)':inC?'background:rgba(0,200,240,0.025)':'';
     const pct  = (score*100).toFixed(0);
+
+    // Signal source badge
+    const src     = rv.src || 'NAV';
+    const bdgInfo = SRC_BADGE[src] || SRC_BADGE['NAV'];
+    const srcBadge = '<span class="ext-badge ' + bdgInfo.cls + '">' + bdgInfo.label + '</span>';
 
     tbody.insertAdjacentHTML('beforeend',
       '<tr>' +
@@ -1235,9 +1788,23 @@ function renderScores(topScores, rawVals, decision) {
       '<td class="'+(rv.mom5>=0?'pos':'neg')+'">'+(rv.mom5!=null?rv.mom5.toFixed(2)+'%':'—')+'</td>' +
       '<td class="'+(rv.mom20>=0?'pos':'neg')+'">'+(rv.mom20!=null?rv.mom20.toFixed(2)+'%':'—')+'</td>' +
       '<td class="'+(rv.mom60>=0?'pos':'neg')+'">'+(rv.mom60!=null?rv.mom60.toFixed(2)+'%':'—')+'</td>' +
+      '<td>'+srcBadge+'</td>' +
       '<td>'+(fl||'—')+'</td>' +
       '</tr>');
   });
+
+  // Show ext signals status note
+  const noteEl = document.querySelector('#results-section .card .ext-note');
+  if (noteEl) noteEl.remove();
+  const noteDiv = document.createElement('div');
+  noteDiv.className = 'ext-note';
+  noteDiv.style.cssText = 'margin-top:8px;font-size:10px;color:var(--t2)';
+  if (hasExt) {
+    noteDiv.innerHTML = '<span style="color:var(--gold)">XAU/THB</span> <span style="color:var(--acc)">MSCI</span> <span style="color:var(--green)">SET</span> = Ext Signals active &nbsp;|&nbsp; EMA = ต่ำกว่า EMA60 (x0.75) &nbsp;|&nbsp; DCY = Decay (x0.90)';
+  } else {
+    noteDiv.innerHTML = 'NAV = ใช้ NAV กบข (Ext Signals ไม่ได้ตั้งค่า) &nbsp;|&nbsp; EMA = ต่ำกว่า EMA60 (x0.75) &nbsp;|&nbsp; DCY = Decay (x0.90)';
+  }
+  document.querySelector('#results-section .card table').parentNode.appendChild(noteDiv);
 }
 
 // ── Helpers ───────────────────────────────────────────────────
@@ -1273,6 +1840,16 @@ window.addEventListener('DOMContentLoaded', function() {
   onAllocChange();
   updateQuotaBar();
   document.getElementById('quota-used').addEventListener('input', function(){ updateQuotaBar(); save(); });
+  // Restore ext mode (default = auto)
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
+    setExtMode(s['ext-mode'] || 'auto');
+  } catch(e) { setExtMode('auto'); }
+  // Step buttons for history date picker
+  const prev = document.getElementById('step-prev');
+  const next = document.getElementById('step-next');
+  if (prev) prev.addEventListener('click', () => stepHistDate(-1));
+  if (next) next.addEventListener('click', () => stepHistDate(+1));
 });
 </script>
 </body>
