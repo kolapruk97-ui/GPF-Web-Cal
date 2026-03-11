@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com https://query1.finance.yahoo.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
-<title>GPF Live Trade v15</title>
+<title>GPF Live Trade v16</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -670,6 +670,8 @@ details summary::-webkit-details-marker { display: none; }
 .pbtns { display: flex; gap: 3px; }
 .pbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 8px; font-size: 11px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
 .pbtn.active, .pbtn:hover { background: var(--gold-glow); border-color: rgba(255,193,32,.4); color: var(--gold); }
+.fpbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 7px; font-size: 10px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
+.fpbtn.active, .fpbtn:hover { background: rgba(0,200,240,.1); border-color: rgba(0,200,240,.4); color: var(--acc); }
 /* Tables */
 .tcrd { background: var(--bg-1); border: 1px solid var(--b1); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
 .ttabs { display: flex; border-bottom: 1px solid var(--b1); padding: 0 4px; }
@@ -734,7 +736,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div class="logo-box">
       <div class="logo-icon">กบข</div>
       <div>
-        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v14</span></div>
+        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v16</span></div>
         <div class="logo-sub">Unified Signal + Portfolio · v4.7b</div>
       </div>
     </div>
@@ -958,6 +960,54 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     🚨 Exit DD Tracker
     <span style="margin-left:auto;font-size:10px;color:var(--t2);letter-spacing:0;text-transform:none;font-weight:400">จาก backtest: -6% AllTime = ดีที่สุด</span>
   </div>
+
+  <!-- Collapsible explanation block -->
+  <div style="margin-bottom:12px">
+    <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.exit-chev').textContent=this.nextElementSibling.style.display==='none'?'▸':'▾';"
+      style="background:rgba(255,61,90,.07);border:1px solid rgba(255,61,90,.2);border-radius:7px;padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:7px;width:100%;text-align:left;transition:background .15s;"
+      onmouseover="this.style.background='rgba(255,61,90,.13)'" onmouseout="this.style.background='rgba(255,61,90,.07)'">
+      <span style="font-size:12px">ℹ️</span>
+      <span style="font-size:11px;font-weight:600;color:var(--red);font-family:var(--mono)">EXIT DD คืออะไร?</span>
+      <span class="exit-chev" style="margin-left:auto;font-size:11px;color:var(--t3);font-family:var(--mono)">▸</span>
+    </button>
+    <div style="display:none;margin-top:6px;background:rgba(255,61,90,.06);border:1px solid rgba(255,61,90,.18);border-radius:8px;padding:12px 14px;">
+      <div style="font-size:11px;color:var(--t2);line-height:1.75;margin-bottom:10px">
+        กลไก <span style="color:var(--red);font-weight:600">ป้องกันขาดทุนฉุกเฉิน</span> — เมื่อมูลค่าพอร์ตร่วงจาก <span style="color:var(--text);font-weight:600">All-Time Peak เกิน 6%</span>
+        ระบบจะสั่ง <span style="color:var(--amber);font-weight:600">ขายทุกแผนออก → ย้ายทั้งหมดเข้าตราสารหนี้ (B)</span> ทันที
+        โดยไม่รอ Rebalance รอบปกติ
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
+        <div style="background:rgba(255,170,0,.07);border:1px solid rgba(255,170,0,.2);border-radius:6px;padding:8px 10px">
+          <div style="font-size:9px;color:var(--t3);font-family:var(--mono);margin-bottom:4px">⚡ ทริกเกอร์</div>
+          <div style="font-size:11px;color:var(--amber)">DD% &lt; −6% จาก Peak</div>
+          <div style="font-size:10px;color:var(--t2);margin-top:2px">วัดจาก All-Time High ของพอร์ต</div>
+        </div>
+        <div style="background:rgba(0,200,240,.07);border:1px solid rgba(0,200,240,.2);border-radius:6px;padding:8px 10px">
+          <div style="font-size:9px;color:var(--t3);font-family:var(--mono);margin-bottom:4px">🏦 Action</div>
+          <div style="font-size:11px;color:var(--acc)">เปลี่ยนเป็นตราสารหนี้ 100%</div>
+          <div style="font-size:10px;color:var(--t2);margin-top:2px">ทุกสินทรัพย์ → B (Bond)</div>
+        </div>
+      </div>
+      <div style="background:rgba(0,0,0,.25);border-radius:6px;padding:9px 11px">
+        <div style="font-size:9px;color:var(--t3);font-family:var(--mono);margin-bottom:6px">📋 ขั้นตอนหลังออก EXIT_DD</div>
+        <div style="display:flex;flex-direction:column;gap:5px">
+          <div style="display:flex;align-items:baseline;gap:8px;font-size:11px">
+            <span style="color:var(--red);font-family:var(--mono);font-weight:700;min-width:18px">1</span>
+            <span style="color:var(--t2)">ถือ Bond ต่อเนื่อง <span style="color:var(--text)">10 วันทำการ</span> (Exit Cooldown)</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:8px;font-size:11px">
+            <span style="color:var(--amber);font-family:var(--mono);font-weight:700;min-width:18px">2</span>
+            <span style="color:var(--t2)">รอ Extra Pause อีก <span style="color:var(--text)">30 วันทำการ</span> ก่อนพิจารณากลับเข้า</span>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:8px;font-size:11px">
+            <span style="color:var(--green);font-family:var(--mono);font-weight:700;min-width:18px">3</span>
+            <span style="color:var(--t2)">กลับเข้าได้เมื่อ Score ≥ <span style="color:var(--text)">0.55</span> และ Quota ยังเหลือ</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div style="font-size:11px;color:var(--t2);margin-bottom:8px">
     บันทึกทุกครั้งที่ระบบ EXIT_DD เกิดขึ้นจริง เพื่อ audit trail และ monitor ความถี่
   </div>
@@ -1092,7 +1142,15 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     </div>
     <div class="cgrid">
       <div class="ccrd">
-        <div class="ctitle">NAV Performance (1Y) — Normalized</div>
+        <div class="ctitle">NAV Performance — Normalized
+          <div class="pbtns">
+            <button class="fpbtn" onclick="setFundPeriod(this,30)">1M</button>
+            <button class="fpbtn"        onclick="setFundPeriod(this,90)">3M</button>
+            <button class="fpbtn"        onclick="setFundPeriod(this,180)">6M</button>
+            <button class="fpbtn active" onclick="setFundPeriod(this,365)" id="fpbtn-1y">1Y</button>
+            <button class="fpbtn"        onclick="setFundPeriod(this,0)">All</button>
+          </div>
+        </div>
         <div class="chart-box h200"><canvas id="fund-chart"></canvas></div>
       </div>
       <div class="ccrd">
@@ -1170,22 +1228,22 @@ const MIX = [
   {key:'Base_Plan',name:'แผนหลัก'},
 ];
 const ALL_PLAN_DEFS = [...DIY,...MIX];
-const STORE_KEY    = 'gpf_live_v15';
+const STORE_KEY    = 'gpf_live_v16';
 const EXIT_LOG_KEY = 'gpf_exit_log_v12'; // keep same key — reuse existing exit log
 
 // Fund map for portfolio
 const FM = {
-  F:{l:'หุ้นต่างประเทศ (F)',c:'#3b82f6',s:'F'},
-  G:{l:'ทองคำ (G)',c:'#f59e0b',s:'G'},
-  A65:{l:'แผนเชิงรุก 65',c:'#8b5cf6',s:'A65'},
-  A75:{l:'แผนเชิงรุก 75',c:'#ec4899',s:'A75'},
-  A35:{l:'แผนเชิงรุก 35',c:'#06b6d4',s:'A35'},
-  A20:{l:'แผนเชิงรุก 20',c:'#14b8a6',s:'A20'},
-  Money_Market:{l:'ตราสารหนี้ (MM)',c:'#22c55e',s:'MM'},
-  B:{l:'ตราสารหนี้ (B)',c:'#84cc16',s:'B'},
-  TH:{l:'หุ้นไทย (TH)',c:'#ef4444',s:'TH'},
-  PR:{l:'อสังหาฯ (PR)',c:'#fb923c',s:'PR'},
-  Global_Bond:{l:'Global Bond',c:'#a78bfa',s:'GBond'},
+  F:{l:'หุ้นต่างประเทศ (F)',c:'#00c8f0',s:'F'},
+  G:{l:'ทองคำ (G)',c:'#ffc120',s:'G'},
+  A65:{l:'แผนเชิงรุก 65',c:'#f97316',s:'A65'},
+  A75:{l:'แผนเชิงรุก 75',c:'#fb923c',s:'A75'},
+  A35:{l:'แผนเชิงรุก 35',c:'#2dd4bf',s:'A35'},
+  A20:{l:'แผนเชิงรุก 20',c:'#06b6d4',s:'A20'},
+  Money_Market:{l:'ตราสารหนี้ (MM)',c:'#94a3b8',s:'MM'},
+  B:{l:'ตราสารหนี้ (B)',c:'#64748b',s:'B'},
+  TH:{l:'หุ้นไทย (TH)',c:'#00e676',s:'TH'},
+  PR:{l:'อสังหาฯ (PR)',c:'#a78bfa',s:'PR'},
+  Global_Bond:{l:'Global Bond',c:'#8b5cf6',s:'GBond'},
 };
 const TX_COLS = {
   F:{n:9,u:10,b:11},G:{n:12,u:13,b:14},A65:{n:15,u:16,b:17},
@@ -1200,6 +1258,7 @@ let NAV_PORT   = [];     // [{date, funds}] — for portfolio analytics
 let TX_PORT    = [];     // [{date, type, ...}] — transactions
 let portCharts = {};     // Chart.js instances
 let curPeriod  = 30;
+let fundPeriod = 365;  // NAV Performance default 1Y
 let viewMode   = 'today';
 let cachedDates = [];
 let currentExtMode = 'auto';
@@ -1429,7 +1488,7 @@ async function loadAll(){
   try{
     // 1. DB CSV — needed by both Signal + Portfolio NAV
     const dbCsv = await fetchSheet(dbId,dbSheet);
-    setBadgeCfg('db','ok','โหลดสำเร็จ');
+    // badge will be set after parsing NAV (to include last NAV date)
 
     // Parse for signal engine
     NAV_SIGNAL = loadNavFromCSV(dbCsv);
@@ -1437,6 +1496,16 @@ async function loadAll(){
 
     // Parse for portfolio analytics
     NAV_PORT = parseNav(dbCsv);
+
+    // Show last NAV date in badge
+    if(NAV_PORT.length > 0){
+      const lastNavRow = NAV_PORT[NAV_PORT.length - 1];
+      const lastNavDate = new Date(lastNavRow.date);
+      const navDateStr = lastNavDate.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+      setBadgeCfg('db','ok','โหลดสำเร็จ · NAV ล่าสุด: '+navDateStr);
+    } else {
+      setBadgeCfg('db','ok','โหลดสำเร็จ');
+    }
 
     // Enable signal run btn + date nav
     el('run-btn').disabled=false;
@@ -2094,11 +2163,18 @@ function renderAlloc(hold,nav){
       }}
   });
 }
-function renderFund(nav){
+function renderFund(nav, days){
+  if(days === undefined) days = fundPeriod;
   const fs=['F','G','A65','A75','Money_Market','B','TH'];
   const av=fs.filter(f=>nav.some(n=>n.funds[f]!=null));
-  const cut=new Date(Date.now()-365*864e5);
-  const rc=nav.filter(n=>n.date>=cut);if(rc.length<2)return;
+  let rc;
+  if(days === 0){
+    rc = nav;
+  } else {
+    const cut=new Date(Date.now()-days*864e5);
+    rc=nav.filter(n=>n.date>=cut);
+  }
+  if(rc.length<2)return;
   const ds=av.map(f=>{
     const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;
     const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fv)/fv)*100);
@@ -2157,6 +2233,15 @@ function setPeriod(btn,days){
   // Destroy first so Chart.js recomputes dimensions correctly
   destroyChart('port');
   renderPortChart(days);
+}
+function setFundPeriod(btn,days){
+  document.querySelectorAll('.fpbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  fundPeriod=days;
+  if(NAV_PORT.length>0){
+    destroyChart('fund');
+    renderFund(NAV_PORT, days);
+  }
 }
 
 function switchTab(id, btn) {
