@@ -428,6 +428,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .quota-pip.buf  { background: var(--amber); border-color: var(--amber); }
 .quota-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; }
 #quota-text { font-family: var(--mono); font-size: 12px; color: var(--t2); white-space: nowrap; }
+/* Alloc sum */
+#alloc-sum-val { font-family: var(--mono); font-weight: 700; font-size: 15px; color: var(--t2); }
 .quota-legend { font-size: 10px; color: var(--t2); margin-top: 5px; display: flex; gap: 12px; }
 .ql-pip { display: inline-block; width: 8px; height: 8px; border-radius: 2px; margin-right: 4px; vertical-align: middle; }
 /* Decision banner */
@@ -637,6 +639,57 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 .port-err-inner p  { font-size: 12px; color: var(--t3); line-height: 1.7; }
 #port-dash { display: none; }
 .port-footer { border-top: 1px solid var(--b1); padding: 14px 0; text-align: center; color: var(--t3); font-size: 11px; font-family: var(--mono); margin-top: 24px; }
+/* Chart fullscreen overlay */
+.fs-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: rgba(5,7,10,.97);
+  backdrop-filter: blur(8px);
+  padding: 20px;
+  flex-direction: column;
+}
+.fs-overlay.show { display: flex; }
+.fs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+.fs-title { font-family: var(--mono); font-size: 13px; color: var(--t2); letter-spacing: .5px; text-transform: uppercase; }
+.fs-close {
+  background: var(--bg-2);
+  border: 1px solid var(--b2);
+  color: var(--t2);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-family: var(--sans);
+  cursor: pointer;
+  transition: all .15s;
+}
+.fs-close:hover { border-color: var(--red); color: var(--red); }
+#fs-period-btns { display: none; gap: 4px; align-items: center; }
+#fs-period-btns.show { display: flex; }
+#fs-period-btns .pbtn, #fs-period-btns .fpbtn { font-size: 12px; padding: 4px 12px; }
+.fs-chart-wrap { flex: 1; position: relative; min-height: 0; }
+.fs-chart-wrap canvas { position: absolute; inset: 0; }
+/* Expand button on chart cards */
+.expand-btn {
+  background: none;
+  border: 1px solid var(--b2);
+  color: var(--t3);
+  border-radius: 5px;
+  padding: 2px 7px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all .15s;
+  line-height: 1;
+  margin-left: 6px;
+}
+.expand-btn:hover { border-color: var(--acc); color: var(--acc); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 </style>
 </head>
@@ -726,11 +779,30 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   🔗 <span id="autosync-msg">Auto-synced: Allocation จาก Portfolio tab</span>
 </div>
 
-<!-- Portfolio config (simplified v19) -->
+<!-- Portfolio config with Auto/Manual mode -->
 <div class="card">
   <div class="card-head gold">
     สถานะปัจจุบัน
     <span id="alloc-sync-note" style="margin-left:auto;font-size:9px;color:var(--green);letter-spacing:0;text-transform:none;font-weight:400;display:none">🔗 จาก Portfolio</span>
+  </div>
+
+  <!-- Auto / Manual toggle -->
+  <div style="display:flex;gap:6px;margin-bottom:12px">
+    <button id="port-mode-auto" onclick="setPortMode('auto')"
+      style="flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px">
+      🔗 Auto (จาก Transaction)
+    </button>
+    <button id="port-mode-manual" onclick="setPortMode('manual')"
+      style="flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px">
+      ✏️ Manual
+    </button>
+  </div>
+
+  <!-- Auto mode info -->
+  <div id="port-auto-info" style="display:none;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.2);border-radius:8px;padding:10px 13px;font-size:11px;color:var(--green);font-family:var(--mono);margin-bottom:10px;line-height:1.9">
+    <div style="font-weight:700;margin-bottom:4px">🔗 Auto-sync จาก Portfolio Tab</div>
+    <div id="port-auto-detail" style="color:var(--t2)">โหลดข้อมูลก่อน — กด ⟳ โหลดทั้งหมด ด้านบน</div>
+    <div style="margin-top:6px;font-size:10px;color:var(--t3)">ค่าจะ auto-sync ทุกครั้งที่โหลดข้อมูลใหม่</div>
   </div>
 
   <div class="row2" style="margin-bottom:10px">
@@ -746,10 +818,22 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     </div>
   </div>
 
-  <div style="margin-bottom:10px">
-    <label>แผนปัจจุบัน (ชื่อเมนู)</label>
-    <input type="text" id="current-menu" placeholder="เช่น G25_F50_TH25, TH_100, F70_TH30">
-    <div class="field-note">พิมพ์ชื่อเมนู หรือ preset เช่น F_100, MM_100</div>
+  <!-- Hidden: menu name (used internally for auto-sync) -->
+  <input type="hidden" id="current-menu" value="">
+
+  <!-- Manual: allocation grid -->
+  <div id="manual-alloc-section">
+    <div style="font-size:10px;color:var(--t2);font-weight:600;letter-spacing:.10em;text-transform:uppercase;margin-bottom:6px">
+      Allocation ปัจจุบัน (% — กรอกเมื่อใช้ Manual)
+    </div>
+    <div style="font-size:10px;color:var(--t2);margin-bottom:8px;padding-bottom:5px;border-bottom:1px solid var(--b2)">DIY Plans</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="grid-diy"></div>
+    <div style="font-size:10px;color:var(--t2);margin:10px 0 8px;padding-bottom:5px;border-bottom:1px solid var(--b2)">Mixed Plans</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="grid-mix"></div>
+    <div style="margin-top:10px;padding:8px 10px;border-radius:6px;background:var(--bg-2);border:1px solid var(--b2);display:flex;align-items:center;justify-content:space-between;font-size:12px">
+      <span style="color:var(--t2)">ผลรวม:</span>
+      <span id="alloc-sum-val">0%</span>
+    </div>
   </div>
 
   <hr class="divider">
@@ -772,17 +856,18 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <span class="date-step" id="step-prev">‹</span>
     <input type="date" id="hist-date" style="flex:1">
     <span class="date-step" id="step-next">›</span>
-    <button class="date-nav-btn hist-active" id="hist-run-btn" onclick="runSignal()" style="padding:6px 14px;display:flex;align-items:center;gap:6px">
-      <div class="spinner" id="hist-run-spinner" style="width:12px;height:12px;border-width:2px"></div>
-      <span id="hist-run-txt">รัน</span>
-    </button>
   </div>
 </div>
 
-<!-- Run button -->
+<!-- Run button (today) -->
 <button id="run-btn" onclick="runSignal()" disabled>
   <div class="spinner" id="run-spinner"></div>
   <span id="run-btn-txt">▶ รัน Signal วันนี้</span>
+</button>
+<!-- Run button (history) — same style, hidden by default -->
+<button id="hist-run-btn" onclick="runSignal()" disabled style="display:none;width:100%;padding:14px;background:linear-gradient(135deg,#6b3a0a,#cc7700);border:1px solid rgba(255,170,0,.4);border-radius:10px;color:#fff;font-family:var(--sans);font-size:15px;font-weight:700;cursor:pointer;transition:all .15s;margin-top:4px;align-items:center;justify-content:center;gap:10px">
+  <div class="spinner" id="hist-run-spinner" style="width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff"></div>
+  <span id="hist-run-txt">📅 รัน Signal ย้อนหลัง</span>
 </button>
 <div id="error-box" style="display:none;padding:10px 14px;border-radius:8px;background:rgba(255,61,90,.08);border:1px solid rgba(255,61,90,.3);font-size:12px;color:var(--red);font-family:var(--mono);line-height:1.6;margin-top:6px"></div>
 
@@ -799,7 +884,8 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <div id="app-instr-box" class="app-instr" style="display:none"></div>
 
   <div class="stats-row">
-    <div class="stat-cell"><div class="stat-label">Signal Date</div><div class="stat-val" id="stat-date">—</div></div>
+    <div class="stat-cell"><div class="stat-label">NAV ล่าสุด</div><div class="stat-val" id="stat-nav-date">—</div></div>
+    <div class="stat-cell"><div class="stat-label">Signal Date (T-2)</div><div class="stat-val" id="stat-date">—</div></div>
     <div class="stat-cell"><div class="stat-label">เมนูทั้งหมด</div><div class="stat-val" id="stat-menus">—</div></div>
     <div class="stat-cell"><div class="stat-label">Quota เหลือ</div><div class="stat-val" id="stat-quota">—</div></div>
     <div class="stat-cell"><div class="stat-label">NAV Rows</div><div class="stat-val" id="stat-rows">—</div></div>
@@ -826,9 +912,9 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 
 <div id="run-time"></div>
 <div class="sig-footer">
-  v5.19 · momentum=[20,60,120] · w=[0.5,0.3,0.2] · cooldown=30bd · menu-based (217 options)<br>
-  quota=12/yr · G_cap=25% · T+2 delay · no PR cap<br>
-  <span class="calib-badge">⚙ Calibrated: v5 backtest · Sharpe=1.086 · TWR=+37.22% · MaxDD=-13.42%</span>
+  v5.19 · momentum=[20,60,120] · w=[0.5,0.3,0.2] · cooldown=30bd · menu-based<br>
+  quota=12/yr · G_cap=25% · live=NAV ล่าสุด · history=T-2 delay · no PR cap<br>
+  <span class="calib-badge">⚙ Calibrated: v5 backtest (Modern) · Sharpe=1.086 · TWR=+37.22% · MaxDD=-13.42%</span>
 </div>
 
 </div><!-- /sig-wrap -->
@@ -860,39 +946,67 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
       <div class="ccrd">
         <div class="ctitle">
           Portfolio Value
-          <div class="pbtns">
-            <button class="pbtn active" onclick="setPeriod(this,30)">1M</button>
-            <button class="pbtn"        onclick="setPeriod(this,90)">3M</button>
-            <button class="pbtn"        onclick="setPeriod(this,180)">6M</button>
-            <button class="pbtn"        onclick="setPeriod(this,365)">1Y</button>
-            <button class="pbtn"        onclick="setPeriod(this,0)">All</button>
+          <div style="display:flex;align-items:center">
+            <div class="pbtns">
+              <button class="pbtn active" onclick="setPeriod(this,30)">1M</button>
+              <button class="pbtn"        onclick="setPeriod(this,90)">3M</button>
+              <button class="pbtn"        onclick="setPeriod(this,180)">6M</button>
+              <button class="pbtn"        onclick="setPeriod(this,365)">1Y</button>
+              <button class="pbtn"        onclick="setPeriod(this,0)">All</button>
+            </div>
+            <button class="expand-btn" onclick="openFullscreen('port','Portfolio Value')" title="ขยายเต็มจอ">⛶</button>
           </div>
         </div>
-        <div class="chart-box h220"><canvas id="port-chart"></canvas></div>
+        <div class="chart-box" style="height:190px"><canvas id="port-chart"></canvas></div>
+        <div class="chart-box" style="height:70px"><canvas id="dd-chart"></canvas></div>
       </div>
       <div class="ccrd">
-        <div class="ctitle">Allocation ปัจจุบัน</div>
+        <div class="ctitle">Allocation ปัจจุบัน
+          <button class="expand-btn" onclick="openFullscreen('alloc','Allocation ปัจจุบัน')" title="ขยายเต็มจอ">⛶</button>
+        </div>
         <div class="chart-box h220"><canvas id="alloc-chart"></canvas></div>
       </div>
     </div>
     <div class="cgrid">
       <div class="ccrd">
         <div class="ctitle">NAV Performance — Normalized
-          <div class="pbtns">
-            <button class="fpbtn" onclick="setFundPeriod(this,30)">1M</button>
-            <button class="fpbtn"        onclick="setFundPeriod(this,90)">3M</button>
-            <button class="fpbtn"        onclick="setFundPeriod(this,180)">6M</button>
-            <button class="fpbtn active" onclick="setFundPeriod(this,365)" id="fpbtn-1y">1Y</button>
-            <button class="fpbtn"        onclick="setFundPeriod(this,0)">All</button>
+          <div style="display:flex;align-items:center">
+            <div class="pbtns">
+              <button class="fpbtn" onclick="setFundPeriod(this,30)">1M</button>
+              <button class="fpbtn"        onclick="setFundPeriod(this,90)">3M</button>
+              <button class="fpbtn"        onclick="setFundPeriod(this,180)">6M</button>
+              <button class="fpbtn active" onclick="setFundPeriod(this,365)" id="fpbtn-1y">1Y</button>
+              <button class="fpbtn"        onclick="setFundPeriod(this,0)">All</button>
+            </div>
+            <button class="expand-btn" onclick="openFullscreen('fund','NAV Performance')" title="ขยายเต็มจอ">⛶</button>
           </div>
         </div>
         <div class="chart-box h200"><canvas id="fund-chart"></canvas></div>
       </div>
       <div class="ccrd">
-        <div class="ctitle">NAV ปัจจุบัน (90 วัน) — Normalized</div>
+        <div class="ctitle">NAV ปัจจุบัน (90 วัน) — Normalized
+          <button class="expand-btn" onclick="openFullscreen('navchart','NAV 90 วัน')" title="ขยายเต็มจอ">⛶</button>
+        </div>
         <div class="chart-box h200"><canvas id="nav-chart"></canvas></div>
       </div>
     </div>
+
+    <!-- Yearly Summary -->
+    <div class="sec">📅 สรุปรายปี</div>
+    <div class="ccrd" style="overflow-x:auto">
+      <div class="ctitle">ผลการลงทุนรายปี</div>
+      <div id="yearly-summary"></div>
+    </div>
+
+    <!-- Fund Correlation Matrix -->
+    <div class="sec">🔗 Fund Correlation Matrix</div>
+    <div class="ccrd" style="overflow-x:auto">
+      <div class="ctitle">ความสัมพันธ์ระหว่างกองทุน (90 วัน)
+        <span style="font-size:9px;color:var(--t3);font-weight:400;letter-spacing:0;text-transform:none;margin-left:8px">สีแดง = correlation สูง · สีเขียว = ต่ำ (diversify ดี)</span>
+      </div>
+      <div id="corr-matrix"></div>
+    </div>
+
     <div class="sec">📋 รายละเอียด</div>
     <div class="tcrd">
       <div class="ttabs">
@@ -917,6 +1031,21 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 </div>
 
 </div><!-- /page-wrap -->
+
+<!-- Fullscreen chart overlay (outside page-wrap for proper fixed positioning) -->
+<div class="fs-overlay" id="fs-overlay">
+  <div class="fs-header">
+    <div class="fs-title" id="fs-title">—</div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <div id="fs-period-btns"></div>
+      <button class="fs-close" onclick="closeFullscreen()">✕ ปิด (Esc)</button>
+    </div>
+  </div>
+  <div class="fs-chart-wrap" style="flex:1;display:flex;flex-direction:column">
+    <div style="flex:3;position:relative"><canvas id="fs-canvas"></canvas></div>
+    <div id="fs-dd-wrap" style="flex:1;display:none;position:relative"><canvas id="fs-dd-canvas"></canvas></div>
+  </div>
+</div>
 
 <script>
 // ================================================================
@@ -944,7 +1073,7 @@ const PRESET_PLANS = {
   'F_100':       {F: 1.00},
   'TH_100':      {TH: 1.00},
 };
-const ALL_PLANS = ['A35','Base_Plan','B','Money_Market','A20','A65','TH','PR','F','Global_Bond','G','A75'];
+const ALL_PLANS = ['A35','Base_Plan','B','Money_Market','A20','A65','TH','PR','F','Global_Bond','G','A75','Shariah'];
 const STORE_KEY    = 'gpf_live_v19';
 const FM = {
   F:{l:'หุ้นต่างประเทศ (F)',c:'#00c8f0',s:'F'},
@@ -953,8 +1082,8 @@ const FM = {
   A75:{l:'แผนเชิงรุก 75',c:'#fb923c',s:'A75'},
   A35:{l:'แผนเชิงรุก 35',c:'#2dd4bf',s:'A35'},
   A20:{l:'แผนเชิงรุก 20',c:'#06b6d4',s:'A20'},
-  Money_Market:{l:'ตราสารหนี้ (MM)',c:'#94a3b8',s:'MM'},
-  B:{l:'ตราสารหนี้ (B)',c:'#64748b',s:'B'},
+  Money_Market:{l:'ตราสารหนี้ (MM)',c:'#e879f9',s:'MM'},
+  B:{l:'ตราสารหนี้ (B)',c:'#38bdf8',s:'B'},
   TH:{l:'หุ้นไทย (TH)',c:'#00e676',s:'TH'},
   PR:{l:'อสังหาฯ (PR)',c:'#a78bfa',s:'PR'},
   Global_Bond:{l:'Global Bond',c:'#8b5cf6',s:'GBond'},
@@ -1112,10 +1241,11 @@ function parseTx(csv){
 // ================================================================
 //  SIGNAL ENGINE — v5.19 Simple 3-Momentum Z-Score
 // ================================================================
-function computeSignalV19(navMatrix, dates, plans) {
+function computeSignalV19(navMatrix, dates, plans, delay) {
   const n = navMatrix.length;
-  const idx = n - 1 - T_DELAY;
-  if(idx < MIN_HIST_DAYS) throw new Error('ข้อมูลน้อยเกินไป: มี '+n+' แถว ต้องการ '+(MIN_HIST_DAYS+T_DELAY+1)+' ขึ้นไป');
+  const d = (delay !== undefined) ? delay : 0;
+  const idx = n - 1 - d;
+  if(idx < MIN_HIST_DAYS) throw new Error('ข้อมูลน้อยเกินไป: มี '+n+' แถว ต้องการ '+(MIN_HIST_DAYS+d+1)+' ขึ้นไป');
   const signalDate = dates[idx];
 
   const momReturns = {};
@@ -1149,7 +1279,8 @@ function computeSignalV19(navMatrix, dates, plans) {
 
   plans.forEach(p => { if (!(p in scores)) scores[p] = 0; });
 
-  return { scores, momReturns, signalDate };
+  const latestNavDate = dates[n - 1];  // วันที่ NAV ล่าสุดในข้อมูล
+  return { scores, momReturns, signalDate, latestNavDate };
 }
 
 // ================================================================
@@ -1163,9 +1294,14 @@ function generateMenu() {
   const equity = ['F', 'TH', 'PR'];
   const bond = ['B', 'Global_Bond'];
 
+  // G25 + 1 equity only (75%) — 2-fund combo
+  equity.forEach(eq => {
+    menu['G25_'+eq+'75'] = {G: 0.25, [eq]: 0.75};
+  });
+
   // G25 + 1 equity dominant + 1 filler
   equity.forEach(eq => {
-    for (let ep = 50; ep <= 75; ep += 5) {
+    for (let ep = 50; ep <= 70; ep += 5) {
       const remain = 75 - ep;
       [...equity, ...bond].forEach(fill => {
         if (fill !== eq && remain >= 5) {
@@ -1241,23 +1377,7 @@ function makeDecisionV19({scores, currentMenu, currentAlloc, quotaUsed, lastSwit
   today.setHours(0,0,0,0);
   const quotaLeft = QUOTA_PER_YR - quotaUsed;
 
-  // 1. Quota
-  if (quotaLeft <= 0) {
-    return {action:'HOLD_QUOTA', reason:'Quota หมด ('+quotaUsed+'/'+QUOTA_PER_YR+')',
-            targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft: 0, topMenus:[]};
-  }
-
-  // 2. Cooldown
-  if (lastSwitchStr) {
-    const bdSince = bdays(new Date(lastSwitchStr), today);
-    if (bdSince < COOLDOWN_DAYS) {
-      return {action:'HOLD_COOLDOWN', reason:'Cooldown: '+bdSince+'/'+COOLDOWN_DAYS+' วันทำการ',
-              daysLeft: COOLDOWN_DAYS - bdSince,
-              targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft, topMenus:[]};
-    }
-  }
-
-  // 3. Score all menu
+  // ── ALWAYS score all menu options first (for display) ──
   const MENU = generateMenu();
   const menuScores = {};
   Object.entries(MENU).forEach(([name, alloc]) => {
@@ -1269,38 +1389,73 @@ function makeDecisionV19({scores, currentMenu, currentAlloc, quotaUsed, lastSwit
     });
     if (allAvail) menuScores[name] = score;
   });
-
-  // 4. Sort
   const sorted = Object.entries(menuScores).sort(([,a],[,b]) => b - a);
+  const topMenus = sorted.slice(0, 15);
+
+  // 1. Quota
+  if (quotaLeft <= 0) {
+    return {action:'HOLD_QUOTA', reason:'Quota หมด ('+quotaUsed+'/'+QUOTA_PER_YR+')',
+            targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft: 0, topMenus};
+  }
+
+  // 2. Cooldown
+  if (lastSwitchStr) {
+    const bdSince = bdays(new Date(lastSwitchStr), today);
+    if (bdSince < COOLDOWN_DAYS) {
+      return {action:'HOLD_COOLDOWN', reason:'Cooldown: '+bdSince+'/'+COOLDOWN_DAYS+' วันทำการ',
+              daysLeft: COOLDOWN_DAYS - bdSince,
+              targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft, topMenus};
+    }
+  }
+
+  // 3. Check best
   if (sorted.length === 0 || sorted[0][1] <= 0) {
     return {action:'HOLD_NO_SIGNAL', reason:'ไม่มีเมนูที่ score > 0',
-            targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft, topMenus: sorted.slice(0,15)};
+            targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft, topMenus};
   }
 
   const [bestMenu, bestScore] = sorted[0];
   const bestAlloc = MENU[bestMenu];
 
-  // 5. Same menu?
+  // Helper: round alloc to 5% for fair comparison (C3 fix)
+  function normAlloc(a){
+    const r={};
+    Object.entries(a).forEach(([k,v])=>{ const p=Math.round(v*100/5)*5; if(p>0) r[k]=p/100; });
+    return r;
+  }
+  const normBest = normAlloc(bestAlloc);
+  const normCurr = normAlloc(currentAlloc);
+
+  // 4. Same menu? Check by name OR by normalized allocation
   if (bestMenu === currentMenu) {
     return {action:'HOLD_SAME', reason:'เมนูที่ดีสุด = แผนปัจจุบัน ('+currentMenu+') → ไม่ต้องเปลี่ยน',
             targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft,
-            topMenus: sorted.slice(0, 15)};
+            topMenus};
+  }
+  // Also check if allocations are effectively the same (C3: handles rounding mismatch)
+  if (Object.keys(normCurr).length > 0) {
+    const normBKeys = Object.keys(normBest).sort().join(',');
+    const normCKeys = Object.keys(normCurr).sort().join(',');
+    if (normBKeys === normCKeys && Object.keys(normBest).every(k => normBest[k] === normCurr[k])) {
+      return {action:'HOLD_SAME', reason:'สัดส่วนปัจจุบันตรงกับเมนูที่ดีสุด ('+bestMenu+') → ไม่ต้องเปลี่ยน',
+              targetMenu: bestMenu, targetAlloc: currentAlloc, quotaLeft, topMenus};
+    }
   }
 
-  // 6. Small change check
-  if (currentAlloc && Object.keys(currentAlloc).length > 0) {
-    const allKeys = new Set([...Object.keys(bestAlloc), ...Object.keys(currentAlloc)]);
+  // 5. Small change check (using normalized values)
+  if (Object.keys(normCurr).length > 0) {
+    const allKeys = new Set([...Object.keys(normBest), ...Object.keys(normCurr)]);
     const isSmallChg = [...allKeys].every(p =>
-      Math.abs((bestAlloc[p]||0) - (currentAlloc[p]||0)) < CHANGE_THRESH
+      Math.abs((normBest[p]||0) - (normCurr[p]||0)) < CHANGE_THRESH
     );
     if (isSmallChg) {
       return {action:'HOLD_SMALL_CHANGE', reason:'สัดส่วนเปลี่ยนน้อยกว่า 5%',
               targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft,
-              topMenus: sorted.slice(0, 15)};
+              topMenus};
     }
   }
 
-  // 7. SWITCH!
+  // 6. SWITCH!
   return {
     action: 'SWITCH',
     level: 'ACTION',
@@ -1308,7 +1463,7 @@ function makeDecisionV19({scores, currentMenu, currentAlloc, quotaUsed, lastSwit
     targetMenu: bestMenu,
     targetAlloc: bestAlloc,
     quotaLeft: quotaLeft - 1,
-    topMenus: sorted.slice(0, 15),
+    topMenus,
     bestScore,
   };
 }
@@ -1368,6 +1523,75 @@ async function testCfgSheet(which){
 }
 
 // ================================================================
+//  ALLOCATION GRID + PORT MODE (Auto/Manual)
+// ================================================================
+const DIY = [
+  {key:'F',name:'หุ้นต่างประเทศ'},{key:'TH',name:'ตราสารทุนไทย'},
+  {key:'G',name:'ทองคำ'},{key:'PR',name:'อสังหาฯ & โครงสร้าง'},
+  {key:'Global_Bond',name:'ตราสารหนี้ตปท.'},{key:'B',name:'ตราสารหนี้ไทย'},
+  {key:'Money_Market',name:'ตลาดเงิน'},
+];
+const MIX = [
+  {key:'A75',name:'แผนผสม 75%'},{key:'A65',name:'แผนผสม 65%'},
+  {key:'A35',name:'แผนผสม 35%'},{key:'A20',name:'แผนผสม 20%'},
+  {key:'Base_Plan',name:'แผนหลัก'},{key:'Shariah',name:'ชะรีอะฮ์'},
+];
+const ALL_PLAN_DEFS = [...DIY,...MIX];
+let portInputMode = 'auto';
+
+function buildGrid(gridId,plans){
+  const grid=el(gridId);if(!grid)return;grid.innerHTML='';
+  plans.forEach(p=>{
+    const div=document.createElement('div');
+    div.style.cssText='display:flex;flex-direction:column;gap:3px';
+    div.innerHTML='<label style="font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name+' <span style="color:var(--acc);font-family:var(--mono)">('+p.key+')</span></label>'
+      +'<input type="number" id="a_'+p.key+'" min="0" max="100" value="0" style="background:var(--bg-3);border-color:var(--b2)" oninput="onAllocChange()">';
+    grid.appendChild(div);
+  });
+}
+function getAllocTotal(){
+  return ALL_PLAN_DEFS.reduce((s,p)=>{const v=parseFloat(el('a_'+p.key)?.value||'0');return s+(isNaN(v)?0:v);},0);
+}
+function getAllocFromGrid(){
+  const alloc={};
+  ALL_PLAN_DEFS.forEach(p=>{const v=parseFloat(el('a_'+p.key)?.value||'0');if(v>0)alloc[p.key]=v/100;});
+  return alloc;
+}
+function onAllocChange(){
+  const total=getAllocTotal();
+  const lbl=el('alloc-sum-val');
+  lbl.textContent=total.toFixed(0)+'%';
+  lbl.style.color=Math.abs(total-100)<0.01?'var(--green)':total>100?'var(--red)':'var(--t2)';
+  lbl.style.fontFamily='var(--mono)';lbl.style.fontWeight='700';lbl.style.fontSize='15px';
+}
+
+function setPortMode(mode){
+  portInputMode=mode;
+  const autoBtn=el('port-mode-auto'),manBtn=el('port-mode-manual');
+  const autoInfo=el('port-auto-info');
+  const manAlloc=el('manual-alloc-section');
+  if(!autoBtn)return;
+  if(mode==='auto'){
+    autoBtn.style.cssText='flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid rgba(0,230,118,.4);background:rgba(0,230,118,.08);color:var(--green);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px';
+    manBtn.style.cssText='flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid var(--b2);background:none;color:var(--t2);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px';
+    if(autoInfo) autoInfo.style.display='block';
+    if(manAlloc) manAlloc.style.display='none';
+    // Re-apply auto sync if data loaded
+    if(NAV_PORT.length>0){
+      const hold=calcHold(TX_PORT);
+      const analytics=calcAnalytics(hold,NAV_PORT,TX_PORT);
+      applyAutoSync(analytics,hold);
+    }
+  }else{
+    manBtn.style.cssText='flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid rgba(0,200,240,.4);background:rgba(0,200,240,.08);color:var(--acc);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px';
+    autoBtn.style.cssText='flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid var(--b2);background:none;color:var(--t2);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px';
+    if(autoInfo) autoInfo.style.display='none';
+    if(manAlloc) manAlloc.style.display='block';
+  }
+  try{const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');s['port-mode']=mode;localStorage.setItem(STORE_KEY,JSON.stringify(s));}catch(e){}
+}
+
+// ================================================================
 //  SIGNAL STATE PERSIST
 // ================================================================
 const SIG_FIELDS=['last-rebal','quota-used','current-menu'];
@@ -1375,16 +1599,35 @@ function save(){
   try{
     const obj={};
     SIG_FIELDS.forEach(id=>{const e=el(id);if(e)obj[id]=e.value;});
+    ALL_PLAN_DEFS.forEach(p=>{const e=el('a_'+p.key);if(e)obj['a_'+p.key]=e.value;});
+    // M3: Save quotaYear
+    obj['quota-year'] = new Date().getFullYear();
     localStorage.setItem(STORE_KEY,JSON.stringify(obj));
   }catch(e){}
 }
 function load(){
   try{
     const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
+    // M3: Auto-reset quota on year change
+    const savedYear = s['quota-year'] || new Date().getFullYear();
+    const nowYear = new Date().getFullYear();
+    if(savedYear < nowYear){
+      // New year → reset quota
+      s['quota-used'] = '0';
+      s['quota-year'] = nowYear;
+      // Save the reset
+      localStorage.setItem(STORE_KEY, JSON.stringify(s));
+    }
     SIG_FIELDS.forEach(id=>{if(s[id]!==undefined){const e=el(id);if(e)e.value=s[id];}});
+    // L1: Restore grid values
+    ALL_PLAN_DEFS.forEach(p=>{const k='a_'+p.key;if(s[k]!==undefined){const e=el(k);if(e)e.value=s[k];}});
   }catch(e){}
 }
-function bindSave(){SIG_FIELDS.forEach(id=>{const e=el(id);if(e)e.addEventListener('change',save);});}
+function bindSave(){
+  SIG_FIELDS.forEach(id=>{const e=el(id);if(e)e.addEventListener('change',save);});
+  // L1: Also bind grid changes to save
+  ALL_PLAN_DEFS.forEach(p=>{const e=el('a_'+p.key);if(e)e.addEventListener('change',save);});
+}
 
 // ================================================================
 //  QUOTA BAR
@@ -1503,15 +1746,21 @@ function loadDemoData(){
 // ================================================================
 function setViewMode(mode){
   viewMode=mode;
-  const todayBtn=el('mode-today'),histBtn=el('mode-history'),histWrap=el('hist-date-wrap'),runBtn=el('run-btn');
+  const todayBtn=el('mode-today'),histBtn=el('mode-history'),histWrap=el('hist-date-wrap');
+  const runBtn=el('run-btn'),histRunBtn=el('hist-run-btn');
   if(!todayBtn)return;
   if(mode==='today'){
     todayBtn.className='date-nav-btn active';histBtn.className='date-nav-btn';
-    histWrap.style.display='none';runBtn.style.display='flex';
+    histWrap.style.display='none';
+    runBtn.style.display='flex';
+    histRunBtn.style.display='none';
     el('run-btn-txt').textContent='▶ รัน Signal วันนี้';
   }else{
     histBtn.className='date-nav-btn hist-active';todayBtn.className='date-nav-btn';
-    histWrap.style.display='flex';runBtn.style.display='none';
+    histWrap.style.display='flex';
+    runBtn.style.display='none';
+    histRunBtn.style.display='flex';
+    histRunBtn.disabled=false;
     const dp=el('hist-date');
     if(cachedDates.length>0){dp.min=cachedDates[MIN_HIST_DAYS]||cachedDates[0];dp.max=cachedDates[cachedDates.length-1];if(!dp.value||dp.value>dp.max||dp.value<dp.min)dp.value=dp.max;}
   }
@@ -1530,10 +1779,36 @@ function parseMenuAlloc(menuName){
   if(!menuName) return {};
   const MENU = generateMenu();
   if(MENU[menuName]) return MENU[menuName];
-  // Try fuzzy match (case insensitive)
   const key = Object.keys(MENU).find(k => k.toLowerCase() === menuName.toLowerCase());
   if(key) return MENU[key];
   return {};
+}
+
+// C2+M2: Reverse-lookup — find menu name that matches an allocation
+function findMenuByAlloc(alloc){
+  if(!alloc || Object.keys(alloc).length === 0) return '';
+  const MENU = generateMenu();
+  // Normalize input: round to nearest 5%, filter zeros
+  const norm = {};
+  Object.entries(alloc).forEach(([k,v]) => {
+    const pct = Math.round(v * 100 / 5) * 5;
+    if(pct > 0) norm[k] = pct;
+  });
+  if(Object.keys(norm).length === 0) return '';
+  const normTotal = Object.values(norm).reduce((s,v) => s+v, 0);
+  if(normTotal !== 100 && Object.keys(norm).length > 0){
+    const topKey = Object.keys(norm).reduce((a,b) => norm[a]>=norm[b]?a:b);
+    norm[topKey] += (100 - normTotal);
+  }
+  for(const [name, menuAlloc] of Object.entries(MENU)){
+    const menuPcts = {};
+    Object.entries(menuAlloc).forEach(([k,v]) => { const p=Math.round(v*100); if(p>0) menuPcts[k]=p; });
+    const nk = Object.keys(norm).sort().join(',');
+    const mk = Object.keys(menuPcts).sort().join(',');
+    if(nk !== mk) continue;
+    if(Object.keys(norm).every(k => Math.abs((norm[k]||0)-(menuPcts[k]||0)) <= 2)) return name;
+  }
+  return '';
 }
 
 // ================================================================
@@ -1565,12 +1840,23 @@ async function runSignal(){
       navMatrix=navMatrix.slice(0,cutIdx+1);dates=dates.slice(0,cutIdx+1);
     }
 
-    // Compute v19 signal
-    const{scores, momReturns, signalDate}=computeSignalV19(navMatrix,dates,plans);
+    // Compute v19 signal: live=0 delay, history=T_DELAY
+    const signalDelay = isHistory ? T_DELAY : 0;
+    const{scores, momReturns, signalDate, latestNavDate}=computeSignalV19(navMatrix,dates,plans,signalDelay);
 
-    // Get current menu from input
-    const currentMenu = el('current-menu').value.trim();
-    const currentAlloc = parseMenuAlloc(currentMenu);
+    // Get current menu/alloc from grid (works for both auto and manual)
+    const gridAlloc = getAllocFromGrid();
+    let currentAlloc = {};
+    let currentMenu = el('current-menu').value.trim();
+    
+    if(Object.keys(gridAlloc).length > 0){
+      currentAlloc = gridAlloc;
+      // C2: If menu name is empty, reverse-lookup from grid
+      if(!currentMenu) currentMenu = findMenuByAlloc(gridAlloc);
+    } else if(currentMenu){
+      currentAlloc = parseMenuAlloc(currentMenu);
+    }
+    
     const quotaUsed = Math.min(12,Math.max(0,parseInt(el('quota-used').value)||0));
     const lastSwitchStr = el('last-rebal').value;
 
@@ -1581,7 +1867,7 @@ async function runSignal(){
     });
 
     // Render
-    renderResults({decision, scores, momReturns, signalDate, dataRows: navMatrix.length, plans, isHistory, histDateVal});
+    renderResults({decision, scores, momReturns, signalDate, latestNavDate, dataRows: navMatrix.length, plans, isHistory, histDateVal});
     el('run-time').textContent='อัปเดต: '+new Date().toLocaleTimeString('th-TH');
 
   }catch(e){
@@ -1604,7 +1890,7 @@ const ACTION_MAP={
 };
 
 function renderResults(data){
-  const{decision, scores, momReturns, signalDate, dataRows, plans, isHistory, histDateVal}=data;
+  const{decision, scores, momReturns, signalDate, latestNavDate, dataRows, plans, isHistory, histDateVal}=data;
 
   // History banner
   const hb=el('hist-banner');
@@ -1613,8 +1899,17 @@ function renderResults(data){
     hb.style.display='block';
   }else if(hb){hb.style.display='none';}
 
-  // Stats
-  el('stat-date').textContent=fmtDateMono(signalDate);
+  // Stats — show both dates (hide signal date if same as NAV latest)
+  const navDateStr = fmtDateMono(latestNavDate||signalDate);
+  const sigDateStr = fmtDateMono(signalDate);
+  el('stat-nav-date').textContent = navDateStr;
+  el('stat-date').textContent = sigDateStr;
+  // Highlight difference in history mode
+  if(navDateStr !== sigDateStr){
+    el('stat-date').style.color = 'var(--amber)';
+  } else {
+    el('stat-date').style.color = '';
+  }
   const MENU = generateMenu();
   el('stat-menus').textContent=Object.keys(MENU).length;
   el('stat-quota').textContent=(decision.quotaLeft??'—')+' / 12';
@@ -1633,7 +1928,9 @@ function renderResults(data){
   renderMenuRanking(decision.topMenus||[]);
 
   el('results-section').style.display='flex';
-  setTimeout(()=>el('results-section').scrollIntoView({behavior:'smooth',block:'start'}),100);
+  setTimeout(()=>{
+    el('results-section').scrollIntoView({behavior:'smooth',block:'start'});
+  },100);
 }
 
 function renderDecision(d){
@@ -1746,11 +2043,11 @@ function setRunLoading(on){
   if(on){
     if(sp)sp.classList.add('active');
     if(txt)txt.textContent=viewMode==='history'?'◌ กำลังรัน ย้อนหลัง…':'◌ กำลังรัน…';
-    if(hSp)hSp.classList.add('active');if(hTxt)hTxt.textContent='◌ รัน…';
+    if(hSp)hSp.classList.add('active');if(hTxt)hTxt.textContent='◌ กำลังรัน ย้อนหลัง…';
   }else{
     if(sp)sp.classList.remove('active');
     if(hSp)hSp.classList.remove('active');
-    if(hTxt)hTxt.textContent='รัน';
+    if(hTxt)hTxt.textContent='📅 รัน Signal ย้อนหลัง';
     if(txt)txt.textContent=viewMode==='history'?'▶ รัน (ย้อนหลัง)':'▶ รัน Signal วันนี้';
   }
 }
@@ -1825,9 +2122,9 @@ function renderPortAll(){
   showPortDash();
   requestAnimationFrame(()=>{requestAnimationFrame(()=>{
     renderPortChart(curPeriod);renderAlloc(hold,NAV_PORT);renderFund(NAV_PORT);renderNavCh(NAV_PORT,hold);
+    renderCorrMatrix(NAV_PORT);renderYearlySummary(NAV_PORT,TX_PORT);
   });});
   el('port-last-update').textContent='อัพเดต: '+new Date().toLocaleTimeString('th-TH');
-  // Auto-sync to Signal tab
   applyAutoSync(analytics,hold);
 }
 
@@ -1845,10 +2142,44 @@ function applyAutoSync(analytics,hold){
   el('quota-used').value=String(rebalDatesThisYear.size);
   updateQuotaBar();
 
+  // Sync allocation grid from holdings
+  let matchedMenu = '';
+  if(hold && Object.keys(hold).length > 0){
+    const ln = NAV_PORT[NAV_PORT.length-1];
+    let grand = 0;
+    for(const[f,u] of Object.entries(hold)){const nv=ln?.funds[f];if(nv)grand+=u*nv;}
+    if(grand > 0){
+      ALL_PLAN_DEFS.forEach(p=>{const inp=el('a_'+p.key);if(inp)inp.value='0';});
+      const holdAlloc = {};
+      for(const[f,u] of Object.entries(hold)){
+        const nv=ln?.funds[f];if(!nv||u<=0)continue;
+        const pct=Math.round((u*nv/grand)*100);
+        const inp=el('a_'+f);if(inp&&pct>0)inp.value=String(pct);
+        holdAlloc[f] = (u*nv/grand);
+      }
+      onAllocChange();
+      // C2+M2: Reverse-lookup menu name from actual allocation
+      matchedMenu = findMenuByAlloc(holdAlloc);
+      el('current-menu').value = matchedMenu;
+    }
+  }
+
+  // Update auto-detail panel
+  const detail = el('port-auto-detail');
+  if(detail){
+    const lastRebalStr = rebalTx.length > 0 ? fDt(rebalTx[rebalTx.length-1].date) : '—';
+    const menuLabel = matchedMenu ? matchedMenu : '(ไม่ตรงกับเมนูมาตรฐาน)';
+    detail.innerHTML =
+      'มูลค่า: <b style="color:var(--green)">฿'+Math.round(analytics.tot).toLocaleString()+'</b>'
+      +'  ·  เมนู: <b style="color:var(--gold)">'+esc(menuLabel)+'</b>'
+      +'<br>Rebalance ล่าสุด: <b style="color:var(--amber)">'+lastRebalStr+'</b>'
+      +'  ·  Quota ใช้ปีนี้: <b style="color:var(--acc)">'+rebalDatesThisYear.size+'/12</b>';
+  }
+
   // Show sync info
   el('sync-badge').classList.add('show');
   el('autosync-box').classList.add('show');
-  el('autosync-msg').textContent='Auto-synced: มูลค่า ฿'+Math.round(analytics.tot).toLocaleString()+' · Quota '+rebalDatesThisYear.size+'/12 · แผน: '+analytics.currentPlan;
+  el('autosync-msg').textContent='Auto-synced: มูลค่า ฿'+Math.round(analytics.tot).toLocaleString()+' · Quota '+rebalDatesThisYear.size+'/12 · เมนู: '+(matchedMenu||analytics.currentPlan);
   el('alloc-sync-note').style.display='inline';
   save();
 }
@@ -1927,14 +2258,127 @@ function renderDaily(nav,tx){
 //  CHARTS (from v18)
 // ================================================================
 const CD={responsive:true,maintainAspectRatio:false,resizeDelay:0,animation:{duration:400},plugins:{legend:{labels:{color:'#7888a8',font:{family:'Sarabun',size:11}}}},scales:{x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',maxTicksLimit:8,font:{size:10,family:'IBM Plex Mono'}}},y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:10,family:'IBM Plex Mono'}}}}};
+// Smart tooltip positioners: flip to opposite side of cursor
+Chart.Tooltip.positioners.smartFlip = function(elements, eventPosition) {
+  const area = this.chart.chartArea;
+  const midX = (area.left + area.right) / 2;
+  // If cursor is on left half → show tooltip on right, and vice versa
+  if (eventPosition.x < midX) {
+    return { x: area.right - 8, y: area.top + 8 };
+  } else {
+    return { x: area.left + 8, y: area.top + 8 };
+  }
+};
+Chart.Tooltip.positioners.topLeft = function() {
+  return { x: this.chart.chartArea.left + 8, y: this.chart.chartArea.top + 8 };
+};
+// Sort tooltip items by value descending
+const ttSortDesc = (a,b) => (b.parsed?.y ?? b.parsed ?? 0) - (a.parsed?.y ?? a.parsed ?? 0);
 const fmtDateChart=d=>d.toLocaleDateString('th-TH',{month:'short',day:'numeric'});
 function destroyChart(key){if(portCharts[key]){try{portCharts[key].destroy();}catch(e){}delete portCharts[key];}}
 
+// Sync hover between paired port+DD charts
+let _portSyncAC=null, _fsSyncAC=null;
+function setupPairSync(canvas1,getChart1,canvas2,getChart2){
+  const ac=new AbortController();const opt={signal:ac.signal};
+  function getIdxFromEvent(chart,e){
+    if(!chart||!chart.scales?.x||!chart.chartArea)return-1;
+    const rect=chart.canvas.getBoundingClientRect();
+    const x=e.clientX-rect.left;
+    const ca=chart.chartArea;
+    if(x<ca.left||x>ca.right)return-1;
+    const val=chart.scales.x.getValueForPixel(x);
+    const idx=Math.round(val);
+    const maxIdx=chart.data.labels.length-1;
+    return Math.max(0,Math.min(idx,maxIdx));
+  }
+  function showOnChart(chart,idx){
+    if(!chart||idx<0||!chart.scales?.x)return;
+    try{
+      const els=chart.data.datasets.map((_,di)=>({datasetIndex:di,index:idx}));
+      const xPx=chart.scales.x.getPixelForValue(idx);
+      const yPx=chart.chartArea?(chart.chartArea.top+chart.chartArea.bottom)/2:0;
+      chart.tooltip.setActiveElements(els,{x:xPx,y:yPx});
+      chart.setActiveElements(els);
+      chart.update('none');
+    }catch(ex){}
+  }
+  function clear(chart){
+    if(!chart)return;
+    try{chart.tooltip.setActiveElements([],{x:0,y:0});chart.setActiveElements([]);chart.update('none');}catch(ex){}
+  }
+  canvas1.addEventListener('mousemove',e=>{
+    const s=getChart1(),t=getChart2();
+    const idx=getIdxFromEvent(s,e);
+    if(idx>=0)showOnChart(t,idx);
+  },opt);
+  canvas1.addEventListener('mouseleave',()=>clear(getChart2()),opt);
+  canvas2.addEventListener('mousemove',e=>{
+    const s=getChart2(),t=getChart1();
+    const idx=getIdxFromEvent(s,e);
+    if(idx>=0)showOnChart(t,idx);
+  },opt);
+  canvas2.addEventListener('mouseleave',()=>clear(getChart1()),opt);
+  return ac;
+}
+
 function renderPortChart(days){
   const{l,v,iv}=calcPort(NAV_PORT,TX_PORT,days);const ctx=el('port-chart');if(!ctx)return;
-  destroyChart('port');
+  destroyChart('port');destroyChart('dd');
+  if(_portSyncAC){_portSyncAC.abort();_portSyncAC=null;}
   if(l.length<2){const c=ctx.getContext('2d');c.clearRect(0,0,ctx.width,ctx.height);c.fillStyle='#7888a8';c.font='13px Sarabun';c.textAlign='center';c.fillText(TX_PORT.length===0?'ไม่พบ Transaction — โหลด TX Sheet ด้วย':'ข้อมูลน้อยเกินไป ลอง All',ctx.clientWidth/2||200,110);return;}
-  portCharts.port=new Chart(ctx.getContext('2d'),{type:'line',data:{labels:l.map(fmtDateChart),datasets:[{label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,backgroundColor:ctx2=>{const g=ctx2.chart.ctx.createLinearGradient(0,0,0,260);g.addColorStop(0,'rgba(255,193,32,.18)');g.addColorStop(1,'rgba(255,193,32,0)');return g;}},{label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3}]},options:{...CD,interaction:{mode:'index',intersect:false},plugins:{...CD.plugins,tooltip:{mode:'index',intersect:false,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:12,titleColor:'#7888a8',titleFont:{family:'Sarabun',size:12},bodyFont:{family:'IBM Plex Mono',size:12},callbacks:{label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;return[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)'];}}}}}}); }
+  const rebalTx=TX_PORT.filter(t=>t.type&&(t.type.includes('เปลี่ยนแผน')||t.type.toLowerCase().includes('rebal')));
+  const rebalDates=new Set(rebalTx.map(t=>t.date.toDateString()));
+  const rebalData=l.map((d,i)=>rebalDates.has(d.toDateString())?v[i]:null);
+  const labels=l.map(fmtDateChart);
+  // Compute DD data first (for combined tooltip)
+  let peak=0;
+  const ddData=v.map(val=>{if(val>peak)peak=val;return peak>0?(val-peak)/peak*100:0;});
+  const datasets=[
+    {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,
+      backgroundColor:c=>{const a=c.chart.chartArea;if(!a)return'rgba(255,193,32,.15)';const g=c.chart.ctx.createLinearGradient(0,a.top,0,a.bottom);g.addColorStop(0,'rgba(255,193,32,.2)');g.addColorStop(1,'rgba(255,193,32,0)');return g;}},
+    {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3},
+  ];
+  if(rebalData.some(v=>v!==null)){
+    datasets.push({label:'📌 Rebalance',data:rebalData,type:'line',fill:false,borderWidth:0,pointRadius:7,pointStyle:'triangle',pointBackgroundColor:'var(--red)',pointBorderColor:'#fff',pointBorderWidth:1.5,showLine:false});
+  }
+  // Port chart with combined tooltip (Portfolio + DD)
+  portCharts.port=new Chart(ctx.getContext('2d'),{type:'line',data:{labels,datasets},
+    options:{responsive:true,maintainAspectRatio:false,resizeDelay:0,animation:{duration:400},
+      interaction:{mode:'index',intersect:false},
+      scales:{
+        x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{display:false}},
+        y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:10,family:'IBM Plex Mono'}}}
+      },
+      plugins:{legend:{labels:{color:'#7888a8',font:{family:'Sarabun',size:11}}},
+        tooltip:{mode:'index',intersect:false,position:'smartFlip',caretSize:0,
+          backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:12,
+          titleColor:'#7888a8',titleFont:{family:'Sarabun',size:12},bodyFont:{family:'IBM Plex Mono',size:12},
+          filter:item=>item.dataset.label!=='📌 Rebalance',
+          callbacks:{label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
+            afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const ddIcon=dd>-2?'🟢':dd>-5?'🟡':'🔴';const parts=[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)',' '+ddIcon+' DD: '+dd.toFixed(2)+'%'];if(rebalData[i]!==null)parts.push(' 📌 Rebalance');return parts;}}
+        }
+      }
+    }
+  });
+  // DD chart below (no tooltip — data shown in port tooltip above)
+  const ddCtx=el('dd-chart');
+  if(ddCtx){
+    portCharts.dd=new Chart(ddCtx.getContext('2d'),{type:'line',
+      data:{labels,datasets:[{data:ddData,fill:'origin',borderColor:'#ff3d5a',borderWidth:1.2,pointRadius:0,tension:.3,backgroundColor:'rgba(255,61,90,.18)'}]},
+      options:{responsive:true,maintainAspectRatio:false,animation:{duration:400},
+        interaction:{mode:'index',intersect:false},
+        plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{
+          x:{grid:{color:'rgba(26,32,48,.3)'},ticks:{color:'#4e6a8a',maxTicksLimit:8,font:{size:9,family:'IBM Plex Mono'}}},
+          y:{max:0,grid:{color:'rgba(255,61,90,.06)'},ticks:{color:'rgba(255,61,90,.4)',font:{size:8,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'}}
+        }
+      }
+    });
+    // Sync hover between port chart and DD chart
+    _portSyncAC=setupPairSync(el('port-chart'),()=>portCharts.port,ddCtx,()=>portCharts.dd);
+  }
+}
 function renderAlloc(hold,nav){
   const ln=nav[nav.length-1];const ls=[],data=[],cs=[];
   for(const[f,u]of Object.entries(hold)){const nv=ln?.funds[f];if(!nv||u*nv<=0)continue;const m=FM[f]||{l:f,c:'#888'};ls.push(m.l);data.push(u*nv);cs.push(m.c);}
@@ -1949,7 +2393,7 @@ function renderFund(nav, days){
   const ds=av.map(f=>{const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fv)/fv)*100);const m=FM[f]||{l:f,c:'#888'};return{label:m.l,data,borderColor:m.c,borderWidth:1.5,pointRadius:0,tension:.3,fill:false};}).filter(Boolean);
   const lbls=rc.filter(n=>n.funds[av[0]]!=null).map(n=>fmtDateChart(n.date));
   const ctx=el('fund-chart').getContext('2d');destroyChart('fund');
-  portCharts.fund=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,callbacks:{label:c=>' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'}}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
+  portCharts.fund=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{label:c=>' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'}}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
 }
 function renderNavCh(nav,hold){
   const active=Object.keys(hold).filter(f=>FM[f]&&nav.some(n=>n.funds[f]));
@@ -1958,10 +2402,191 @@ function renderNavCh(nav,hold){
   const ds=active.map(f=>{const m=FM[f]||{s:f,c:'#888'};const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fn[f])/fn[f])*100);return{label:m.s,data,borderColor:m.c,borderWidth:1.5,pointRadius:0,tension:.3,fill:false};});
   const lbls=rc.filter(n=>n.funds[active[0]]!=null).map(n=>fmtDateChart(n.date));
   const ctx=el('nav-chart').getContext('2d');destroyChart('navchart');
-  portCharts.navchart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,callbacks:{title:items=>'NAV '+items[0]?.label||'',label:c=>{const f=active[c.datasetIndex];const navPt=rc.filter(n=>n.funds[f]!=null)[c.dataIndex];const navVal=navPt?navPt.funds[f]:null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'+(navVal?' (NAV '+fmt(navVal,4)+')':'')}}}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
+  portCharts.navchart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{title:items=>'NAV '+items[0]?.label||'',label:c=>{const f=active[c.datasetIndex];const navPt=rc.filter(n=>n.funds[f]!=null)[c.dataIndex];const navVal=navPt?navPt.funds[f]:null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'+(navVal?' (NAV '+fmt(navVal,4)+')':'')}}}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
 }
 function setPeriod(btn,days){document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');curPeriod=days;destroyChart('port');renderPortChart(days);}
 function setFundPeriod(btn,days){document.querySelectorAll('.fpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');fundPeriod=days;if(NAV_PORT.length>0){destroyChart('fund');renderFund(NAV_PORT,days);}}
+
+// ================================================================
+//  FUND CORRELATION MATRIX
+// ================================================================
+function renderCorrMatrix(nav){
+  const box=el('corr-matrix');if(!box)return;
+  const rc=nav.slice(-90);
+  if(rc.length<10){box.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px">ข้อมูลไม่พอ (ต้อง ≥10 วัน)</div>';return;}
+  const funds=['F','G','TH','A65','A75','B','Money_Market'];
+  const active=funds.filter(f=>rc.filter(n=>n.funds[f]!=null).length>=10);
+  if(active.length<2){box.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px">กองทุนไม่พอสำหรับ correlation</div>';return;}
+  // Compute daily returns
+  const rets={};
+  active.forEach(f=>{
+    rets[f]=[];
+    for(let i=1;i<rc.length;i++){
+      const c=rc[i].funds[f],p=rc[i-1].funds[f];
+      rets[f].push((c&&p&&p>0)?(c-p)/p:null);
+    }
+  });
+  // Correlation function
+  function corr(a,b){
+    const pairs=[];
+    for(let i=0;i<a.length;i++){if(a[i]!==null&&b[i]!==null)pairs.push([a[i],b[i]]);}
+    if(pairs.length<5)return null;
+    const n=pairs.length;
+    const ma=pairs.reduce((s,p)=>s+p[0],0)/n,mb=pairs.reduce((s,p)=>s+p[1],0)/n;
+    let num=0,da=0,db=0;
+    pairs.forEach(([x,y])=>{num+=(x-ma)*(y-mb);da+=(x-ma)**2;db+=(y-mb)**2;});
+    return(da>0&&db>0)?num/Math.sqrt(da*db):0;
+  }
+  // Build correlation matrix
+  const matrix=[];
+  active.forEach((f1,i)=>{
+    const row=[];
+    active.forEach((f2,j)=>{
+      row.push(i===j?1.0:corr(rets[f1],rets[f2]));
+    });
+    matrix.push(row);
+  });
+  // Render as HTML table
+  function corrColor(v){
+    if(v===null)return'var(--bg-3)';
+    const abs=Math.abs(v);
+    if(abs>0.8)return'rgba(255,61,90,.35)';
+    if(abs>0.6)return'rgba(255,170,0,.25)';
+    if(abs>0.4)return'rgba(255,170,0,.12)';
+    return'rgba(0,230,118,.12)';
+  }
+  function corrText(v){
+    if(v===null)return'—';
+    const abs=Math.abs(v);
+    return abs>0.8?'var(--red)':abs>0.6?'var(--amber)':abs>0.4?'var(--text)':'var(--green)';
+  }
+  let html='<table style="width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mono)">';
+  html+='<tr><td style="padding:6px"></td>';
+  active.forEach(f=>{const m=FM[f]||{s:f};html+='<td style="padding:6px;text-align:center;color:var(--t2);font-weight:600;font-size:10px">'+m.s+'</td>';});
+  html+='</tr>';
+  active.forEach((f1,i)=>{
+    const m1=FM[f1]||{s:f1,c:'#888'};
+    html+='<tr><td style="padding:6px;color:var(--t2);font-weight:600;font-size:10px;white-space:nowrap"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:'+m1.c+';margin-right:5px;vertical-align:middle"></span>'+m1.s+'</td>';
+    active.forEach((f2,j)=>{
+      const v=matrix[i][j];
+      const bg=i===j?'rgba(255,255,255,.03)':corrColor(v);
+      const clr=i===j?'var(--t3)':corrText(v);
+      html+='<td style="padding:6px;text-align:center;background:'+bg+';color:'+clr+';font-weight:'+(i===j?'400':'600')+';border:1px solid var(--b1);border-radius:0">'+(v!==null?v.toFixed(2):'—')+'</td>';
+    });
+    html+='</tr>';
+  });
+  html+='</table>';
+  // Legend
+  html+='<div style="display:flex;gap:14px;margin-top:8px;font-size:10px;color:var(--t2);font-family:var(--mono)">'
+    +'<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(0,230,118,.12);margin-right:4px;vertical-align:middle"></span>&lt;0.4 ดี</span>'
+    +'<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(255,170,0,.25);margin-right:4px;vertical-align:middle"></span>0.6-0.8 ระวัง</span>'
+    +'<span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:rgba(255,61,90,.35);margin-right:4px;vertical-align:middle"></span>&gt;0.8 สูง</span>'
+    +'</div>';
+  box.innerHTML=html;
+}
+
+// ================================================================
+//  YEARLY PERFORMANCE SUMMARY
+// ================================================================
+function renderYearlySummary(nav,tx){
+  const box=el('yearly-summary');if(!box)return;
+  if(!nav||nav.length<2||!tx||tx.length<1){box.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px">ข้อมูลไม่พอ</div>';return;}
+  // Group by year
+  const years=new Map();
+  const allYears=[...new Set(nav.map(n=>n.date.getFullYear()))].sort();
+  allYears.forEach(yr=>{
+    const yrNav=nav.filter(n=>n.date.getFullYear()===yr);
+    const yrTx=tx.filter(t=>t.date.getFullYear()===yr);
+    // Deposits this year
+    const deposits=yrTx.filter(t=>t.type==='เงินนำส่ง').reduce((s,t)=>s+(t.total||0),0);
+    // Rebalance count
+    const rebalCount=new Set(yrTx.filter(t=>t.type&&(t.type.includes('เปลี่ยนแผน')||t.type.toLowerCase().includes('rebal'))).map(t=>t.date.toDateString())).size;
+    // Start/end portfolio values
+    const yrEnd=yrNav[yrNav.length-1];
+    const yrStart=yrNav[0];
+    const hold=calcHold(tx.filter(t=>t.date<=yrEnd.date));
+    let endVal=0;for(const[f,u]of Object.entries(hold)){const nv=yrEnd?.funds[f];if(nv)endVal+=u*nv;}
+    const holdStart=calcHold(tx.filter(t=>t.date<yrStart.date));
+    let startVal=0;for(const[f,u]of Object.entries(holdStart)){const nv=yrStart?.funds[f];if(nv)startVal+=u*nv;}
+    // Skip years with no activity
+    if(endVal===0&&startVal===0&&deposits===0) return;
+    // DD within year
+    let peak=0,maxDD=0;
+    yrNav.forEach(n=>{
+      const h=calcHold(tx.filter(t=>t.date<=n.date));
+      let val=0;for(const[f,u]of Object.entries(h)){const nv=n?.funds[f];if(nv)val+=u*nv;}
+      if(val>peak)peak=val;
+      const dd=peak>0?(val-peak)/peak*100:0;
+      if(dd<maxDD)maxDD=dd;
+    });
+    const pnl=endVal-startVal-deposits;
+    // Modified Dietz: PnL / (startVal + deposits * 0.5)
+    const base=startVal+deposits*0.5;
+    const pct=base>0?(pnl/base)*100:0;
+    years.set(yr,{startVal,endVal,deposits,pnl,pct,maxDD,rebalCount,days:yrNav.length});
+  });
+  // Render table
+  let html='<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono)">';
+  html+='<thead><tr style="border-bottom:1px solid var(--b2)">'
+    +'<th style="padding:8px 6px;text-align:left;color:var(--t2)">ปี</th>'
+    +'<th style="padding:8px 6px;text-align:right;color:var(--t2)">ต้นปี (฿)</th>'
+    +'<th style="padding:8px 6px;text-align:right;color:var(--t2)">สิ้นปี (฿)</th>'
+    +'<th style="padding:8px 6px;text-align:right;color:var(--t2)">เงินเข้า (฿)</th>'
+    +'<th style="padding:8px 6px;text-align:right;color:var(--t2)">กำไร/ขาดทุน</th>'
+    +'<th style="padding:8px 6px;text-align:right;color:var(--t2)">ผลตอบแทน</th>'
+    +'<th style="padding:8px 6px;text-align:right;color:var(--t2)">Max DD</th>'
+    +'<th style="padding:8px 6px;text-align:center;color:var(--t2)">Rebal</th>'
+    +'<th style="padding:8px 6px;text-align:center;color:var(--t2)">วันทำการ</th>'
+    +'</tr></thead><tbody>';
+  years.forEach((d,yr)=>{
+    const pnlClr=d.pnl>=0?'var(--green)':'var(--red)';
+    const ddClr=d.maxDD>-5?'var(--green)':d.maxDD>-15?'var(--amber)':'var(--red)';
+    html+='<tr style="border-bottom:1px solid var(--b1)">'
+      +'<td style="padding:8px 6px;font-weight:700;color:var(--text)">'+yr+'</td>'
+      +'<td style="padding:8px 6px;text-align:right">'+fmt(d.startVal,0)+'</td>'
+      +'<td style="padding:8px 6px;text-align:right;font-weight:600">'+fmt(d.endVal,0)+'</td>'
+      +'<td style="padding:8px 6px;text-align:right;color:var(--acc)">+'+fmt(d.deposits,0)+'</td>'
+      +'<td style="padding:8px 6px;text-align:right;color:'+pnlClr+';font-weight:700">'+fmtS(d.pnl)+'</td>'
+      +'<td style="padding:8px 6px;text-align:right;color:'+pnlClr+';font-weight:700">'+fmtS(d.pct)+'%</td>'
+      +'<td style="padding:8px 6px;text-align:right;color:'+ddClr+'">'+d.maxDD.toFixed(1)+'%</td>'
+      +'<td style="padding:8px 6px;text-align:center">'+d.rebalCount+'</td>'
+      +'<td style="padding:8px 6px;text-align:center;color:var(--t3)">'+d.days+'</td>'
+      +'</tr>';
+  });
+  // Totals
+  let totDep=0,worstDD=0,totRebal=0;
+  years.forEach(d=>{totDep+=d.deposits;if(d.maxDD<worstDD)worstDD=d.maxDD;totRebal+=d.rebalCount;});
+  const firstYr=years.values().next().value;
+  const lastYr=[...years.values()].pop();
+  // Calculate total PnL from overall start/end to avoid year-boundary gaps
+  const totPnl=(lastYr?lastYr.endVal:0)-(firstYr?firstYr.startVal:0)-totDep;
+  // Total return: simple return = PnL / total capital (startVal + all deposits)
+  const totCost=(firstYr?firstYr.startVal:0)+totDep;
+  const totPct=totCost>0?(totPnl/totCost)*100:0;
+  // Compute overall max DD across all data
+  let overallPeak=0,overallMaxDD=0;
+  const txSorted=[...tx].sort((a,b)=>a.date-b.date);
+  for(const n of nav){
+    const h={};for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))h[f]=(h[f]||0)+a.u;}
+    let val=0;for(const[f,u]of Object.entries(h)){const nv=n?.funds[f];if(nv)val+=u*nv;}
+    if(val>overallPeak)overallPeak=val;
+    const dd=overallPeak>0?(val-overallPeak)/overallPeak*100:0;
+    if(dd<overallMaxDD)overallMaxDD=dd;
+  }
+  html+='<tr style="border-top:2px solid var(--b2);font-weight:700">'
+    +'<td style="padding:8px 6px;color:var(--gold)">รวม</td>'
+    +'<td style="padding:8px 6px;text-align:right">'+(firstYr?fmt(firstYr.startVal,0):'-')+'</td>'
+    +'<td style="padding:8px 6px;text-align:right">'+(lastYr?fmt(lastYr.endVal,0):'-')+'</td>'
+    +'<td style="padding:8px 6px;text-align:right;color:var(--acc)">+'+fmt(totDep,0)+'</td>'
+    +'<td style="padding:8px 6px;text-align:right;color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+fmtS(totPnl)+'</td>'
+    +'<td style="padding:8px 6px;text-align:right;color:'+(totPct>=0?'var(--green)':'var(--red)')+'">'+fmtS(totPct)+'%</td>'
+    +'<td style="padding:8px 6px;text-align:right;color:var(--red)">'+overallMaxDD.toFixed(1)+'%</td>'
+    +'<td style="padding:8px 6px;text-align:center">'+totRebal+'</td>'
+    +'<td style="padding:8px 6px"></td></tr>';
+  html+='</tbody></table>';
+  html+='<div style="font-size:10px;color:var(--t3);margin-top:8px;font-family:var(--mono)">* รายปี: Modified Dietz กำไร÷(ต้นปี+เงินเข้า×0.5) · รวม: กำไร÷ต้นทุนรวม (เทียบต้นทุนรวม)</div>';
+  box.innerHTML=html;
+}
 
 function switchTab(id, btn) {
   document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
@@ -1973,6 +2598,8 @@ function switchTab(id, btn) {
       const hold=calcHold(TX_PORT);
       destroyChart('port');destroyChart('alloc');destroyChart('fund');destroyChart('navchart');
       renderPortChart(curPeriod);renderAlloc(hold,NAV_PORT);renderFund(NAV_PORT);renderNavCh(NAV_PORT,hold);
+      const analytics=calcAnalytics(hold,NAV_PORT,TX_PORT);
+      renderCorrMatrix(NAV_PORT);renderYearlySummary(NAV_PORT,TX_PORT);
     });
   }
 }
@@ -1983,16 +2610,208 @@ function portTab(btn,id){
 }
 
 // ================================================================
+//  FULLSCREEN CHART
+// ================================================================
+let fsChart = null;
+let fsDDChart = null;
+let fsCurrentKey = '';
+let fsPeriod = 0;
+
+// Tooltip positioner: always top-right corner, never overlapping chart lines
+const fsTooltipPos = {
+  position:'average',
+  xAlign:'right',
+  yAlign:'top',
+};
+function fsTTOpts(extra){
+  return{
+    mode:'index',intersect:false,
+    position:'topLeft',
+    itemSort:ttSortDesc,
+    backgroundColor:'rgba(9,17,31,.97)',
+    borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:14,
+    titleColor:'#7888a8',titleFont:{family:'Sarabun',size:13},
+    bodyFont:{family:'IBM Plex Mono',size:14},
+    bodySpacing:6,
+    caretSize:0,
+    callbacks:extra||{},
+  };
+}
+
+function buildFsPeriodBtns(type){
+  const wrap = el('fs-period-btns');
+  if(!wrap) return;
+  wrap.innerHTML = '';
+  wrap.classList.remove('show');
+  if(type==='port'){
+    const periods=[{l:'1M',d:30},{l:'3M',d:90},{l:'6M',d:180},{l:'1Y',d:365},{l:'All',d:0}];
+    periods.forEach(p=>{
+      const b=document.createElement('button');
+      b.className='pbtn'+(p.d===curPeriod?' active':'');
+      b.textContent=p.l;
+      b.onclick=()=>{
+        wrap.querySelectorAll('.pbtn').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        fsPeriod=p.d;
+        renderFsChart('port');
+      };
+      wrap.appendChild(b);
+    });
+    wrap.classList.add('show');
+  } else if(type==='fund'){
+    const periods=[{l:'1M',d:30},{l:'3M',d:90},{l:'6M',d:180},{l:'1Y',d:365},{l:'All',d:0}];
+    periods.forEach(p=>{
+      const b=document.createElement('button');
+      b.className='fpbtn'+(p.d===fundPeriod?' active':'');
+      b.textContent=p.l;
+      b.onclick=()=>{
+        wrap.querySelectorAll('.fpbtn').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        fsPeriod=p.d;
+        renderFsChart('fund');
+      };
+      wrap.appendChild(b);
+    });
+    wrap.classList.add('show');
+  }
+}
+
+function renderFsChart(chartKey){
+  if(fsChart){ try{fsChart.destroy();}catch(e){} fsChart=null; }
+  if(fsDDChart){ try{fsDDChart.destroy();}catch(e){} fsDDChart=null; }
+  const ddWrapReset=el('fs-dd-wrap');if(ddWrapReset)ddWrapReset.style.display='none';
+  const ctx = el('fs-canvas').getContext('2d');
+  
+  if(chartKey === 'port'){
+    if(_fsSyncAC){_fsSyncAC.abort();_fsSyncAC=null;}
+    const days = fsPeriod;
+    const{l,v,iv}=calcPort(NAV_PORT,TX_PORT,days);
+    if(l.length<2) return;
+    const rebalTx=TX_PORT.filter(t=>t.type&&(t.type.includes('เปลี่ยนแผน')||t.type.toLowerCase().includes('rebal')));
+    const rebalDates=new Set(rebalTx.map(t=>t.date.toDateString()));
+    const rebalData=l.map((d,i)=>rebalDates.has(d.toDateString())?v[i]:null);
+    const labels=l.map(fmtDateChart);
+    // Compute DD data first (for combined tooltip)
+    let peak=0;
+    const ddData=v.map(val=>{if(val>peak)peak=val;return peak>0?(val-peak)/peak*100:0;});
+    const datasets=[
+      {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,backgroundColor:'rgba(255,193,32,.12)'},
+      {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3}
+    ];
+    if(rebalData.some(v=>v!==null)){
+      datasets.push({label:'📌 Rebalance',data:rebalData,type:'line',fill:false,borderWidth:0,pointRadius:9,pointStyle:'triangle',pointBackgroundColor:'var(--red)',pointBorderColor:'#fff',pointBorderWidth:2,showLine:false});
+    }
+    // Port chart with combined tooltip (Portfolio + DD)
+    fsChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      scales:{x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{display:false}},y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:11,family:'IBM Plex Mono'}}}},
+      plugins:{legend:{labels:{color:'#7888a8',font:{family:'Sarabun',size:12}}},
+        tooltip:{...fsTTOpts({label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
+          afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const ddIcon=dd>-2?'🟢':dd>-5?'🟡':'🔴';const parts=[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)',' '+ddIcon+' DD: '+dd.toFixed(2)+'%'];if(rebalData[i]!==null)parts.push(' 📌 Rebalance');return parts;}
+        }),filter:item=>item.dataset.label!=='📌 Rebalance'}
+      }
+    }});
+    // DD chart below (no tooltip — data shown in port tooltip above)
+    const ddWrap=el('fs-dd-wrap');ddWrap.style.display='flex';
+    const ddCtx=el('fs-dd-canvas');
+    fsDDChart=new Chart(ddCtx.getContext('2d'),{type:'line',
+      data:{labels,datasets:[{data:ddData,fill:'origin',borderColor:'#ff3d5a',borderWidth:1.5,pointRadius:0,tension:.3,backgroundColor:'rgba(255,61,90,.18)'}]},
+      options:{responsive:true,maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{legend:{display:false},tooltip:{enabled:false}},
+        scales:{x:{grid:{color:'rgba(26,32,48,.3)'},ticks:{color:'#4e6a8a',maxTicksLimit:12,font:{size:10,family:'IBM Plex Mono'}}},
+          y:{max:0,grid:{color:'rgba(255,61,90,.06)'},ticks:{color:'rgba(255,61,90,.4)',font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'}}}
+      }
+    });
+    // Sync hover between port chart and DD chart
+    _fsSyncAC=setupPairSync(el('fs-canvas'),()=>fsChart,ddCtx,()=>fsDDChart);
+  } else if(chartKey === 'alloc'){
+    const hold=calcHold(TX_PORT);const ln=NAV_PORT[NAV_PORT.length-1];
+    const ls=[],data=[],cs=[];
+    for(const[f,u]of Object.entries(hold)){const nv=ln?.funds[f];if(!nv||u*nv<=0)continue;const m=FM[f]||{l:f,c:'#888'};ls.push(m.l);data.push(u*nv);cs.push(m.c);}
+    fsChart=new Chart(ctx,{type:'doughnut',data:{labels:ls,datasets:[{data,backgroundColor:cs,borderColor:'#0d1526',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+        plugins:{legend:{position:'right',labels:{color:'#7888a8',font:{family:'Sarabun',size:14},padding:14}},
+          tooltip:{callbacks:{label:c=>{const total=data.reduce((a,b)=>a+b,0);return' '+c.label+': ฿'+c.parsed.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+((c.parsed/total)*100).toFixed(1)+'%)';}}}}
+      }});
+  } else if(chartKey === 'fund'){
+    const days = fsPeriod;
+    const fs2=['F','G','A65','A75','Money_Market','B','TH'];
+    const av=fs2.filter(f=>NAV_PORT.some(n=>n.funds[f]!=null));
+    let rc;if(days===0){rc=NAV_PORT;}else{const cut=new Date(Date.now()-days*864e5);rc=NAV_PORT.filter(n=>n.date>=cut);}
+    if(rc.length<2)return;
+    const ds=av.map(f=>{const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fv)/fv)*100);const m=FM[f]||{l:f,c:'#888'};return{label:m.l,data,borderColor:m.c,borderWidth:1.5,pointRadius:0,tension:.3,fill:false};}).filter(Boolean);
+    const lbls=rc.filter(n=>n.funds[av[0]]!=null).map(n=>fmtDateChart(n.date));
+    fsChart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},
+      options:{...CD,responsive:true,maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{...CD.plugins,
+          tooltip:fsTTOpts({label:c=>' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'})
+        },
+        scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v.toFixed(1)+'%'}}}
+      }});
+  } else if(chartKey === 'navchart'){
+    const hold=calcHold(TX_PORT);
+    const active=Object.keys(hold).filter(f=>FM[f]&&NAV_PORT.some(n=>n.funds[f]));
+    const rc=NAV_PORT.slice(-90);const fn={};
+    for(const f of active){const v=rc.find(n=>n.funds[f]!=null)?.funds[f];if(v)fn[f]=v;}
+    const ds=active.map(f=>{const m=FM[f]||{s:f,c:'#888'};const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fn[f])/fn[f])*100);return{label:m.s,data,borderColor:m.c,borderWidth:1.5,pointRadius:0,tension:.3,fill:false};});
+    const lbls=rc.filter(n=>n.funds[active[0]]!=null).map(n=>fmtDateChart(n.date));
+    fsChart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},
+      options:{...CD,responsive:true,maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{...CD.plugins,
+          tooltip:fsTTOpts({label:c=>' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'})
+        },
+        scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v.toFixed(1)+'%'}}}
+      }});
+  }
+}
+
+function openFullscreen(chartKey, title){
+  const overlay = el('fs-overlay');
+  overlay.classList.add('show');
+  el('fs-title').textContent = title;
+  document.body.style.overflow = 'hidden';
+  fsCurrentKey = chartKey;
+  // Set initial period for fs buttons
+  if(chartKey==='port') fsPeriod = curPeriod;
+  else if(chartKey==='fund') fsPeriod = fundPeriod;
+  // Build period buttons
+  buildFsPeriodBtns(chartKey);
+  // Render chart after layout
+  requestAnimationFrame(()=>{ renderFsChart(chartKey); });
+}
+function closeFullscreen(){
+  el('fs-overlay').classList.remove('show');
+  document.body.style.overflow = '';
+  if(_fsSyncAC){_fsSyncAC.abort();_fsSyncAC=null;}
+  if(fsChart){ try{fsChart.destroy();}catch(e){} fsChart=null; }
+  if(fsDDChart){ try{fsDDChart.destroy();}catch(e){} fsDDChart=null; }
+  const ddWrap=el('fs-dd-wrap');if(ddWrap)ddWrap.style.display='none';
+  const wrap = el('fs-period-btns');
+  if(wrap){ wrap.classList.remove('show'); wrap.innerHTML=''; }
+}
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeFullscreen(); });
+
+// ================================================================
 //  BOOTSTRAP
 // ================================================================
 window.addEventListener('DOMContentLoaded',function(){
-  loadCfg();load();bindSave();updateQuotaBar();
+  buildGrid('grid-diy',DIY);
+  buildGrid('grid-mix',MIX);
+  loadCfg();load();bindSave();onAllocChange();updateQuotaBar();
   el('quota-used').addEventListener('input',function(){updateQuotaBar();save();});
   const prev=el('step-prev'),next=el('step-next');
   if(prev)prev.addEventListener('click',()=>stepHistDate(-1));
   if(next)next.addEventListener('click',()=>stepHistDate(+1));
   const cfgDbId=el('cfg-db-id').value.trim();
   if(cfgDbId)el('btn-load-all').disabled=false;
+  // Restore port mode
+  try{
+    const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
+    setPortMode(s['port-mode']||'auto');
+  }catch(e){setPortMode('auto');}
   console.log('GPF LiveTrade '+ALGO_VERSION+' loaded | Menu options: '+Object.keys(generateMenu()).length);
 });
 </script>
