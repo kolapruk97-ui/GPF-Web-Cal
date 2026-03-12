@@ -3,16 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com https://query1.finance.yahoo.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
-<title>GPF Live Trade v16</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
+<title>GPF Live Trade v19</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
 /* ================================================================
-   CSS VARIABLES — unified v12 + v6 palette
+   CSS VARIABLES — unified palette
    ================================================================ */
 :root {
-  /* Base */
   --bg-0:  #05070a;
   --bg-1:  #0b0d12;
   --bg-2:  #0f1218;
@@ -20,7 +19,6 @@
   --b1:    #1a2030;
   --b2:    #222a3c;
   --b3:    #253d60;
-  /* Accent */
   --acc:   #00c8f0;
   --gold:  #ffc120;
   --green: #00e676;
@@ -29,14 +27,11 @@
   --teal:  #2dd4bf;
   --blue:  #3b82f6;
   --purple:#8b5cf6;
-  /* Text */
   --text:  #c8d6f0;
   --t2:    #7888a8;
   --t3:    #4e6a8a;
-  /* Fonts */
   --mono:  'IBM Plex Mono', monospace;
   --sans:  'Sarabun', sans-serif;
-  /* Glow */
   --gold-glow: rgba(255,193,32,.12);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -47,7 +42,6 @@ body {
   font-size: 13px;
   min-height: 100vh;
 }
-/* Grid overlay */
 body::before {
   content: '';
   position: fixed;
@@ -104,7 +98,6 @@ body::before {
 }
 .logo-text { font-size: 16px; font-weight: 700; color: #e8f4ff; line-height: 1.2; }
 .logo-sub  { font-size: 10px; color: var(--t2); font-family: var(--mono); }
-/* Tab pills */
 .tab-nav {
   display: flex;
   gap: 4px;
@@ -157,7 +150,7 @@ body::before {
 .sync-badge.show { display: flex; }
 
 /* ================================================================
-   LAYOUT — page + panels
+   LAYOUT
    ================================================================ */
 .page-wrap {
   max-width: 900px;
@@ -307,17 +300,16 @@ body::before {
 }
 
 /* ================================================================
-   SIGNAL TAB — v12 styles (ported)
+   SIGNAL TAB
    ================================================================ */
 .sig-wrap {
-  max-width: 500px;
+  max-width: 540px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 10px;
   padding-top: 16px;
 }
-/* Card */
 .card {
   background: var(--bg-1);
   border: 1px solid var(--b1);
@@ -361,7 +353,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 .field-note { font-size: 10px; color: var(--t2); margin-top: 3px; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-/* Buttons - signal */
 .btn-test-sig {
   width: 100%;
   padding: 10px;
@@ -401,7 +392,7 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 #run-btn:hover:not(:disabled) { background: linear-gradient(135deg,#0d4a8a,#2070cc); }
 #run-btn:disabled { opacity: .6; cursor: not-allowed; }
-#run-btn:disabled .spinner { opacity: 1; }  /* spinner ต้องสว่างเสมอ */
+#run-btn:disabled .spinner { opacity: 1; }
 .spinner {
   width: 14px; height: 14px;
   border-radius: 50%;
@@ -413,26 +404,9 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 .spinner.active { display: inline-block; }
 @keyframes spin { to { transform: rotate(360deg); } }
-/* Status */
 #conn-status { display: none; margin-top: 8px; padding: 10px 13px; border-radius: 8px; font-size: 12px; }
 #conn-status.ok  { background: rgba(0,230,118,.07); border: 1px solid rgba(0,230,118,.3); }
 #conn-status.err { background: rgba(255,61,90,.08); border: 1px solid rgba(255,61,90,.3); }
-#conn-status.ok  .status-head { color: var(--green); font-weight: 700; margin-bottom: 5px; }
-#conn-status.err .status-head { color: var(--red);   font-weight: 700; margin-bottom: 5px; }
-.status-row { font-size: 11px; color: var(--t2); margin-top: 3px; }
-.status-row span { color: var(--acc); font-family: var(--mono); }
-#error-box {
-  display: none;
-  padding: 10px 14px;
-  border-radius: 8px;
-  background: rgba(255,61,90,.08);
-  border: 1px solid rgba(255,61,90,.3);
-  font-size: 12px;
-  color: var(--red);
-  font-family: var(--mono);
-  line-height: 1.6;
-}
-/* Auto-sync info box */
 .autosync-box {
   display: none;
   padding: 9px 13px;
@@ -447,36 +421,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
   gap: 7px;
 }
 .autosync-box.show { display: flex; }
-/* Alloc */
-.alloc-section-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: .10em;
-  text-transform: uppercase;
-  color: var(--t2);
-  margin: 12px 0 8px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--b2);
-}
-.alloc-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-.alloc-item { display: flex; flex-direction: column; gap: 3px; }
-.alloc-item label { font-size: 11px; color: var(--t2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.alloc-item label span { color: var(--acc); font-family: var(--mono); }
-.alloc-item input { background: var(--bg-3); border-color: var(--b2); }
-.alloc-sum-row {
-  margin-top: 10px;
-  padding: 8px 10px;
-  border-radius: 6px;
-  background: var(--bg-2);
-  border: 1px solid var(--b2);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  font-size: 12px;
-}
-#alloc-sum-val { font-family: var(--mono); font-weight: 700; font-size: 15px; color: var(--t2); }
-#alloc-sum-val.ok  { color: var(--green); }
-#alloc-sum-val.bad { color: var(--red); }
 /* Quota */
 .quota-pips { display: flex; gap: 3px; flex: 1; }
 .quota-pip { height: 7px; flex: 1; border-radius: 3px; background: var(--bg-3); border: 1px solid var(--b2); }
@@ -528,9 +472,6 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 .score-num { font-family: var(--mono); font-size: 12px; color: #e8f4ff; min-width: 42px; text-align: right; }
 .pos { color: var(--green); }
 .neg { color: var(--red); }
-.tag { font-size: 9px; padding: 1px 5px; border-radius: 3px; }
-.tag-ema { background: rgba(255,61,90,.15); color: var(--red); }
-.tag-dcy { background: rgba(255,170,0,.15); color: var(--amber); }
 #results-section { display: none; flex-direction: column; gap: 10px; }
 /* Date nav */
 .date-nav { display: flex; align-items: center; gap: 8px; background: var(--bg-1); border: 1px solid var(--b1); border-radius: 10px; padding: 10px 14px; }
@@ -551,83 +492,61 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 #hist-banner { display: none; padding: 10px 14px; border-radius: 8px; background: rgba(255,170,0,.07); border: 1px solid rgba(255,170,0,.3); font-size: 12px; color: var(--amber); font-family: var(--mono); }
 #hist-banner b { color: var(--gold); }
 .info-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 600; background: rgba(0,200,240,.08); border: 1px solid rgba(0,200,240,.2); color: var(--acc); font-family: var(--mono); margin-top: 6px; }
-/* Ext badges */
-.ext-badge { display: inline-block; padding: 1px 6px; border-radius: 4px; font-size: 9px; font-family: var(--mono); font-weight: 600; vertical-align: middle; margin-left: 4px; }
-.ext-badge.xau { background: rgba(255,193,32,.18); color: var(--gold);  border: 1px solid rgba(255,193,32,.3); }
-.ext-badge.fc  { background: rgba(0,200,240,.12);  color: var(--acc);   border: 1px solid rgba(0,200,240,.25); }
-.ext-badge.set { background: rgba(0,230,118,.12);  color: var(--green); border: 1px solid rgba(0,230,118,.25); }
-.ext-badge.nav { background: rgba(120,136,168,.12);color: var(--t2);    border: 1px solid rgba(120,136,168,.2); }
-.ext-ok   { background: rgba(0,230,118,.07); border: 1px solid rgba(0,230,118,.25); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: var(--green); margin-top: 8px; }
-.ext-off  { background: rgba(120,136,168,.10); border: 1px solid rgba(120,136,168,.35); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: #a0b0cc; margin-top: 8px; }
-.ext-load { background: rgba(0,200,240,.07); border: 1px solid rgba(0,200,240,.30); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: var(--acc); margin-top: 8px; display: flex; align-items: center; gap: 8px; }
-.ext-warn { background: rgba(255,176,32,.07); border: 1px solid rgba(255,176,32,.30); border-radius: 8px; padding: 8px 12px; font-size: 11px; color: var(--amber); margin-top: 8px; }
 .guide { background: var(--bg-2); border: 1px solid var(--b2); border-radius: 8px; padding: 12px 14px; font-size: 11px; color: var(--t2); line-height: 1.8; }
 .guide b { color: var(--text); }
 .guide code { font-family: var(--mono); color: var(--acc); background: rgba(0,200,240,.08); padding: 1px 5px; border-radius: 3px; }
 details summary { cursor: pointer; user-select: none; padding: 4px 0; list-style: none; color: var(--amber); font-size: 11px; }
 details summary::-webkit-details-marker { display: none; }
 .divider { border: 0; border-top: 1px solid var(--b2); margin: 12px 0; }
-/* DD Bar */
-.dd-bar-wrap { margin-top: 10px; padding: 10px 14px; border-radius: 8px; background: var(--bg-2); border: 1px solid var(--b2); }
-.dd-bar-label { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-.dd-bar-title { font-size: 10px; color: var(--t2); font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
-.dd-bar-pct { font-family: var(--mono); font-size: 13px; font-weight: 700; }
-.dd-bar-pct.safe   { color: var(--green); }
-.dd-bar-pct.warn   { color: var(--amber); }
-.dd-bar-pct.danger { color: var(--red); }
-.dd-track { width: 100%; height: 10px; border-radius: 5px; background: var(--bg-3); position: relative; overflow: hidden; }
-.dd-fill  { height: 100%; border-radius: 5px; transition: width .4s ease; }
-.dd-fill.safe   { background: linear-gradient(90deg,#00b248,#00e676); }
-.dd-fill.warn   { background: linear-gradient(90deg,#cc7700,#ffaa00); }
-.dd-fill.danger { background: linear-gradient(90deg,#cc002b,#ff3d5a); }
-.dd-ticks { display: flex; justify-content: space-between; margin-top: 4px; font-size: 9px; color: var(--t2); font-family: var(--mono); }
-.dd-status-row { margin-top: 6px; font-size: 11px; display: flex; align-items: center; gap: 6px; }
-/* Exit tracker */
-.exit-tracker { }
-.exit-log-btn {
-  background: rgba(255,61,90,.10); border: 1px solid rgba(255,61,90,.3);
-  color: var(--red); border-radius: 7px; padding: 7px 14px;
-  font-size: 12px; font-family: var(--sans); font-weight: 600;
-  cursor: pointer; transition: all .15s;
-}
-.exit-log-btn:hover { background: rgba(255,61,90,.18); }
-.exit-undo-btn {
-  background: none; border: 1px solid var(--b2); color: var(--t2);
-  border-radius: 7px; padding: 7px 12px; font-size: 12px;
-  font-family: var(--sans); cursor: pointer; transition: all .15s;
-}
-.exit-undo-btn:hover { border-color: var(--amber); color: var(--amber); }
-.exit-year-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
-.exit-year-pill { background: var(--bg-2); border: 1px solid var(--b2); border-radius: 8px; padding: 6px 12px; display: flex; flex-direction: column; align-items: center; min-width: 62px; }
-.exit-year-pill.ok  { border-color: rgba(0,230,118,.25); }
-.exit-year-pill.mid { border-color: rgba(255,170,0,.3); }
-.exit-year-pill.hot { border-color: rgba(255,61,90,.3); }
-.ey-yr  { font-size: 10px; color: var(--t2); font-family: var(--mono); }
-.ey-cnt { font-size: 13px; font-weight: 700; font-family: var(--mono); }
-.exit-year-pill.ok  .ey-cnt { color: var(--green); }
-.exit-year-pill.mid .ey-cnt { color: var(--amber); }
-.exit-year-pill.hot .ey-cnt { color: var(--red); }
 .calib-badge {
   display: inline-block; margin-top: 4px; padding: 3px 9px;
   background: rgba(255,193,32,.08); border: 1px solid rgba(255,193,32,.2);
   border-radius: 5px; color: var(--gold); font-size: 10px;
 }
-/* Footer */
 .sig-footer { font-size: 10px; color: var(--t2); text-align: center; padding: 8px 0; line-height: 1.8; font-family: var(--mono); }
 #run-time { font-size: 10px; color: var(--t3); font-family: var(--mono); text-align: center; padding: 4px 0; }
+/* Menu table */
+.menu-tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
+.menu-tbl th { text-align: left; padding: 5px 6px; font-size: 9px; font-weight: 600; letter-spacing: .06em; color: var(--t2); border-bottom: 1px solid var(--b2); }
+.menu-tbl th:not(:first-child) { text-align: right; }
+.menu-tbl td { padding: 5px 6px; border-bottom: 1px solid rgba(26,32,48,.5); }
+.menu-tbl td:not(:first-child) { text-align: right; font-family: var(--mono); font-size: 11px; }
+.menu-tbl tr:hover td { background: rgba(255,255,255,.015); }
+.menu-tbl .rank1 { background: rgba(0,230,118,.05); }
+/* App instructions card */
+.app-instr {
+  background: rgba(0,230,118,.06);
+  border: 1px solid rgba(0,230,118,.25);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+.app-instr-title {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--green);
+  font-family: var(--mono);
+  margin-bottom: 8px;
+  letter-spacing: .05em;
+}
+.app-instr-step {
+  display: flex; align-items: baseline; gap: 8px;
+  font-size: 12px; color: var(--text); line-height: 1.8;
+}
+.app-instr-step .step-num {
+  color: var(--green); font-family: var(--mono); font-weight: 700; min-width: 18px;
+}
+.app-instr-val { color: var(--gold); font-family: var(--mono); font-weight: 700; }
 
 /* ================================================================
    PORTFOLIO TAB — v6 styles
    ================================================================ */
 .port-wrap { padding-top: 18px; }
-/* Section dividers */
 .sec {
   display: flex; align-items: center; gap: 10px;
   font-family: var(--mono); font-size: 10px; color: var(--t3);
   letter-spacing: 1px; text-transform: uppercase; margin: 24px 0 12px;
 }
 .sec::after { content: ''; flex: 1; height: 1px; background: var(--b1); }
-/* KPI cards */
 .pcards { display: grid; grid-template-columns: repeat(auto-fit,minmax(170px,1fr)); gap: 10px; }
 .pcards6 { grid-template-columns: repeat(6,1fr); }
 .pcards3 { grid-template-columns: repeat(3,1fr); }
@@ -653,11 +572,9 @@ details summary::-webkit-details-marker { display: none; }
 .clbl { font-size: 10px; color: var(--t3); font-family: var(--mono); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 4px; }
 .cval { font-size: 19px; font-weight: 700; font-family: var(--mono); letter-spacing: -.5px; line-height: 1.2; }
 .csub { font-size: 11px; color: var(--t2); margin-top: 3px; }
-/* Charts grid */
 .cgrid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px; }
 @media(max-width:900px) { .cgrid { grid-template-columns: 1fr; } }
 .ccrd { background: var(--bg-1); border: 1px solid var(--b1); border-radius: 12px; padding: 15px; }
-/* ── CRITICAL: fixed-height wrapper prevents Chart.js infinite resize loop ── */
 .chart-box { position: relative; width: 100%; }
 .chart-box.h220 { height: 220px; }
 .chart-box.h200 { height: 200px; }
@@ -672,7 +589,6 @@ details summary::-webkit-details-marker { display: none; }
 .pbtn.active, .pbtn:hover { background: var(--gold-glow); border-color: rgba(255,193,32,.4); color: var(--gold); }
 .fpbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 7px; font-size: 10px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
 .fpbtn.active, .fpbtn:hover { background: rgba(0,200,240,.1); border-color: rgba(0,200,240,.4); color: var(--acc); }
-/* Tables */
 .tcrd { background: var(--bg-1); border: 1px solid var(--b1); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
 .ttabs { display: flex; border-bottom: 1px solid var(--b1); padding: 0 4px; }
 .ttbtn {
@@ -711,7 +627,6 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 .tin   { color: var(--green); }
 .tout  { color: var(--red); }
 .treb  { color: var(--gold); }
-/* Portfolio state blocks */
 .port-loading { display: none; align-items: center; justify-content: content; flex-direction: column; gap: 12px; padding: 40px 0; }
 .port-loading.show { display: flex; }
 .pspinner { width: 36px; height: 36px; border: 3px solid var(--b1); border-top-color: var(--gold); border-radius: 50%; animation: spin .7s linear infinite; }
@@ -721,23 +636,21 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 .port-err-inner h3 { color: var(--red); font-family: var(--mono); font-size: 13px; margin-bottom: 7px; }
 .port-err-inner p  { font-size: 12px; color: var(--t3); line-height: 1.7; }
 #port-dash { display: none; }
-/* Port footer */
 .port-footer { border-top: 1px solid var(--b1); padding: 14px 0; text-align: center; color: var(--t3); font-size: 11px; font-family: var(--mono); margin-top: 24px; }
-/* Animations */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
 </style>
 </head>
 <body>
 <!-- ================================================================
-     STICKY HEADER + TAB NAV
+     STICKY HEADER
      ================================================================ -->
 <div class="hdr">
   <div class="hdr-inner">
     <div class="logo-box">
       <div class="logo-icon">กบข</div>
       <div>
-        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v16</span></div>
-        <div class="logo-sub">Unified Signal + Portfolio · v4.7b</div>
+        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v19</span></div>
+        <div class="logo-sub">Menu-based Signal · v5.19</div>
       </div>
     </div>
     <div class="tab-nav">
@@ -754,7 +667,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 <div class="page-wrap">
 
 <!-- ================================================================
-     SHARED CONFIG PANEL (always visible)
+     SHARED CONFIG PANEL
      ================================================================ -->
 <div class="cfg-card" id="cfg-panel">
   <div class="cfg-title">⚙ ตั้งค่าแหล่งข้อมูล — ใช้ร่วมกันทั้ง Signal และ Portfolio</div>
@@ -795,7 +708,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <div class="howto">
     <b>วิธีที่ 1 — Publish to web (แนะนำ):</b>
     ทำ <span style="color:#fbbf24;font-weight:600">File → Share → Publish to web → sheet → CSV → Publish</span>
-    แล้ววาง URL ทั้งหมด (รูปแบบ <code>docs.google.com/spreadsheets/d/e/2PACX-.../pub…</code>) ลงในช่อง Sheet ID<br>
+    แล้ววาง URL ทั้งหมด ลงในช่อง Sheet ID<br>
     <b>วิธีที่ 2 — Sheet ID:</b>
     คัดลอก ID จาก URL: <code>spreadsheets/d/<b style="color:var(--gold)">SHEET_ID</b>/edit</code>
     · ต้อง Publish to web ก่อนเช่นกัน
@@ -810,85 +723,21 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 
 <!-- Auto-sync status -->
 <div class="autosync-box" id="autosync-box">
-  🔗 <span id="autosync-msg">Auto-synced: Current Value, Peak Value และ Allocation จาก Portfolio tab</span>
+  🔗 <span id="autosync-msg">Auto-synced: Allocation จาก Portfolio tab</span>
 </div>
 
-<!-- Ext Signals -->
-<div class="card">
-  <div class="card-head">Ext Signals (G/F/TH)</div>
-  <div style="display:flex;gap:6px;margin-bottom:10px">
-    <button id="ext-mode-auto" onclick="setExtMode('auto')" style="flex:1;padding:7px;border-radius:7px;border:1px solid;font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .15s">
-      🌐 Auto (Yahoo Finance)
-    </button>
-    <button id="ext-mode-manual" onclick="setExtMode('manual')" style="flex:1;padding:7px;border-radius:7px;border:1px solid;font-size:12px;font-family:var(--sans);cursor:pointer;transition:all .15s">
-      📋 Manual CSV
-    </button>
-  </div>
-  <div id="ext-auto-info" class="guide">
-    <b>Auto Mode</b>: ดึงข้อมูลจาก Yahoo Finance โดยอัตโนมัติทุกครั้งที่รัน<br>
-    <code>GC=F × USDTHB=X</code> → G (XAU/THB) &nbsp;|&nbsp;
-    <code>URTH × USDTHB=X</code> → F &nbsp;|&nbsp;
-    <code>^SET.BK</code> → TH
-  </div>
-  <div id="ext-manual-fields" style="display:none;flex-direction:column;gap:8px">
-    <div>
-      <label>Sheet ID / URL ของ ext_signals.csv</label>
-      <input type="text" id="ext-sheet-id" placeholder="Sheet ID หรือ URL">
-    </div>
-    <div>
-      <label>ชื่อ Sheet</label>
-      <input type="text" id="ext-sheet-name" placeholder="Sheet1">
-    </div>
-  </div>
-  <div id="ext-status" style="display:none"></div>
-</div>
-
-<!-- Portfolio inputs -->
+<!-- Portfolio config (simplified v19) -->
 <div class="card">
   <div class="card-head gold">
-    Portfolio ปัจจุบัน
+    สถานะปัจจุบัน
     <span id="alloc-sync-note" style="margin-left:auto;font-size:9px;color:var(--green);letter-spacing:0;text-transform:none;font-weight:400;display:none">🔗 จาก Portfolio</span>
-  </div>
-
-  <!-- Auto / Manual toggle -->
-  <div style="display:flex;gap:6px;margin-bottom:12px">
-    <button id="port-mode-auto" onclick="setPortMode('auto')"
-      style="flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px">
-      🔗 Auto (จาก Transaction)
-    </button>
-    <button id="port-mode-manual" onclick="setPortMode('manual')"
-      style="flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px">
-      ✏️ Manual
-    </button>
-  </div>
-
-  <!-- Auto mode info -->
-  <div id="port-auto-info" style="display:none;background:rgba(0,230,118,.06);border:1px solid rgba(0,230,118,.2);border-radius:8px;padding:10px 13px;font-size:11px;color:var(--green);font-family:var(--mono);margin-bottom:10px;line-height:1.9">
-    <div style="font-weight:700;margin-bottom:4px">🔗 Auto-sync จาก Portfolio Tab</div>
-    <div id="port-auto-detail" style="color:var(--t2)">โหลดข้อมูลก่อน — กด ⟳ โหลดทั้งหมด ด้านบน</div>
-    <div style="margin-top:6px;font-size:10px;color:var(--t3)">ค่าจะ auto-sync ทุกครั้งที่โหลดข้อมูลใหม่</div>
-  </div>
-
-  <!-- Manual input fields -->
-  <div id="port-manual-fields">
-    <div class="row2" style="margin-bottom:10px">
-      <div>
-        <label>มูลค่าปัจจุบัน (฿) <span id="cur-val-src" style="font-size:9px;color:var(--green);font-family:var(--mono)"></span></label>
-        <input type="number" id="current-value" placeholder="128000" min="0">
-      </div>
-      <div>
-        <label>Peak มูลค่าสูงสุดตลอด (฿) <span id="peak-val-src" style="font-size:9px;color:var(--green);font-family:var(--mono)"></span></label>
-        <input type="number" id="peak-value" placeholder="130000" min="0">
-        <div class="field-note">ใช้คำนวณ DD%</div>
-      </div>
-    </div>
   </div>
 
   <div class="row2" style="margin-bottom:10px">
     <div>
-      <label>วัน Rebalance ล่าสุด</label>
+      <label>วันที่เปลี่ยนแผนล่าสุด</label>
       <input type="date" id="last-rebal">
-      <div class="field-note">cooldown 15 วันทำการ</div>
+      <div class="field-note">cooldown 30 วันทำการ</div>
     </div>
     <div>
       <label>Quota ที่ใช้แล้วปีนี้</label>
@@ -897,34 +746,11 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     </div>
   </div>
 
-  <details style="margin-bottom:4px">
-    <summary style="color:var(--t2)">❓ EXIT_DD คืออะไร?</summary>
-    <div style="margin-top:8px;padding:10px;background:var(--bg-2);border:1px solid var(--b2);border-radius:8px;font-size:11px;color:var(--t2);line-height:1.8">
-      <b style="color:var(--red)">EXIT_DD = Emergency Exit เมื่อ Drawdown เกิน -6%</b><br><br>
-      ถ้ามูลค่าพอร์ตลดลงจาก Peak <b style="color:var(--text)">เกิน 6%</b>
-      ระบบจะสั่ง <b style="color:var(--red)">ขายออกทั้งหมด → ย้ายเข้า Money_Market 100%</b><br><br>
-      ตัวอย่าง: Peak = 130,000฿ → ถ้า Portfolio ลงมาที่ 122,200฿ (-6%) → EXIT
-    </div>
-  </details>
-
-  <details>
-    <summary>▶ EXIT_DD Fields (กรอกถ้าเคย EXIT ออก)</summary>
-    <div class="row2" style="margin-top:8px">
-      <div>
-        <label>วัน EXIT_DD ล่าสุด</label>
-        <input type="date" id="last-exit">
-      </div>
-      <div>
-        <label>วัน EXIT_DD ครั้งก่อนหน้า</label>
-        <input type="date" id="prev-exit">
-        <div class="field-note">Auto-คำนวณ Extra Pause</div>
-      </div>
-    </div>
-    <div style="margin-top:8px;padding:8px 10px;background:var(--bg-2);border:1px solid var(--b2);border-radius:6px;font-size:11px;color:var(--t2)">
-      ℹ️ กรอกวัน EXIT ทั้ง 2 ครั้ง ระบบจะ auto-คำนวณ Extra Pause (30 วันทำการ)<br>
-      <span id="auto-pause-result" style="color:var(--amber)"></span>
-    </div>
-  </details>
+  <div style="margin-bottom:10px">
+    <label>แผนปัจจุบัน (ชื่อเมนู)</label>
+    <input type="text" id="current-menu" placeholder="เช่น G25_F50_TH25, TH_100, F70_TH30">
+    <div class="field-note">พิมพ์ชื่อเมนู หรือ preset เช่น F_100, MM_100</div>
+  </div>
 
   <hr class="divider">
   <div style="font-size:10px;color:var(--t2);font-weight:600;letter-spacing:.10em;text-transform:uppercase;margin-bottom:6px">Quota Tracker</div>
@@ -936,87 +762,6 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <span><span class="ql-pip" style="background:#1a6ab0"></span>ใช้แล้ว</span>
     <span><span class="ql-pip" style="background:var(--amber)"></span>Buffer (≤2 เหลือ)</span>
   </div>
-</div>
-
-<!-- Allocation -->
-<div class="card">
-  <div class="card-head gold">
-    Allocation ปัจจุบัน
-    <span id="alloc-sync-note" style="margin-left:auto;font-size:9px;color:var(--green);letter-spacing:0;text-transform:none;font-weight:400;display:none">🔗 จาก Portfolio</span>
-  </div>
-  <div class="alloc-section-label">DIY Plans</div>
-  <div class="alloc-grid" id="grid-diy"></div>
-  <div class="alloc-section-label" style="margin-top:10px">Mixed Plans</div>
-  <div class="alloc-grid" id="grid-mix"></div>
-  <div class="alloc-sum-row">
-    <span style="color:var(--t2)">ผลรวม:</span>
-    <span id="alloc-sum-val">0%</span>
-  </div>
-</div>
-
-<!-- Exit DD Tracker -->
-<div class="card" id="exit-tracker-card">
-  <div class="card-head red">
-    🚨 Exit DD Tracker
-    <span style="margin-left:auto;font-size:10px;color:var(--t2);letter-spacing:0;text-transform:none;font-weight:400">จาก backtest: -6% AllTime = ดีที่สุด</span>
-  </div>
-
-  <!-- Collapsible explanation block -->
-  <div style="margin-bottom:12px">
-    <button onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='none'?'block':'none';this.querySelector('.exit-chev').textContent=this.nextElementSibling.style.display==='none'?'▸':'▾';"
-      style="background:rgba(255,61,90,.07);border:1px solid rgba(255,61,90,.2);border-radius:7px;padding:7px 12px;cursor:pointer;display:flex;align-items:center;gap:7px;width:100%;text-align:left;transition:background .15s;"
-      onmouseover="this.style.background='rgba(255,61,90,.13)'" onmouseout="this.style.background='rgba(255,61,90,.07)'">
-      <span style="font-size:12px">ℹ️</span>
-      <span style="font-size:11px;font-weight:600;color:var(--red);font-family:var(--mono)">EXIT DD คืออะไร?</span>
-      <span class="exit-chev" style="margin-left:auto;font-size:11px;color:var(--t3);font-family:var(--mono)">▸</span>
-    </button>
-    <div style="display:none;margin-top:6px;background:rgba(255,61,90,.06);border:1px solid rgba(255,61,90,.18);border-radius:8px;padding:12px 14px;">
-      <div style="font-size:11px;color:var(--t2);line-height:1.75;margin-bottom:10px">
-        กลไก <span style="color:var(--red);font-weight:600">ป้องกันขาดทุนฉุกเฉิน</span> — เมื่อมูลค่าพอร์ตร่วงจาก <span style="color:var(--text);font-weight:600">All-Time Peak เกิน 6%</span>
-        ระบบจะสั่ง <span style="color:var(--amber);font-weight:600">ขายทุกแผนออก → ย้ายทั้งหมดเข้าตราสารหนี้ (B)</span> ทันที
-        โดยไม่รอ Rebalance รอบปกติ
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px">
-        <div style="background:rgba(255,170,0,.07);border:1px solid rgba(255,170,0,.2);border-radius:6px;padding:8px 10px">
-          <div style="font-size:9px;color:var(--t3);font-family:var(--mono);margin-bottom:4px">⚡ ทริกเกอร์</div>
-          <div style="font-size:11px;color:var(--amber)">DD% &lt; −6% จาก Peak</div>
-          <div style="font-size:10px;color:var(--t2);margin-top:2px">วัดจาก All-Time High ของพอร์ต</div>
-        </div>
-        <div style="background:rgba(0,200,240,.07);border:1px solid rgba(0,200,240,.2);border-radius:6px;padding:8px 10px">
-          <div style="font-size:9px;color:var(--t3);font-family:var(--mono);margin-bottom:4px">🏦 Action</div>
-          <div style="font-size:11px;color:var(--acc)">เปลี่ยนเป็นตราสารหนี้ 100%</div>
-          <div style="font-size:10px;color:var(--t2);margin-top:2px">ทุกสินทรัพย์ → B (Bond)</div>
-        </div>
-      </div>
-      <div style="background:rgba(0,0,0,.25);border-radius:6px;padding:9px 11px">
-        <div style="font-size:9px;color:var(--t3);font-family:var(--mono);margin-bottom:6px">📋 ขั้นตอนหลังออก EXIT_DD</div>
-        <div style="display:flex;flex-direction:column;gap:5px">
-          <div style="display:flex;align-items:baseline;gap:8px;font-size:11px">
-            <span style="color:var(--red);font-family:var(--mono);font-weight:700;min-width:18px">1</span>
-            <span style="color:var(--t2)">ถือ Bond ต่อเนื่อง <span style="color:var(--text)">10 วันทำการ</span> (Exit Cooldown)</span>
-          </div>
-          <div style="display:flex;align-items:baseline;gap:8px;font-size:11px">
-            <span style="color:var(--amber);font-family:var(--mono);font-weight:700;min-width:18px">2</span>
-            <span style="color:var(--t2)">รอ Extra Pause อีก <span style="color:var(--text)">30 วันทำการ</span> ก่อนพิจารณากลับเข้า</span>
-          </div>
-          <div style="display:flex;align-items:baseline;gap:8px;font-size:11px">
-            <span style="color:var(--green);font-family:var(--mono);font-weight:700;min-width:18px">3</span>
-            <span style="color:var(--t2)">กลับเข้าได้เมื่อ Score ≥ <span style="color:var(--text)">0.55</span> และ Quota ยังเหลือ</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <div style="font-size:11px;color:var(--t2);margin-bottom:8px">
-    บันทึกทุกครั้งที่ระบบ EXIT_DD เกิดขึ้นจริง เพื่อ audit trail และ monitor ความถี่
-  </div>
-  <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
-    <button class="exit-log-btn"  onclick="logExitDD()">🚨 บันทึก EXIT วันนี้</button>
-    <button class="exit-undo-btn" onclick="undoExitDD()">↩ ยกเลิกล่าสุด</button>
-  </div>
-  <div id="exit-year-grid"  class="exit-year-grid"></div>
-  <div id="exit-total-row"  style="margin-top:8px;font-size:11px;color:var(--t2);font-family:var(--mono)"></div>
 </div>
 
 <!-- Date Navigator -->
@@ -1039,7 +784,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <div class="spinner" id="run-spinner"></div>
   <span id="run-btn-txt">▶ รัน Signal วันนี้</span>
 </button>
-<div id="error-box"></div>
+<div id="error-box" style="display:none;padding:10px 14px;border-radius:8px;background:rgba(255,61,90,.08);border:1px solid rgba(255,61,90,.3);font-size:12px;color:var(--red);font-family:var(--mono);line-height:1.6;margin-top:6px"></div>
 
 <!-- RESULTS -->
 <div id="results-section">
@@ -1050,51 +795,50 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div class="banner-meta"   id="banner-meta"></div>
     <div class="target-row"    id="target-row"></div>
   </div>
-  <div id="target-alloc-box" style="display:none;background:var(--bg-1);border:1px solid var(--b1);border-radius:12px;padding:14px 16px;"></div>
+  <!-- App กบข. instruction box -->
+  <div id="app-instr-box" class="app-instr" style="display:none"></div>
+
   <div class="stats-row">
     <div class="stat-cell"><div class="stat-label">Signal Date</div><div class="stat-val" id="stat-date">—</div></div>
-    <div class="stat-cell"><div class="stat-label">Drawdown</div><div class="stat-val" id="stat-dd">—</div></div>
+    <div class="stat-cell"><div class="stat-label">เมนูทั้งหมด</div><div class="stat-val" id="stat-menus">—</div></div>
     <div class="stat-cell"><div class="stat-label">Quota เหลือ</div><div class="stat-val" id="stat-quota">—</div></div>
     <div class="stat-cell"><div class="stat-label">NAV Rows</div><div class="stat-val" id="stat-rows">—</div></div>
   </div>
-  <!-- DD Progress Bar -->
-  <div class="dd-bar-wrap" id="dd-bar-section" style="display:none">
-    <div class="dd-bar-label">
-      <span class="dd-bar-title">🛡 Drawdown Monitor (EXIT_DD threshold = -6%)</span>
-      <span class="dd-bar-pct safe" id="dd-bar-pct-label">0.00%</span>
-    </div>
-    <div class="dd-track">
-      <div class="dd-fill safe" id="dd-bar-fill" style="width:0%"></div>
-    </div>
-    <div class="dd-ticks"><span>0%</span><span>-2%</span><span>-4%</span><span>-5.5%</span><span>-6% ⛔</span></div>
-    <div class="dd-status-row" id="dd-bar-status"></div>
-  </div>
+
+  <!-- Fund scores -->
   <div class="card" style="padding:12px 14px">
-    <div class="card-head">Signal Scores</div>
+    <div class="card-head">Fund Momentum Scores</div>
     <table class="score-tbl">
-      <thead><tr><th>แผน</th><th>Score</th><th>mom5%</th><th>mom20%</th><th>mom60%</th><th>Signal</th><th>Flag</th></tr></thead>
+      <thead><tr><th>แผน</th><th>Score</th><th>mom20%</th><th>mom60%</th><th>mom120%</th></tr></thead>
       <tbody id="scores-body"></tbody>
+    </table>
+  </div>
+
+  <!-- Menu ranking -->
+  <div class="card" style="padding:12px 14px">
+    <div class="card-head gold">Menu Ranking (Top 15)</div>
+    <table class="menu-tbl">
+      <thead><tr><th>#</th><th>เมนู</th><th>สัดส่วน</th><th>Score</th></tr></thead>
+      <tbody id="menu-body"></tbody>
     </table>
   </div>
 </div>
 
 <div id="run-time"></div>
 <div class="sig-footer">
-  v4.7 (v15) · n_top=2 · cooldown=15bd · gap=0.20 · exit_dd=-6% · ext signals (G/F/TH)<br>
-  signal_lag=0 (DB มี natural lag 2วันทำการอยู่แล้ว) · quota=12/yr<br>
-  <span class="calib-badge">⚙ Calibrated: v4.7b backtest · 10 มี.ค. 2569 · EXIT_DD=-6% · AllTime Peak · Sharpe=0.80 · PR_CAP=20% (v15)</span>
+  v5.19 · momentum=[20,60,120] · w=[0.5,0.3,0.2] · cooldown=30bd · menu-based (217 options)<br>
+  quota=12/yr · G_cap=25% · T+2 delay · no PR cap<br>
+  <span class="calib-badge">⚙ Calibrated: v5 backtest · Sharpe=1.086 · TWR=+37.22% · MaxDD=-13.42%</span>
 </div>
 
 </div><!-- /sig-wrap -->
 </div><!-- /tab-signal -->
 
 <!-- ================================================================
-     PORTFOLIO TAB
+     PORTFOLIO TAB (kept from v18)
      ================================================================ -->
 <div class="tab-panel" id="tab-portfolio">
 <div class="port-wrap">
-
-  <!-- Loading / Error states -->
   <div class="port-loading" id="port-loading">
     <div class="pspinner"></div>
     <div style="font-family:var(--mono);font-size:12px;color:var(--t3)" id="port-load-msg">กำลังโหลดข้อมูล...</div>
@@ -1105,21 +849,12 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
       <p id="port-err-msg">กรุณาตรวจสอบ Sheet ID ใน Config ด้านบน</p>
     </div>
   </div>
-
-  <!-- Dashboard -->
   <div id="port-dash">
-    <!-- Row 1: Core KPIs -->
     <div class="sec">📊 ภาพรวม Portfolio</div>
     <div class="pcards pcards6" id="cards-row1"></div>
-
-    <!-- Row 2: Analytics -->
     <div class="sec">📈 Analytics</div>
     <div class="pcards pcards6" id="cards-row2"></div>
-
-    <!-- Row 3: Best/Worst -->
     <div class="pcards pcards3" id="cards-row3" style="margin-top:10px"></div>
-
-    <!-- Charts -->
     <div class="sec">📉 กราฟ</div>
     <div class="cgrid">
       <div class="ccrd">
@@ -1158,8 +893,6 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
         <div class="chart-box h200"><canvas id="nav-chart"></canvas></div>
       </div>
     </div>
-
-    <!-- Tables -->
     <div class="sec">📋 รายละเอียด</div>
     <div class="tcrd">
       <div class="ttabs">
@@ -1169,69 +902,50 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
         <button class="ttbtn"        onclick="portTab(this,'ptab-daily')">รายวัน</button>
         <button class="ttbtn"        onclick="portTab(this,'ptab-nav')">NAV</button>
       </div>
-      <div class="tpanel active tscroll" id="ptab-hold">
-        <table id="t-hold"></table>
-      </div>
-      <div class="tpanel tscroll" id="ptab-tx">
-        <table id="t-tx"></table>
-      </div>
-      <div class="tpanel tscroll" id="ptab-monthly">
-        <table id="t-monthly"></table>
-      </div>
-      <div class="tpanel tscroll" id="ptab-daily">
-        <table id="t-daily"></table>
-      </div>
-      <div class="tpanel tscroll" id="ptab-nav">
-        <table id="t-nav"></table>
-      </div>
+      <div class="tpanel active tscroll" id="ptab-hold"><table id="t-hold"></table></div>
+      <div class="tpanel tscroll" id="ptab-tx"><table id="t-tx"></table></div>
+      <div class="tpanel tscroll" id="ptab-monthly"><table id="t-monthly"></table></div>
+      <div class="tpanel tscroll" id="ptab-daily"><table id="t-daily"></table></div>
+      <div class="tpanel tscroll" id="ptab-nav"><table id="t-nav"></table></div>
     </div>
-  </div><!-- /port-dash -->
-
+  </div>
   <div class="port-footer">
     Portfolio Analysis · เชื่อมต่อ Google Sheets โดยตรง · ไม่ผ่าน server<br>
     <span id="port-last-update"></span>
   </div>
-</div><!-- /port-wrap -->
-</div><!-- /tab-portfolio -->
+</div>
+</div>
 
 </div><!-- /page-wrap -->
+
 <script>
 // ================================================================
-//  CONSTANTS — v4.7b backtest optimal
+//  CONSTANTS — v5.19
 // ================================================================
-const ALGO_VERSION  = 'v4.7.15';
-const N_TOP         = 2;
-const COOLDOWN_DAYS = 15;
-const SCORE_GAP_MIN = 0.20;
-const EXIT_DD_PCT   = -6.0;
-const EXIT_COOLDOWN = 10;
-const REENTRY_SCORE = 0.55;
-const CONSEC_PAUSE  = 30;
-const G_CAP         = 0.25;    // ทองคำ cap 25%
-const PR_CAP        = 0.20;    // อสังหาฯ cap 20% (v15)
+const ALGO_VERSION  = 'v5.19';
+const COOLDOWN_DAYS = 30;
+const G_CAP         = 0.25;
 const QUOTA_PER_YR  = 12;
-const CHANGE_THRESH = 0.05;
+const T_DELAY       = 2;
 const MIN_HIST_DAYS = 120;
-const SIGNAL_LAG    = 0;
-const EXT_PLAN_MAP  = { 'G':'XAU_THB', 'F':'F_composite', 'TH':'SET' };
-const W5=0.10,W20=0.28,W60=0.22,WR=0.15,W_ALIGN=0.10,W_RSMM=0.05,W_VS=0.10;
+const CHANGE_THRESH = 0.05;
+const MOM_LOOKBACKS = [20, 60, 120];
+const MOM_WEIGHTS   = [0.5, 0.3, 0.2];
+const CUSTOM_FUNDS = ['Money_Market', 'B', 'Global_Bond', 'G', 'PR', 'F', 'TH'];
+const PRESET_PLANS = {
+  'MM_100':      {Money_Market: 1.00},
+  'B_100':       {B: 1.00},
+  'GB_100':      {Global_Bond: 1.00},
+  'A35_100':     {A35: 1.00},
+  'BP_100':      {Base_Plan: 1.00},
+  'A65_100':     {A65: 1.00},
+  'Shariah_100': {Shariah: 1.00},
+  'PR_100':      {PR: 1.00},
+  'F_100':       {F: 1.00},
+  'TH_100':      {TH: 1.00},
+};
 const ALL_PLANS = ['A35','Base_Plan','B','Money_Market','A20','A65','TH','PR','F','Global_Bond','G','A75'];
-const DIY = [
-  {key:'F',name:'หุ้นต่างประเทศ'},{key:'TH',name:'ตราสารทุนไทย'},
-  {key:'G',name:'ทองคำ'},{key:'PR',name:'อสังหาฯ & โครงสร้าง'},
-  {key:'Global_Bond',name:'ตราสารหนี้ตปท.'},{key:'B',name:'ตราสารหนี้ไทย'},
-  {key:'Money_Market',name:'ตลาดเงิน'},
-];
-const MIX = [
-  {key:'A75',name:'แผนผสม 75%'},{key:'A65',name:'แผนผสม 65%'},
-  {key:'A35',name:'แผนผสม 35%'},{key:'A20',name:'แผนผสม 20%'},
-  {key:'Base_Plan',name:'แผนหลัก'},
-];
-const ALL_PLAN_DEFS = [...DIY,...MIX];
-const STORE_KEY    = 'gpf_live_v16';
-const EXIT_LOG_KEY = 'gpf_exit_log_v12'; // keep same key — reuse existing exit log
-
-// Fund map for portfolio
+const STORE_KEY    = 'gpf_live_v19';
 const FM = {
   F:{l:'หุ้นต่างประเทศ (F)',c:'#00c8f0',s:'F'},
   G:{l:'ทองคำ (G)',c:'#ffc120',s:'G'},
@@ -1244,6 +958,8 @@ const FM = {
   TH:{l:'หุ้นไทย (TH)',c:'#00e676',s:'TH'},
   PR:{l:'อสังหาฯ (PR)',c:'#a78bfa',s:'PR'},
   Global_Bond:{l:'Global Bond',c:'#8b5cf6',s:'GBond'},
+  Base_Plan:{l:'แผนหลัก',c:'#3b82f6',s:'BP'},
+  Shariah:{l:'ชะรีอะฮ์',c:'#f59e0b',s:'Shr'},
 };
 const TX_COLS = {
   F:{n:9,u:10,b:11},G:{n:12,u:13,b:14},A65:{n:15,u:16,b:17},
@@ -1253,27 +969,14 @@ const TX_COLS = {
 // ================================================================
 //  SHARED STATE
 // ================================================================
-let NAV_SIGNAL = null;   // {navMatrix, dates, plans} — for signal engine
-let NAV_PORT   = [];     // [{date, funds}] — for portfolio analytics
-let TX_PORT    = [];     // [{date, type, ...}] — transactions
-let portCharts = {};     // Chart.js instances
+let NAV_SIGNAL = null;
+let NAV_PORT   = [];
+let TX_PORT    = [];
+let portCharts = {};
 let curPeriod  = 30;
-let fundPeriod = 365;  // NAV Performance default 1Y
+let fundPeriod = 365;
 let viewMode   = 'today';
 let cachedDates = [];
-let currentExtMode = 'auto';
-
-// ================================================================
-//  TAB SWITCHING — also redraws charts when portfolio becomes visible
-// ================================================================
-
-// Sub-tabs inside Portfolio detail section
-function portTab(btn, id){
-  document.querySelectorAll('.ttbtn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.tpanel').forEach(p=>p.classList.remove('active'));
-  btn.classList.add('active');
-  el(id).classList.add('active');
-}
 
 // ================================================================
 //  UTILS
@@ -1297,13 +1000,15 @@ const fmtDateMono = d => {
   try{ return new Date(d).toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'}); }catch(e){return d;}
 };
 const getId = url => { const m=(url||'').match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/); return m?m[1]:url.trim(); };
+function bdays(d1,d2){let count=0;const cur=new Date(d1);cur.setHours(0,0,0,0);const end=new Date(d2);end.setHours(0,0,0,0);while(cur<end){cur.setDate(cur.getDate()+1);const day=cur.getDay();if(day!==0&&day!==6)count++;}return count;}
+function addBdays(d,n){const cur=new Date(d);cur.setHours(0,0,0,0);let added=0;while(added<n){cur.setDate(cur.getDate()+1);if(cur.getDay()!==0&&cur.getDay()!==6)added++;}return cur;}
+function fmtLocalDate(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day;}
 
 // ================================================================
-//  CSV PARSER — shared
+//  CSV PARSER
 // ================================================================
 function parseCSV(text) {
-  const rows=[];
-  const lines=text.split(/\r?\n/);
+  const rows=[];const lines=text.split(/\r?\n/);
   for(const line of lines){
     if(!line.trim())continue;
     const cells=[];let cur='',inQ=false;
@@ -1313,8 +1018,7 @@ function parseCSV(text) {
       if(c===','&&!inQ){cells.push(cur.trim());cur='';}
       else cur+=c;
     }
-    cells.push(cur.trim());
-    rows.push(cells);
+    cells.push(cur.trim());rows.push(cells);
   }
   return rows;
 }
@@ -1347,14 +1051,13 @@ async function fetchSheet(sheetId,sheetName){
   const url=buildCsvUrl(sheetId,sheetName);
   if(!url)throw new Error('URL หรือ Sheet ID ไม่ถูกต้อง');
   const text=await tryFetch(url);
-  if(!text)throw new Error('เชื่อมต่อไม่ได้ผ่านทุก proxy\n\nวิธีแก้: File → Share → Publish to web → CSV\nแล้ววาง URL ในช่อง Sheet ID');
+  if(!text)throw new Error('เชื่อมต่อไม่ได้ผ่านทุก proxy\n\nวิธีแก้: File → Share → Publish to web → CSV');
   return text;
 }
 
 // ================================================================
 //  NAV PARSERS
 // ================================================================
-// Signal-oriented: returns {navMatrix, dates, plans}
 function loadNavFromCSV(csvText){
   const rows=parseCSV(csvText);
   if(rows.length<2)throw new Error('Sheet ว่างเปล่า');
@@ -1378,7 +1081,6 @@ function loadNavFromCSV(csvText){
   const fmtD=d=>{const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day;};
   return{navMatrix:rowsRaw.map(x=>x.navRow),dates:rowsRaw.map(x=>fmtD(x.d)),plans};
 }
-// Portfolio-oriented: returns [{date, funds}]
 function parseNav(csv){
   const rows=parseCSV(csv);if(rows.length<2)return[];
   const hdrs=rows[0];const res=[];
@@ -1390,7 +1092,6 @@ function parseNav(csv){
   }
   return res.sort((a,b)=>a.date-b.date);
 }
-// Transaction parser (v6)
 function parseTx(csv){
   const rows=parseCSV(csv);let hi=-1;
   for(let i=0;i<rows.length;i++)if(rows[i][0]==='Date'){hi=i;break;}
@@ -1409,9 +1110,213 @@ function parseTx(csv){
 }
 
 // ================================================================
-//  SHARED CONFIG — persist to localStorage
+//  SIGNAL ENGINE — v5.19 Simple 3-Momentum Z-Score
 // ================================================================
-const CFG_KEY = 'gpf_cfg_v13';
+function computeSignalV19(navMatrix, dates, plans) {
+  const n = navMatrix.length;
+  const idx = n - 1 - T_DELAY;
+  if(idx < MIN_HIST_DAYS) throw new Error('ข้อมูลน้อยเกินไป: มี '+n+' แถว ต้องการ '+(MIN_HIST_DAYS+T_DELAY+1)+' ขึ้นไป');
+  const signalDate = dates[idx];
+
+  const momReturns = {};
+  plans.forEach(plan => {
+    const nav = navMatrix.map(r => r[plan]);
+    if (!nav[idx] || nav[idx] === null) { momReturns[plan] = null; return; }
+    momReturns[plan] = {};
+    MOM_LOOKBACKS.forEach(lb => {
+      const prev = (idx >= lb) ? nav[idx - lb] : null;
+      momReturns[plan]['mom' + lb] = (prev && prev > 0) ? (nav[idx] / prev - 1) : null;
+    });
+  });
+
+  const validPlans = plans.filter(p => momReturns[p] !== null);
+  const scores = {};
+
+  MOM_LOOKBACKS.forEach((lb, i) => {
+    const key = 'mom' + lb;
+    const vals = validPlans.map(p => momReturns[p][key]).filter(v => v !== null);
+    if(vals.length === 0) return;
+    const mean = vals.reduce((s, v) => s + v, 0) / vals.length;
+    const std = Math.sqrt(vals.reduce((s, v) => s + (v - mean) ** 2, 0) / vals.length) || 1;
+    validPlans.forEach(p => {
+      const v = momReturns[p][key];
+      if (v !== null) {
+        const z = (v - mean) / std;
+        scores[p] = (scores[p] || 0) + z * MOM_WEIGHTS[i];
+      }
+    });
+  });
+
+  plans.forEach(p => { if (!(p in scores)) scores[p] = 0; });
+
+  return { scores, momReturns, signalDate };
+}
+
+// ================================================================
+//  MENU GENERATOR — 217 options
+// ================================================================
+function generateMenu() {
+  const menu = {};
+  // Presets
+  Object.entries(PRESET_PLANS).forEach(([name, alloc]) => { menu[name] = {...alloc}; });
+
+  const equity = ['F', 'TH', 'PR'];
+  const bond = ['B', 'Global_Bond'];
+
+  // G25 + 1 equity dominant + 1 filler
+  equity.forEach(eq => {
+    for (let ep = 50; ep <= 75; ep += 5) {
+      const remain = 75 - ep;
+      [...equity, ...bond].forEach(fill => {
+        if (fill !== eq && remain >= 5) {
+          const name = 'G25_'+eq+ep+'_'+fill+remain;
+          menu[name] = {G: 0.25, [eq]: ep/100, [fill]: remain/100};
+        }
+      });
+    }
+  });
+
+  // G25 + 2 equity split
+  [['F','TH'], ['F','PR'], ['TH','PR']].forEach(([e1, e2]) => {
+    for (let p1 = 25; p1 <= 50; p1 += 5) {
+      const p2 = 75 - p1;
+      if (p2 >= 5) menu['G25_'+e1+p1+'_'+e2+p2] = {G: 0.25, [e1]: p1/100, [e2]: p2/100};
+    }
+  });
+
+  // G25 + equity + bond
+  equity.forEach(eq => {
+    for (let ep = 35; ep <= 60; ep += 5) {
+      const bp = 75 - ep;
+      if (bp >= 5) bond.forEach(bf => {
+        menu['G25_'+eq+ep+'_'+bf+bp] = {G: 0.25, [eq]: ep/100, [bf]: bp/100};
+      });
+    }
+  });
+
+  // G25 + 3-way equity
+  for (let fp = 25; fp <= 45; fp += 5) {
+    for (let tp = 15; tp <= 35; tp += 5) {
+      const pp = 75 - fp - tp;
+      if (pp >= 5 && pp <= 30) {
+        menu['G25_F'+fp+'_TH'+tp+'_PR'+pp] = {G: 0.25, F: fp/100, TH: tp/100, PR: pp/100};
+      }
+    }
+  }
+
+  // No-gold equity combos
+  [['F','TH'], ['F','PR'], ['TH','PR']].forEach(([e1, e2]) => {
+    for (let p1 = 30; p1 <= 70; p1 += 5) {
+      const p2 = 100 - p1;
+      if (p2 >= 5) menu[e1+p1+'_'+e2+p2] = {[e1]: p1/100, [e2]: p2/100};
+    }
+  });
+
+  // Equity + bond
+  equity.forEach(eq => {
+    for (let ep = 60; ep <= 90; ep += 5) {
+      const bp = 100 - ep;
+      [...bond, 'Money_Market'].forEach(bf => {
+        menu[eq+ep+'_'+bf+bp] = {[eq]: ep/100, [bf]: bp/100};
+      });
+    }
+  });
+
+  // Validate: sum=100%, G≤25%
+  const valid = {};
+  Object.entries(menu).forEach(([name, alloc]) => {
+    const total = Object.values(alloc).reduce((s, v) => s + v, 0);
+    if (Math.abs(total - 1.0) < 0.01 && (alloc.G || 0) <= 0.251) {
+      valid[name] = alloc;
+    }
+  });
+  return valid;
+}
+
+// ================================================================
+//  DECISION ENGINE — v19 Menu-Based
+// ================================================================
+function makeDecisionV19({scores, currentMenu, currentAlloc, quotaUsed, lastSwitchStr, referenceDate}) {
+  const today = referenceDate ? new Date(referenceDate) : new Date();
+  today.setHours(0,0,0,0);
+  const quotaLeft = QUOTA_PER_YR - quotaUsed;
+
+  // 1. Quota
+  if (quotaLeft <= 0) {
+    return {action:'HOLD_QUOTA', reason:'Quota หมด ('+quotaUsed+'/'+QUOTA_PER_YR+')',
+            targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft: 0, topMenus:[]};
+  }
+
+  // 2. Cooldown
+  if (lastSwitchStr) {
+    const bdSince = bdays(new Date(lastSwitchStr), today);
+    if (bdSince < COOLDOWN_DAYS) {
+      return {action:'HOLD_COOLDOWN', reason:'Cooldown: '+bdSince+'/'+COOLDOWN_DAYS+' วันทำการ',
+              daysLeft: COOLDOWN_DAYS - bdSince,
+              targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft, topMenus:[]};
+    }
+  }
+
+  // 3. Score all menu
+  const MENU = generateMenu();
+  const menuScores = {};
+  Object.entries(MENU).forEach(([name, alloc]) => {
+    let score = 0;
+    let allAvail = true;
+    Object.entries(alloc).forEach(([fund, weight]) => {
+      if (scores[fund] === undefined) { allAvail = false; return; }
+      score += weight * scores[fund];
+    });
+    if (allAvail) menuScores[name] = score;
+  });
+
+  // 4. Sort
+  const sorted = Object.entries(menuScores).sort(([,a],[,b]) => b - a);
+  if (sorted.length === 0 || sorted[0][1] <= 0) {
+    return {action:'HOLD_NO_SIGNAL', reason:'ไม่มีเมนูที่ score > 0',
+            targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft, topMenus: sorted.slice(0,15)};
+  }
+
+  const [bestMenu, bestScore] = sorted[0];
+  const bestAlloc = MENU[bestMenu];
+
+  // 5. Same menu?
+  if (bestMenu === currentMenu) {
+    return {action:'HOLD_SAME', reason:'เมนูที่ดีสุด = แผนปัจจุบัน ('+currentMenu+') → ไม่ต้องเปลี่ยน',
+            targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft,
+            topMenus: sorted.slice(0, 15)};
+  }
+
+  // 6. Small change check
+  if (currentAlloc && Object.keys(currentAlloc).length > 0) {
+    const allKeys = new Set([...Object.keys(bestAlloc), ...Object.keys(currentAlloc)]);
+    const isSmallChg = [...allKeys].every(p =>
+      Math.abs((bestAlloc[p]||0) - (currentAlloc[p]||0)) < CHANGE_THRESH
+    );
+    if (isSmallChg) {
+      return {action:'HOLD_SMALL_CHANGE', reason:'สัดส่วนเปลี่ยนน้อยกว่า 5%',
+              targetMenu: currentMenu, targetAlloc: currentAlloc, quotaLeft,
+              topMenus: sorted.slice(0, 15)};
+    }
+  }
+
+  // 7. SWITCH!
+  return {
+    action: 'SWITCH',
+    level: 'ACTION',
+    reason: 'Signal ชัด → แนะนำเปลี่ยนแผน',
+    targetMenu: bestMenu,
+    targetAlloc: bestAlloc,
+    quotaLeft: quotaLeft - 1,
+    topMenus: sorted.slice(0, 15),
+    bestScore,
+  };
+}
+
+// ================================================================
+//  CONFIG — localStorage
+// ================================================================
+const CFG_KEY = 'gpf_cfg_v19';
 function saveCfg(){
   try{
     localStorage.setItem(CFG_KEY,JSON.stringify({
@@ -1437,1099 +1342,49 @@ function onCfgInput(){
   el('btn-load-all').disabled = false;
 }
 function setBadgeCfg(which, state, msg){
-  const b=el('badge-'+which);
-  const row=el('cfg-row-'+which);
+  const b=el('badge-'+which);const row=el('cfg-row-'+which);
   const icons={idle:'○',testing:'◌',ok:'✅',err:'❌'};
-  b.className='cbadge '+state;
-  b.textContent=icons[state]+' '+(msg||state);
+  b.className='cbadge '+state;b.textContent=icons[state]+' '+(msg||state);
   row.className='cfg-row'+(state==='ok'?' ok':state==='err'?' err':'');
 }
 async function testCfgSheet(which){
-  const idVal  = el('cfg-'+which+'-id').value.trim();
-  const shName = el('cfg-'+which+'-sheet').value.trim()||(which==='db'?'Database':'GPF');
+  const idVal=el('cfg-'+which+'-id').value.trim();
+  const shName=el('cfg-'+which+'-sheet').value.trim()||(which==='db'?'Database':'GPF');
   if(!idVal){setBadgeCfg(which,'err','ระบุ Sheet ID ก่อน');return;}
   setBadgeCfg(which,'testing','กำลังทดสอบ...');
-  // Spinner on
-  const btn=el('btn-tst-'+which);
-  const sp=el('tsp-'+which);
-  const txt=el('tst-'+which+'-txt');
-  if(btn) btn.disabled=true;
-  if(sp)  sp.style.display='inline-block';
-  if(txt) txt.textContent='กำลังทดสอบ...';
+  const btn=el('btn-tst-'+which),sp=el('tsp-'+which),txt=el('tst-'+which+'-txt');
+  if(btn) btn.disabled=true;if(sp) sp.style.display='inline-block';if(txt) txt.textContent='กำลังทดสอบ...';
   try{
-    const csv=await fetchSheet(idVal,shName);
-    const rows=parseCSV(csv);
+    const csv=await fetchSheet(idVal,shName);const rows=parseCSV(csv);
     setBadgeCfg(which,'ok','✓ '+(rows.length-1)+' แถว');
     if(txt) txt.textContent=(which==='db'?'🗄 Database':'📋 Transaction')+' ✓';
-    el('btn-load-all').disabled=false;
-    saveCfg();
+    el('btn-load-all').disabled=false;saveCfg();
   }catch(e){
     setBadgeCfg(which,'err',e.message.substring(0,40));
     if(txt) txt.textContent='🔗 ทดสอบ';
   }finally{
-    if(btn) btn.disabled=false;
-    if(sp)  sp.style.display='none';
+    if(btn) btn.disabled=false;if(sp) sp.style.display='none';
   }
 }
 
 // ================================================================
-//  LOAD ALL — shared entry point
+//  SIGNAL STATE PERSIST
 // ================================================================
-async function loadAll(){
-  const dbId    = el('cfg-db-id').value.trim();
-  const dbSheet = el('cfg-db-sheet').value.trim()||'Database';
-  const txId    = el('cfg-tx-id').value.trim();
-  const txSheet = el('cfg-tx-sheet').value.trim()||'GPF';
-  if(!dbId){alert('กรุณากรอก Database Sheet ID');return;}
-
-  setLoadLoading(true);
-  showPortLoading('กำลังโหลด NAV Database...');
-
-  try{
-    // 1. DB CSV — needed by both Signal + Portfolio NAV
-    const dbCsv = await fetchSheet(dbId,dbSheet);
-    // badge will be set after parsing NAV (to include last NAV date)
-
-    // Parse for signal engine
-    NAV_SIGNAL = loadNavFromCSV(dbCsv);
-    cachedDates = NAV_SIGNAL.dates;
-
-    // Parse for portfolio analytics
-    NAV_PORT = parseNav(dbCsv);
-
-    // Show last NAV date in badge
-    if(NAV_PORT.length > 0){
-      const lastNavRow = NAV_PORT[NAV_PORT.length - 1];
-      const lastNavDate = new Date(lastNavRow.date);
-      const navDateStr = lastNavDate.toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
-      setBadgeCfg('db','ok','โหลดสำเร็จ · NAV ล่าสุด: '+navDateStr);
-    } else {
-      setBadgeCfg('db','ok','โหลดสำเร็จ');
-    }
-
-    // Enable signal run btn + date nav
-    el('run-btn').disabled=false;
-    el('date-nav').style.display='flex';
-    const dp=el('hist-date');
-    if(dp&&cachedDates.length>0){
-      dp.min=cachedDates[MIN_HIST_DAYS]||cachedDates[0];
-      dp.max=cachedDates[cachedDates.length-1];
-      if(!dp.value||dp.value>dp.max)dp.value=dp.max;
-    }
-
-    // 2. TX CSV — optional (portfolio only)
-    if(txId){
-      showPortLoading('กำลังโหลด Transaction...');
-      try{
-        const txCsv=await fetchSheet(txId,txSheet);
-        TX_PORT=parseTx(txCsv);
-        setBadgeCfg('tx','ok','โหลดสำเร็จ ('+(TX_PORT.length)+' รายการ)');
-      }catch(e){
-        TX_PORT=[];
-        setBadgeCfg('tx','err','โหลดไม่ได้: '+e.message.substring(0,30));
-      }
-    }
-
-    // 3. Render portfolio
-    if(NAV_PORT.length>0){
-      renderPortAll();
-    }else{
-      showPortErr('ไม่พบข้อมูล NAV ใน Database sheet');
-    }
-
-    el('last-update-hdr').textContent='อัพเดต '+new Date().toLocaleTimeString('th-TH');
-    saveCfg();
-  }catch(e){
-    showPortErr(e.message);
-    setBadgeCfg('db','err',e.message.substring(0,40));
-  }finally{
-    setLoadLoading(false);
-  }
-}
-
-function setLoadLoading(on){
-  el('btn-load-all').disabled=on;
-  el('load-spinner').style.display=on?'block':'none';
-  el('load-btn-txt').textContent=on?'กำลังโหลด...':'⟳ โหลดทั้งหมด';
-}
-function showPortLoading(msg){
-  el('port-loading').classList.add('show');
-  el('port-load-msg').textContent=msg||'กำลังโหลด...';
-  el('port-err').classList.remove('show');
-  el('port-dash').style.display='none';
-}
-function showPortErr(msg){
-  el('port-loading').classList.remove('show');
-  el('port-err').classList.add('show');
-  el('port-err-msg').textContent=msg||'เกิดข้อผิดพลาด';
-  el('port-dash').style.display='none';
-}
-function showPortDash(){
-  el('port-loading').classList.remove('show');
-  el('port-err').classList.remove('show');
-  el('port-dash').style.display='block';
-}
-
-// ================================================================
-//  FILE DRAG & DROP
-// ================================================================
-async function handleFiles(e){
-  const files=Array.from(e.target.files);
-  if(files.length<1){alert('เลือกอย่างน้อย 1 ไฟล์ (Database CSV)');return;}
-  showPortLoading('กำลังอ่านไฟล์...');
-  setLoadLoading(true);
-  try{
-    const db=files.find(f=>f.name.toLowerCase().includes('database'))||files[0];
-    const txFile=files.find(f=>!f.name.toLowerCase().includes('database')&&files.length>1);
-    const dbCsv=await db.text();
-    NAV_SIGNAL=loadNavFromCSV(dbCsv);
-    cachedDates=NAV_SIGNAL.dates;
-    NAV_PORT=parseNav(dbCsv);
-    if(txFile){TX_PORT=parseTx(await txFile.text());}
-    el('run-btn').disabled=false;
-    el('date-nav').style.display='flex';
-    if(NAV_PORT.length>0)renderPortAll();
-    else showPortErr('ไม่พบข้อมูล NAV');
-  }catch(err){showPortErr(err.message);}
-  finally{setLoadLoading(false);e.target.value='';}
-}
-document.addEventListener('dragover',e=>e.preventDefault());
-document.addEventListener('drop',async e=>{
-  e.preventDefault();
-  const files=Array.from(e.dataTransfer.files).filter(f=>f.name.endsWith('.csv'));
-  if(!files.length)return;
-  const inp=el('file-input');
-  // simulate
-  const dt=new DataTransfer();
-  files.forEach(f=>dt.items.add(f));
-  inp.files=dt.files;
-  await handleFiles({target:inp});
-});
-
-// ================================================================
-//  DEMO DATA
-// ================================================================
-const DEMO_NAV = "Date,A35,Base_Plan,B,Money_Market,A20,A65,TH,PR,F,Global_Bond,G,A75\n2019-01-02,14.8765,13.0021,11.8432,10.1234,12.3456,15.6789,18.2345,10.9876,25.1234,11.2345,28.7654,16.5432\n2019-07-01,15.2341,13.4521,12.0123,10.2456,12.7891,16.3456,19.1234,11.3456,26.7891,11.5678,31.2345,17.2345\n2020-01-02,14.9876,13.1234,11.9876,10.3678,12.5432,15.9876,17.8765,11.0123,25.8765,11.3456,32.4567,16.7891\n2020-07-01,15.8765,13.8765,12.2345,10.4891,13.2345,17.2345,19.6789,11.5678,28.1234,11.6789,38.9876,18.1234\n2021-01-04,17.2345,14.8765,12.5678,10.6234,14.1234,19.2345,22.3456,12.3456,32.4567,11.9876,42.3456,20.2345\n2021-07-01,17.9876,15.3456,12.7891,10.7456,14.6789,20.1234,23.4567,12.7891,34.5678,12.1234,45.6789,21.3456\n2022-01-03,17.5432,15.0123,12.6789,10.8678,14.4567,19.6789,22.1234,12.5432,33.2345,12.3456,48.7891,20.7891\n2022-07-01,15.3456,13.4567,12.1234,11.0123,13.0123,17.1234,19.3456,11.7891,29.6789,12.0123,44.3456,18.0123\n2023-01-02,16.2345,14.1234,12.3456,11.1456,13.7891,18.2345,20.5678,12.0123,31.4567,12.2345,47.8765,19.2345\n2023-07-03,17.4567,15.0987,12.6789,11.2678,14.5234,19.8765,22.4567,12.4567,34.1234,12.4567,52.3456,20.8765\n2024-01-02,18.6789,16.2345,12.9876,11.3891,15.3456,21.4567,24.3456,12.8765,37.2345,12.6789,58.7654,22.5678\n2024-07-01,19.8765,17.2891,13.2345,11.5123,16.1234,23.0123,26.2345,13.2345,40.5678,12.8765,62.4567,24.1234\n2025-01-02,21.2345,18.4567,13.5678,11.6456,17.0123,24.7891,28.1234,13.6789,43.8765,13.0987,68.9876,25.8765\n2025-07-01,22.3456,19.3456,13.7891,11.7678,17.7891,26.1234,29.8765,14.0123,46.5432,13.2345,71.2345,27.2345\n2025-10-01,22.8765,19.8765,13.9234,11.8901,18.1234,26.8765,30.5678,14.2345,47.8901,13.3456,73.4567,27.9876\n2025-12-15,23.1234,20.1234,14.0234,11.9123,18.3456,27.2345,30.9876,14.3456,48.5678,13.4123,74.6789,28.3456\n2026-01-15,23.4567,20.4567,14.1234,11.9345,18.5678,27.6789,31.4567,14.4567,49.2345,13.4789,76.1234,28.7891\n2026-02-15,23.6789,20.6789,14.2123,11.9567,18.7891,27.9876,31.7891,14.5234,49.8765,13.5234,77.2345,29.1234\n2026-03-07,23.8901,20.8901,14.2987,11.9789,18.9876,28.2345,32.0123,14.5901,50.3456,13.5678,77.9876,29.4567";
-const DEMO_TX = ",,,,,,,,Today Port,แผนต่างประเทศ (F),,,Gold (G),,,แผนเชิงรุก 65 (A65),,,ตราสารหนี้ (Money_Market),,,แผนเชิงรุก 75 (A75),,\n,,,,,,,,,,,,,0.00,,,,,,,,,,\nDate,รายการ,หมายเหตุ,แผนการลงทุน,เงินชดเชย ฿,เงินสะสม ฿,เงินสมทบ ฿,เงินสะสมส่วมเพิ่ม ฿,Total ,NAV (F),Unit (F),Bath (F),NAV (G),Unit (G),Bath (G),NAV (A65),Unit (A65),Bath (A65),NAV (MM),Unit (MM),Bath (MM),NAV (A75),Unit (A75),Bath (A75)\n15/01/2025,เงินนำส่ง,,F,2400,3600,3600,0,9600,43.5,220.6896,9600,,,,,,,,,,,,\n25/02/2025,เงินนำส่ง,,F,2400,3600,3600,0,9600,44.1,217.6871,9600,,,,,,,,,,,,\n25/03/2025,เงินนำส่ง,,F,2400,3600,3600,0,9600,44.8,214.2857,9600,,,,,,,,,,,,\n25/04/2025,เปลี่ยนแผนออก,Rebalance,F,-5000,-7500,-7500,0,-20000,45.2,-442.4779,-20000,,,,,,,,,,,,\n25/04/2025,เปลี่ยนแผนเข้า,Rebalance,F:G,5000,7500,7500,0,20000,45.5,310.5607,14138,,57.2,101.3986,5802,,,,,,,,\n25/05/2025,เงินนำส่ง,,F:G,2400,3600,3600,0,9600,46.2,155.8441,7200,,58.1,41.3080,2400,,,,,,,,\n25/06/2025,เงินนำส่ง,,F:G,2400,3600,3600,0,9600,47.1,152.8662,7200,,59.3,40.4722,2400,,,,,,,,\n25/07/2025,เงินนำส่ง,,F:G,2400,3600,3600,0,9600,48.3,149.0062,7200,,61.2,39.2157,2400,,,,,,,,\n25/08/2025,เงินนำส่ง,,F:G,2400,3600,3600,0,9600,49.2,146.3415,7200,,63.4,37.8549,2400,,,,,,,,\n25/09/2025,เงินนำส่ง,,F:G,2400,3600,3600,0,9600,50.3,143.1213,7200,,65.8,36.4742,2400,,,,,,,,\n16/02/2026,เปลี่ยนแผนออก,Rebalance,F:G,-2000,-3000,-3000,0,-8000,49.8,-120.4819,-6000,,77.2,-25.9067,-2000,,,,,,,,\n16/02/2026,เปลี่ยนแผนเข้า,Rebalance,TH:PR,2000,3000,3000,0,8000,,,,,,,,,,,,,,,,,";
-
-function loadDemoData(){
-  const dbCsv = DEMO_NAV;
-  const txCsv = DEMO_TX;
-  try{
-    NAV_SIGNAL=loadNavFromCSV(dbCsv);
-    cachedDates=NAV_SIGNAL.dates;
-    NAV_PORT=parseNav(dbCsv);
-    TX_PORT=parseTx(txCsv);
-    el('run-btn').disabled=false;
-    el('date-nav').style.display='flex';
-    renderPortAll();
-  }catch(err){showPortErr(err.message);}
-}
-
-// ================================================================
-//  PORT MODE — Auto (from TX) / Manual
-// ================================================================
-let portInputMode = 'auto'; // default auto
-function setPortMode(mode){
-  portInputMode = mode;
-  const autoBtn = el('port-mode-auto');
-  const manBtn  = el('port-mode-manual');
-  const autoInfo= el('port-auto-info');
-  const manFields=el('port-manual-fields');
-  if(!autoBtn) return;
-  if(mode === 'auto'){
-    autoBtn.style.cssText='flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid rgba(0,230,118,.4);background:rgba(0,230,118,.08);color:var(--green);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px';
-    manBtn.style.cssText ='flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid var(--b2);background:none;color:var(--t2);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px';
-    if(autoInfo)  autoInfo.style.display  = 'block';
-    if(manFields) manFields.style.display = 'none';
-    // If data already loaded, re-apply sync
-    if(NAV_PORT.length > 0){
-      const hold = calcHold(TX_PORT);
-      const analytics = calcAnalytics(hold, NAV_PORT, TX_PORT);
-      applyAutoSync(analytics, hold);
-    }
-  } else {
-    manBtn.style.cssText ='flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid rgba(0,200,240,.4);background:rgba(0,200,240,.08);color:var(--acc);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px';
-    autoBtn.style.cssText='flex:1;padding:7px 10px;border-radius:7px;font-size:12px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid var(--b2);background:none;color:var(--t2);transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px';
-    if(autoInfo)  autoInfo.style.display  = 'none';
-    if(manFields) manFields.style.display = 'block';
-  }
-  try{
-    const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
-    s['port-mode'] = mode;
-    localStorage.setItem(STORE_KEY, JSON.stringify(s));
-  }catch(e){}
-}
-
-// ================================================================
-//  AUTO-SYNC: Portfolio → Signal inputs
-// ================================================================
-function applyAutoSync(analytics, hold){
-  if(!analytics||analytics.tot<=0) return;
-
-  const detail = el('port-auto-detail');
-  const ddPct = analytics.peakValue > 0 ? ((analytics.tot / analytics.peakValue) - 1)*100 : 0;
-  const ddClr = ddPct < -3 ? 'var(--red)' : ddPct < -1 ? 'var(--amber)' : 'var(--green)';
-
-  // Only fill inputs in Auto mode
-  if(portInputMode !== 'auto'){
-    // Still update info panel (read-only view)
-    if(detail){
-      detail.innerHTML =
-        'มูลค่า: <b style="color:var(--green)">฿'+Math.round(analytics.tot).toLocaleString()+'</b>'
-        +'  ·  Peak: <b style="color:var(--gold)">฿'+Math.round(analytics.peakValue||analytics.tot).toLocaleString()+'</b>'
-        +'  ·  DD: <b style="color:'+ddClr+'">'+ddPct.toFixed(2)+'%</b>';
-    }
-    return;
-  }
-
-  // Sync current value + peak
-  el('current-value').value = Math.round(analytics.tot);
-  el('peak-value').value    = Math.round(analytics.peakValue||analytics.tot);
-
-  // ── Auto-fill Rebalance date + Quota from TX ──────────────────
-  // วัน Rebalance ล่าสุด = last TX entry ที่ type มี "เปลี่ยนแผน"
-  const rebalTx = TX_PORT.filter(t =>
-    t.type && (t.type.includes('เปลี่ยนแผน') || t.type.includes('rebalance') || t.type.toLowerCase().includes('rebal'))
-  ).sort((a,b)=>a.date-b.date);
-
-  if(rebalTx.length > 0){
-    const lastRebal = rebalTx[rebalTx.length-1].date;
-    const fmtIso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    el('last-rebal').value = fmtIso(lastRebal);
-  }
-
-  // Quota ที่ใช้แล้วปีนี้ = จำนวน rebalance entries ใน current year
-  const nowYear = new Date().getFullYear();
-  const rebalDatesThisYear = new Set(
-    rebalTx
-      .filter(t => t.date.getFullYear() === nowYear)
-      .map(t => t.date.toDateString())
-  );
-  el('quota-used').value = String(rebalDatesThisYear.size);
-  updateQuotaBar();
-
-  // Update auto-detail text to include rebalance info
-  if(detail){
-    const lastRebalStr = rebalTx.length > 0 ? fDt(rebalTx[rebalTx.length-1].date) : '—';
-    detail.innerHTML =
-      'มูลค่า: <b style="color:var(--green)">฿'+Math.round(analytics.tot).toLocaleString()+'</b>'
-      +'  ·  Peak: <b style="color:var(--gold)">฿'+Math.round(analytics.peakValue||analytics.tot).toLocaleString()+'</b>'
-      +'  ·  DD: <b style="color:'+ddClr+'">'+ddPct.toFixed(2)+'%</b>'
-      +'<br>Rebalance ล่าสุด: <b style="color:var(--amber)">'+lastRebalStr+'</b>'
-      +'  ·  Quota ใช้ปีนี้: <b style="color:var(--acc)">'+rebalDatesThisYear.size+'/12</b>';
-  }
-
-  // Sync allocation from actual holdings
-  if(hold && Object.keys(hold).length > 0){
-    const ln = NAV_PORT[NAV_PORT.length-1];
-    let grand = 0;
-    for(const[f,u] of Object.entries(hold)){const nv=ln?.funds[f];if(nv)grand+=u*nv;}
-    if(grand > 0){
-      ALL_PLAN_DEFS.forEach(p=>{const inp=el('a_'+p.key);if(inp)inp.value='0';});
-      for(const[f,u] of Object.entries(hold)){
-        const nv=ln?.funds[f];
-        if(!nv||u<=0)continue;
-        const pct=Math.round((u*nv/grand)*100);
-        const inp=el('a_'+f);
-        if(inp&&pct>0)inp.value=String(pct);
-      }
-      onAllocChange();
-      el('alloc-sync-note').style.display='inline';
-    }
-  }
-
-  // Show sync badge
-  el('sync-badge').classList.add('show');
-  el('autosync-box').classList.add('show');
-  el('autosync-msg').textContent =
-    'Auto-synced: Current ฿'+Math.round(analytics.tot).toLocaleString()
-    +' · Peak ฿'+Math.round(analytics.peakValue||analytics.tot).toLocaleString()
-    +' · Allocation จาก Transaction';
-
-  save();
-}
-
-// ================================================================
-//  PORTFOLIO AS-OF DATE (for History mode Auto-sync)
-// ================================================================
-function getPortfolioAsOf(isoDate){
-  // Returns {curVal, peakVal, allocation, lastRebalIso, quotaUsed} as of isoDate
-  // Uses TX_PORT + NAV_PORT
-  if(!TX_PORT.length || !NAV_PORT.length) return null;
-  const cutDate = new Date(isoDate);
-
-  // 1. Holdings as of cutDate (only TX ≤ cutDate)
-  const txBefore = TX_PORT.filter(t => t.date <= cutDate);
-  const hold = {};
-  for(const t of txBefore)
-    for(const[f,a] of Object.entries(t.amounts))
-      hold[f] = (hold[f]||0) + a.u;
-  for(const k of Object.keys(hold)) if(Math.abs(hold[k]) < 0.0001) delete hold[k];
-
-  // 2. NAV rows ≤ cutDate
-  const navBefore = NAV_PORT.filter(n => new Date(n.date) <= cutDate);
-  if(!navBefore.length) return null;
-  const lastNav = navBefore[navBefore.length-1];
-
-  // 3. Current value as-of
-  let curVal = 0;
-  for(const[f,u] of Object.entries(hold)){
-    const nv = lastNav.funds[f];
-    if(nv) curVal += u * nv;
-  }
-
-  // 4. Peak value = max portfolio value up to cutDate
-  let peakVal = 0;
-  for(const row of navBefore){
-    let tot = 0;
-    // We need hold as-of each NAV row — approximate by using final hold weights
-    // (accurate enough for peak calc)
-    for(const[f,u] of Object.entries(hold)){
-      const nv = row.funds[f];
-      if(nv) tot += u * nv;
-    }
-    if(tot > peakVal) peakVal = tot;
-  }
-  if(curVal > peakVal) peakVal = curVal;
-
-  // 5. Allocation % as-of
-  const allocation = {};
-  if(curVal > 0){
-    for(const[f,u] of Object.entries(hold)){
-      const nv = lastNav.funds[f];
-      if(nv) allocation[f] = Math.round((u*nv/curVal)*100);
-    }
-  }
-
-  // 6. Last rebalance before cutDate
-  const rebalTx = txBefore.filter(t =>
-    t.type && (t.type.includes('เปลี่ยนแผน') || t.type.toLowerCase().includes('rebal'))
-  ).sort((a,b) => a.date - b.date);
-  const lastRebalDate = rebalTx.length > 0 ? rebalTx[rebalTx.length-1].date : null;
-  const fmtIso = d => d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-  const lastRebalIso = lastRebalDate ? fmtIso(lastRebalDate) : '';
-
-  // 7. Quota used in same year as cutDate (not current year!)
-  const cutYear = cutDate.getFullYear();
-  const rebalDates = new Set(
-    rebalTx.filter(t => t.date.getFullYear() === cutYear).map(t => t.date.toDateString())
-  );
-  const quotaUsed = rebalDates.size;
-
-  return { curVal, peakVal, allocation, lastRebalIso, quotaUsed, hold, lastNav };
-}
-function calcHold(tx){
-  const u={};
-  for(const t of tx)for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;
-  for(const k of Object.keys(u))if(Math.abs(u[k])<0.0001)delete u[k];
-  return u;
-}
-function calcPort(nav,tx,days){
-  const cut=days>0?new Date(Date.now()-days*864e5):new Date(0);
-  const nf=nav.filter(n=>n.date>=cut);if(!nf.length)return{l:[],v:[],iv:[]};
-  const ts=[...tx].sort((a,b)=>a.date-b.date);
-  const l=[],v=[],iv=[];
-  for(const n of nf){
-    const u={};let inv=0;
-    for(const t of ts){
-      if(t.date>n.date)break;
-      for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;
-      if(t.type==='เงินนำส่ง'&&t.total!=null)inv+=t.total;
-    }
-    let val=0;
-    for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
-    if(val>0||v.length>0){l.push(n.date);v.push(val);iv.push(inv);}
-  }
-  return{l,v,iv};
-}
-function calcAnalytics(hold,nav,tx){
-  const ln=nav[nav.length-1],pn=nav[nav.length-2];
-  const portSeries=[];
-  const txSorted=[...tx].sort((a,b)=>a.date-b.date);
-  const txDateSet=new Set(tx.map(t=>t.date.toDateString()));
-  for(const n of nav){
-    const u={};
-    for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;}
-    let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
-    if(val>0||portSeries.length>0)portSeries.push({date:n.date,val,hasTx:txDateSet.has(n.date.toDateString())});
-  }
-  let tot=0,prev=0,cost=0;
-  for(const[f,u]of Object.entries(hold)){
-    const nv=ln?.funds[f];if(nv)tot+=u*nv;
-    const pv=pn?.funds[f];if(pv)prev+=u*pv;
-  }
-  for(const t of tx)if(t.type==='เงินนำส่ง'&&t.total!=null)cost+=t.total;
-  const pnl=tot-cost,pp=cost>0?(pnl/cost)*100:0;
-  const dc=prev>0?tot-prev:0,dp=prev>0?(dc/prev)*100:0;
-
-  // Peak + MaxDD
-  let peak=0,peakValue=0,maxDD=0,ddEnd=null,ddPeakDate=null,tempPeakDate=null;
-  for(const p of portSeries){
-    if(p.val>peak){peak=p.val;peakValue=p.val;tempPeakDate=p.date;}
-    const dd=peak>0?(p.val-peak)/peak*100:0;
-    if(dd<maxDD){maxDD=dd;ddEnd=p.date;ddPeakDate=tempPeakDate;}
-  }
-
-  const firstTx=tx.find(t=>t.type==='เงินนำส่ง');
-  const startDate=firstTx?.date;
-  const daysHeld=startDate?Math.round((ln.date-startDate)/864e5):0;
-  const yearsHeld=daysHeld/365;
-  const cagr=(yearsHeld>0&&cost>0&&tot>0)?(Math.pow(tot/cost,1/yearsHeld)-1)*100:null;
-
-  const dailyRet=[];
-  for(let i=1;i<portSeries.length;i++){
-    const prev2=portSeries[i-1],cur=portSeries[i];
-    if(cur.hasTx)continue;
-    if(prev2.val>0)dailyRet.push({r:(cur.val-prev2.val)/prev2.val*100,date:cur.date,chg:cur.val-prev2.val});
-  }
-  const rets=dailyRet.map(d=>d.r);
-  const avgRet=rets.length>0?rets.reduce((a,b)=>a+b,0)/rets.length:0;
-  const variance=rets.length>1?rets.reduce((a,b)=>a+(b-avgRet)**2,0)/(rets.length-1):0;
-  const dailyVol=Math.sqrt(variance);
-  const annVol=dailyVol*Math.sqrt(252);
-  const sharpe=annVol>0?(avgRet*252-1.5)/annVol:null;
-  let bestDay={ret:-Infinity,date:null,val:0},worstDay={ret:Infinity,date:null,val:0};
-  for(const d of dailyRet){
-    if(d.r>bestDay.ret)bestDay={ret:d.r,date:d.date,val:d.chg};
-    if(d.r<worstDay.ret)worstDay={ret:d.r,date:d.date,val:d.chg};
-  }
-  const winDays=rets.filter(r=>r>0).length;
-  const winRate=rets.length>0?winDays/rets.length*100:0;
-  const txDeposits=tx.filter(t=>t.type==='เงินนำส่ง');
-  const avgMonthly=txDeposits.length>0?cost/txDeposits.length:0;
-  const lastTx=[...tx].reverse().find(t=>t.plan);
-  return{
-    tot,prev,cost,pnl,pp,dc,dp,
-    navDt:ln?.date?fDt(ln.date):'-',
-    maxDD,ddEnd,peakValue,
-    cagr,yearsHeld,daysHeld,
-    annVol,sharpe,winRate,winDays,totalDays:rets.length,
-    bestDay,worstDay,avgMonthly,txCount:txDeposits.length,
-    currentPlan:lastTx?.plan||'-',startDate,portSeries,
-  };
-}
-
-// ================================================================
-//  PORTFOLIO RENDER
-// ================================================================
-function renderPortAll(){
-  const hold=calcHold(TX_PORT);
-  const analytics=calcAnalytics(hold,NAV_PORT,TX_PORT);
-  renderPortCards(hold,analytics);
-  renderHold(hold,NAV_PORT);
-  renderNavTbl(NAV_PORT,hold);
-  renderDaily(NAV_PORT,TX_PORT);
-  renderTxTbl(TX_PORT);
-  renderMon(TX_PORT);
-  // ── Show dashboard FIRST so canvas has real dimensions ──
-  showPortDash();
-  // ── Then render charts after a frame so layout is computed ──
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(()=>{
-      renderPortChart(curPeriod);
-      renderAlloc(hold,NAV_PORT);
-      renderFund(NAV_PORT);
-      renderNavCh(NAV_PORT,hold);
-    });
-  });
-  el('port-last-update').textContent='อัพเดต: '+new Date().toLocaleTimeString('th-TH');
-  // Auto-sync to Signal
-  applyAutoSync(analytics,hold);
-}
-
-function renderPortCards(hold,a){
-  const co=v=>v>0?'var(--green)':v<0?'var(--red)':'var(--t2)';
-  const row1=[
-    {l:'มูลค่า Portfolio',   v:'฿'+fmt(a.tot,0),   s:'ณ '+a.navDt,                              c:'cg',clr:'var(--gold)'},
-    {l:'เงินลงทุนสะสม',     v:'฿'+fmt(a.cost,0),   s:a.txCount+' ครั้ง · เฉลี่ย ฿'+fmt(a.avgMonthly,0), c:'ct',clr:'var(--teal)'},
-    {l:'กำไร/ขาดทุน (฿)',   v:fmtS(a.pnl),          s:fmtS(a.pp)+'%',                            c:a.pnl>=0?'cG':'cr',clr:co(a.pnl)},
-    {l:'% ผลตอบแทน',        v:fmtS(a.pp)+'%',        s:'เทียบต้นทุนรวม',                          c:a.pp>=0?'cG':'cr', clr:co(a.pp)},
-    {l:'เปลี่ยนแปลง 1 วัน', v:fmtS(a.dc),            s:fmtS(a.dp)+'%',                            c:a.dc>=0?'cG':'cr', clr:co(a.dc)},
-    {l:'แผนลงทุนปัจจุบัน', v:esc(a.currentPlan),     s:'Transaction ล่าสุด',                      c:'cb',clr:'var(--blue)'},
-  ];
-  const row2=[
-    {l:'Peak Value',         v:'฿'+fmt(a.peakValue,0),s:'มูลค่าสูงสุดตลอด',                      c:'ca',clr:'var(--amber)',tip:'Peak = มูลค่าสูงสุดตลอดกาล ใช้คำนวณ EXIT_DD'},
-    {l:'Max Drawdown (DD)',  v:fmt(a.maxDD,2)+'%',    s:'ต่ำสุด ณ '+fDt(a.ddEnd),                c:'cr',clr:a.maxDD<0?'var(--red)':'var(--t2)',tip:'การลดลงสูงสุดจากจุด Peak'},
-    {l:'Annualized Return',  v:a.cagr!=null?fmtS(a.cagr)+'%':'-',s:'CAGR/ปี',                  c:a.cagr>=0?'cG':'cr',clr:a.cagr!=null?co(a.cagr):'var(--t2)'},
-    {l:'Volatility (ปี)',   v:a.annVol>0?fmt(a.annVol,2)+'%':'-',s:'ความผันผวน Annualized',      c:'cp',clr:'var(--purple)'},
-    {l:'Sharpe Ratio',       v:a.sharpe!=null?fmt(a.sharpe,2):'-',s:a.sharpe>=1?'ดีมาก':a.sharpe>=0.5?'ดี':'พอใช้',c:'cp',clr:'var(--purple)'},
-    {l:'Win Rate',           v:fmt(a.winRate,1)+'%',  s:a.winDays+'/'+a.totalDays+' วัน',        c:'ct',clr:a.winRate>=50?'var(--teal)':'var(--t2)'},
-  ];
-  const durStr=a.daysHeld>0?(a.daysHeld>=365?fmt(a.yearsHeld,1)+' ปี':a.daysHeld+' วัน'):'-';
-  const row3=[
-    {l:'Best Day',   v:a.bestDay.date?fmtS(a.bestDay.ret)+'%':'-',  s:a.bestDay.date?fDt(a.bestDay.date)+' · ฿'+fmtS(a.bestDay.val||0):'-',  c:'cG',clr:'var(--green)'},
-    {l:'Worst Day',  v:a.worstDay.date?fmtS(a.worstDay.ret)+'%':'-',s:a.worstDay.date?fDt(a.worstDay.date)+' · ฿'+fmtS(a.worstDay.val||0):'-',c:'cr',clr:'var(--red)'},
-    {l:'ระยะเวลาลงทุน',v:durStr,s:'เริ่ม '+fDt(a.startDate),c:'cg',clr:'var(--gold)'},
-  ];
-  const mkCard=x=>'<div class="pc '+x.c+'" '+(x.tip?'title="'+x.tip+'"':'')+'>'
-    +'<div class="clbl">'+x.l+'</div>'
-    +'<div class="cval" style="color:'+x.clr+'">'+x.v+'</div>'
-    +'<div class="csub">'+x.s+'</div>'
-    +'</div>';
-  el('cards-row1').innerHTML=row1.map(mkCard).join('');
-  el('cards-row2').innerHTML=row2.map(mkCard).join('');
-  el('cards-row3').innerHTML=row3.map(mkCard).join('');
-}
-function renderHold(hold,nav){
-  const ln=nav[nav.length-1],pn=nav[nav.length-2];
-  let rows=[],grand=0;
-  for(const[f,u]of Object.entries(hold)){
-    const nv=ln?.funds[f],pv=pn?.funds[f];
-    const val=nv?u*nv:null;const chg=(nv&&pv)?((nv-pv)/pv)*100:null;
-    if(val!=null)grand+=val;
-    rows.push({f,u,nv,val,chg});
-  }
-  rows.sort((a,b)=>(b.val||0)-(a.val||0));
-  const tRows=rows.map(r=>{
-    const pct=grand>0&&r.val?(r.val/grand)*100:0;
-    const m=FM[r.f]||{l:r.f,c:'#888'};
-    const cc=r.chg==null?'pneu':r.chg>=0?'ppos':'pneg';
-    return'<tr><td><div class="fb"><span class="fdot" style="background:'+m.c+'"></span>'+m.l+'</div></td>'
-      +'<td>'+fmt(r.u,4)+'</td><td>'+fmt(r.nv,4)+'</td>'
-      +'<td style="font-weight:600">'+(r.val!=null?'฿'+fmt(r.val,2):'-')+'</td>'
-      +'<td><div style="display:flex;align-items:center;gap:7px">'
-        +'<span style="min-width:36px">'+fmt(pct,1)+'%</span>'
-        +'<div class="pbar-wrap" style="flex:1;min-width:48px"><div class="pbar" style="width:'+pct+'%;background:'+m.c+'"></div></div>'
-      +'</div></td>'
-      +'<td class="'+cc+'">'+(r.chg!=null?fmtS(r.chg)+'%':'-')+'</td></tr>';
-  }).join('');
-  el('t-hold').innerHTML='<thead><tr><th>กองทุน</th><th>หน่วย</th><th>NAV</th><th>มูลค่า (฿)</th><th>สัดส่วน</th><th>เปลี่ยน 1 วัน</th></tr></thead>'
-    +'<tbody>'+tRows
-    +'<tr style="border-top:1px solid var(--b2)"><td colspan="3" style="font-weight:700;color:var(--t2)">รวม</td>'
-    +'<td style="font-weight:700;color:var(--gold)">฿'+fmt(grand,2)+'</td><td colspan="2"></td></tr></tbody>';
-}
-function renderNavTbl(nav,hold){
-  const active=Object.keys(hold).filter(f=>FM[f]&&nav.some(n=>n.funds[f]));
-  const recent=nav.slice(-15).reverse();
-  const hdrs='<thead><tr><th>วันที่</th>'+active.map(f=>'<th>'+(FM[f]?.s||f)+'</th>').join('')+'</tr></thead>';
-  const bdy=recent.map((r,i)=>{
-    const p=recent[i+1];
-    return'<tr><td>'+fDt(r.date)+'</td>'+active.map(f=>{
-      const v=r.funds[f],pv=p?.funds[f];
-      const chg=(v&&pv)?((v-pv)/pv)*100:null;
-      return'<td><div style="font-family:var(--mono)">'+(v!=null?fmt(v,4):'-')+'</div>'
-        +(chg!=null?'<div style="font-size:10px;color:'+(chg>=0?'var(--green)':'var(--red)')+'">'+fmtS(chg)+'%</div>':'')+'</td>';
-    }).join('')+'</tr>';
-  }).join('');
-  el('t-nav').innerHTML=hdrs+'<tbody>'+bdy+'</tbody>';
-}
-function renderTxTbl(tx){
-  const s=[...tx].reverse();
-  const tc=t=>t.includes('นำส่ง')?'tdep':t.includes('เข้า')?'tin':t.includes('ออก')?'tout':'treb';
-  const ti=t=>t.includes('นำส่ง')?'↓':t.includes('เข้า')?'+':t.includes('ออก')?'−':'↔';
-  const bdy=s.map(t=>{
-    const funds=Object.entries(t.amounts).map(([f,a])=>{
-      const m=FM[f]||{s:f};
-      return'<span class="'+(a.u>=0?'ppos':'pneg')+'" style="font-size:11px">'+m.s+':'+fmtS(a.u)+'</span>';
-    }).join(' ');
-    return'<tr><td>'+fDt(t.date)+'</td>'
-      +'<td class="'+tc(t.type)+'">'+ti(t.type)+' '+esc(t.type)+'</td>'
-      +'<td style="color:var(--t2);font-size:12px">'+esc(t.plan||'-')+'</td>'
-      +'<td style="color:var(--t3);font-size:12px">'+esc(t.note||'-')+'</td>'
-      +'<td>'+(t.comp!=null?fmt(t.comp,2):'-')+'</td>'
-      +'<td>'+(t.accum!=null?fmt(t.accum,2):'-')+'</td>'
-      +'<td>'+(t.match!=null?fmt(t.match,2):'-')+'</td>'
-      +'<td style="font-weight:700;color:'+((t.total||0)>=0?'var(--green)':'var(--red)')+'">'+( t.total!=null?fmtS(t.total):'-')+'</td>'
-      +'<td style="font-size:11px">'+(funds||'-')+'</td></tr>';
-  }).join('');
-  el('t-tx').innerHTML='<thead><tr><th>วันที่</th><th>ประเภท</th><th>แผน</th><th>หมายเหตุ</th><th>ชดเชย</th><th>สะสม</th><th>สมทบ</th><th>รวม</th><th>กองทุน</th></tr></thead><tbody>'+bdy+'</tbody>';
-}
-function renderMon(tx){
-  const m={};
-  for(const t of tx){
-    if(t.type!=='เงินนำส่ง')continue;
-    const k=t.date.getFullYear()+'-'+String(t.date.getMonth()+1).padStart(2,'0');
-    if(!m[k])m[k]={c:0,a:0,mt:0,t:0};
-    m[k].c+=t.comp||0;m[k].a+=t.accum||0;m[k].mt+=t.match||0;m[k].t+=t.total||0;
-  }
-  const keys=Object.keys(m).sort().reverse();
-  const bdy=keys.map(k=>{
-    const d=m[k],[y,mo]=k.split('-');
-    const lbl=new Date(+y,+mo-1,1).toLocaleDateString('th-TH',{year:'numeric',month:'long'});
-    return'<tr><td style="font-weight:600">'+lbl+'</td><td>'+fmt(d.c,2)+'</td><td>'+fmt(d.a,2)+'</td><td>'+fmt(d.mt,2)+'</td><td style="font-weight:700;color:var(--gold)">฿'+fmt(d.t,2)+'</td></tr>';
-  }).join('');
-  const totals=['c','a','mt','t'].map(k=>{
-    const s=keys.reduce((a,ky)=>a+m[ky][k],0);
-    return'<td style="font-weight:700;color:'+(k==='t'?'var(--gold)':'var(--text)')+'">'+( k==='t'?'฿':'')+fmt(s,2)+'</td>';
-  }).join('');
-  el('t-monthly').innerHTML='<thead><tr><th>เดือน</th><th>ชดเชย</th><th>สะสม</th><th>สมทบ</th><th>รวม</th></tr></thead>'
-    +'<tbody>'+bdy+'<tr style="border-top:1px solid var(--b2)"><td style="font-weight:700">รวม</td>'+totals+'</tr></tbody>';
-}
-function renderDaily(nav,tx){
-  const txSorted=[...tx].sort((a,b)=>a.date-b.date);
-  const txDateSet=new Set(tx.map(t=>t.date.toDateString()));
-  const portFull=[];
-  for(const n of nav){
-    const u={};
-    for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;}
-    let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
-    let inv=0;for(const t of txSorted){if(t.date>n.date)break;if(t.type==='เงินนำส่ง'&&t.total!=null)inv+=t.total;}
-    portFull.push({date:n.date,val,inv,hasTx:txDateSet.has(n.date.toDateString())});
-  }
-  const series=portFull.filter(p=>p.val>0);
-  const reversed=[...series].reverse();
-  const bdy=reversed.map((p,i)=>{
-    const prev=reversed[i+1];
-    const dayChg=(prev&&!p.hasTx)?p.val-prev.val:null;
-    const dayPct=(prev&&prev.val>0&&!p.hasTx)?(dayChg/prev.val)*100:null;
-    const pnl=p.val-p.inv,pnlPct=p.inv>0?(pnl/p.inv)*100:0;
-    const txMark=p.hasTx?'<span style="font-size:10px;color:var(--gold);margin-left:4px">● TX</span>':'';
-    const chgClr=dayChg==null?'var(--t3)':dayChg>=0?'var(--green)':'var(--red)';
-    return'<tr'+(p.hasTx?' style="background:rgba(255,193,32,.04)"':'')+'>'
-      +'<td>'+fDt(p.date)+txMark+'</td>'
-      +'<td style="font-weight:600;color:var(--gold)">฿'+fmt(p.val,2)+'</td>'
-      +'<td style="color:'+chgClr+'">'+(dayChg!=null?fmtS(dayChg):'-')+'</td>'
-      +'<td style="color:'+chgClr+'">'+(dayPct!=null?fmtS(dayPct)+'%':p.hasTx?'<span style="color:var(--t3);font-size:11px">TX day</span>':'-')+'</td>'
-      +'<td>฿'+fmt(p.inv,2)+'</td>'
-      +'<td style="color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+fmtS(pnl)+'</td>'
-      +'<td style="color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+fmtS(pnlPct)+'%</td>'
-      +'</tr>';
-  }).join('');
-  el('t-daily').innerHTML='<thead><tr><th>วันที่</th><th>มูลค่าพอร์ต</th><th>เปลี่ยน (฿)</th><th>เปลี่ยน (%)</th><th>เงินลงทุนสะสม</th><th>P&L (฿)</th><th>P&L (%)</th></tr></thead><tbody>'+bdy+'</tbody>';
-}
-
-// ================================================================
-//  CHARTS
-// ================================================================
-const CD={
-  responsive:true,
-  maintainAspectRatio:false,
-  resizeDelay:0,          // prevent rapid resize cascade
-  animation:{duration:400},
-  plugins:{legend:{labels:{color:'#7888a8',font:{family:'Sarabun',size:11}}}},
-  scales:{
-    x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',maxTicksLimit:8,font:{size:10,family:'IBM Plex Mono'}}},
-    y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:10,family:'IBM Plex Mono'}}}
-  }
-};
-const fmtDateChart=d=>d.toLocaleDateString('th-TH',{month:'short',day:'numeric'});
-
-function destroyChart(key){
-  if(portCharts[key]){
-    try{ portCharts[key].destroy(); }catch(e){}
-    delete portCharts[key];
-  }
-}
-
-function renderPortChart(days){
-  const{l,v,iv}=calcPort(NAV_PORT,TX_PORT,days);
-  const ctx=el('port-chart');
-  if(!ctx)return;
-  destroyChart('port');
-  if(l.length<2){
-    // Not enough data — show placeholder
-    const c=ctx.getContext('2d');
-    c.clearRect(0,0,ctx.width,ctx.height);
-    c.fillStyle='#7888a8';c.font='13px Sarabun';c.textAlign='center';
-    c.fillText(TX_PORT.length===0?'ไม่พบ Transaction — โหลด TX Sheet ด้วย':'ข้อมูลน้อยเกินไปสำหรับช่วงเวลานี้ ลอง All',ctx.clientWidth/2||200,110);
-    return;
-  }
-  portCharts.port=new Chart(ctx.getContext('2d'),{type:'line',
-    data:{labels:l.map(fmtDateChart),datasets:[
-      {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,
-        backgroundColor:ctx2=>{const g=ctx2.chart.ctx.createLinearGradient(0,0,0,260);g.addColorStop(0,'rgba(255,193,32,.18)');g.addColorStop(1,'rgba(255,193,32,0)');return g;}},
-      {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3}
-    ]},
-    options:{...CD,
-      interaction:{mode:'index',intersect:false},
-      plugins:{...CD.plugins,
-        tooltip:{mode:'index',intersect:false,
-          backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:12,
-          titleColor:'#7888a8',titleFont:{family:'Sarabun',size:12},bodyFont:{family:'IBM Plex Mono',size:12},
-          callbacks:{
-            label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
-            afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;return[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)'];}
-          }
-        }
-      }
-    }
-  });
-}
-function renderAlloc(hold,nav){
-  const ln=nav[nav.length-1];const ls=[],data=[],cs=[];
-  for(const[f,u]of Object.entries(hold)){
-    const nv=ln?.funds[f];if(!nv||u*nv<=0)continue;
-    const m=FM[f]||{l:f,c:'#888'};ls.push(m.l);data.push(u*nv);cs.push(m.c);
-  }
-  const ctx=el('alloc-chart').getContext('2d');
-  destroyChart('alloc');
-  portCharts.alloc=new Chart(ctx,{type:'doughnut',
-    data:{labels:ls,datasets:[{data,backgroundColor:cs,borderColor:'#0d1526',borderWidth:2}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
-      plugins:{
-        legend:{position:'bottom',labels:{color:'#7888a8',font:{family:'Sarabun',size:11},padding:8}},
-        tooltip:{callbacks:{label:c=>{const total=data.reduce((a,b)=>a+b,0);return' '+c.label+': ฿'+c.parsed.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+((c.parsed/total)*100).toFixed(1)+'%)';}}}
-      }}
-  });
-}
-function renderFund(nav, days){
-  if(days === undefined) days = fundPeriod;
-  const fs=['F','G','A65','A75','Money_Market','B','TH'];
-  const av=fs.filter(f=>nav.some(n=>n.funds[f]!=null));
-  let rc;
-  if(days === 0){
-    rc = nav;
-  } else {
-    const cut=new Date(Date.now()-days*864e5);
-    rc=nav.filter(n=>n.date>=cut);
-  }
-  if(rc.length<2)return;
-  const ds=av.map(f=>{
-    const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;
-    const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fv)/fv)*100);
-    const m=FM[f]||{l:f,c:'#888'};
-    return{label:m.l,data,borderColor:m.c,borderWidth:1.5,pointRadius:0,tension:.3,fill:false};
-  }).filter(Boolean);
-  const lbls=rc.filter(n=>n.funds[av[0]]!=null).map(n=>fmtDateChart(n.date));
-  const ctx=el('fund-chart').getContext('2d');
-  destroyChart('fund');
-  portCharts.fund=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},
-    options:Object.assign({},CD,{
-      interaction:{mode:'index',intersect:false},
-      plugins:Object.assign({},CD.plugins,{
-        tooltip:{mode:'index',intersect:false,
-          backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,
-          callbacks:{label:c=>' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'}
-        }
-      }),
-      scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})
-    })
-  });
-}
-function renderNavCh(nav,hold){
-  const active=Object.keys(hold).filter(f=>FM[f]&&nav.some(n=>n.funds[f]));
-  const rc=nav.slice(-90);
-  const fn={};
-  for(const f of active){const v=rc.find(n=>n.funds[f]!=null)?.funds[f];if(v)fn[f]=v;}
-  const ds=active.map(f=>{
-    const m=FM[f]||{s:f,c:'#888'};
-    const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fn[f])/fn[f])*100);
-    return{label:m.s,data,borderColor:m.c,borderWidth:1.5,pointRadius:0,tension:.3,fill:false};
-  });
-  const lbls=rc.filter(n=>n.funds[active[0]]!=null).map(n=>fmtDateChart(n.date));
-  const ctx=el('nav-chart').getContext('2d');
-  destroyChart('navchart');
-  portCharts.navchart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},
-    options:Object.assign({},CD,{
-      interaction:{mode:'index',intersect:false},
-      plugins:Object.assign({},CD.plugins,{
-        tooltip:{mode:'index',intersect:false,
-          backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,
-          callbacks:{
-            title:items=>'NAV '+items[0]?.label||'',
-            label:c=>{const f=active[c.datasetIndex];const navPt=rc.filter(n=>n.funds[f]!=null)[c.dataIndex];const navVal=navPt?navPt.funds[f]:null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'+(navVal?' (NAV '+fmt(navVal,4)+')':'')}
-          }
-        }
-      }),
-      scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})
-    })
-  });
-}
-function setPeriod(btn,days){
-  document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  curPeriod=days;
-  // Destroy first so Chart.js recomputes dimensions correctly
-  destroyChart('port');
-  renderPortChart(days);
-}
-function setFundPeriod(btn,days){
-  document.querySelectorAll('.fpbtn').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
-  fundPeriod=days;
-  if(NAV_PORT.length>0){
-    destroyChart('fund');
-    renderFund(NAV_PORT, days);
-  }
-}
-
-function switchTab(id, btn) {
-  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  document.getElementById('tab-' + id).classList.add('active');
-  btn.classList.add('active');
-  // Redraw charts when portfolio tab becomes visible
-  if(id === 'portfolio' && NAV_PORT.length > 0){
-    requestAnimationFrame(()=>{
-      const hold=calcHold(TX_PORT);
-      destroyChart('port');destroyChart('alloc');destroyChart('fund');destroyChart('navchart');
-      renderPortChart(curPeriod);
-      renderAlloc(hold,NAV_PORT);
-      renderFund(NAV_PORT);
-      renderNavCh(NAV_PORT,hold);
-    });
-  }
-}
-// ================================================================
-//  SIGNAL ENGINE (v4.3 — all from v12)
-// ================================================================
-function pctAt(arr,idx,period){if(idx<period)return 0;const c=arr[idx],p=arr[idx-period];if(c==null||p==null||p===0)return 0;return(c-p)/p;}
-function dailyRets(arr,idx,win){const r=[];for(let i=Math.max(1,idx-win+1);i<=idx;i++){if(arr[i]!=null&&arr[i-1]!=null&&arr[i-1]>0)r.push((arr[i]-arr[i-1])/arr[i-1]);}return r;}
-function mean(a){return a.length===0?0:a.reduce((s,v)=>s+v,0)/a.length;}
-function stdDev(a){if(a.length<2)return 0;const m=mean(a);return Math.sqrt(a.reduce((s,v)=>s+(v-m)*(v-m),0)/(a.length-1));}
-function computeEMA(arr,span,idx){const alpha=2/(span+1);let ema=null;for(let i=0;i<=idx;i++){if(arr[i]==null)continue;ema=ema===null?arr[i]:alpha*arr[i]+(1-alpha)*ema;}return ema;}
-function csRank(plans,fn){
-  if(plans.length===0)return{};
-  if(plans.length===1){const r={};r[plans[0]]=0.5;return r;}
-  const vals=plans.map(fn);
-  const indexed=vals.map((v,i)=>({v,i})).sort((a,b)=>a.v-b.v);
-  const n=plans.length,ranks=new Array(n);
-  let i=0;
-  while(i<n){let j=i;while(j<n&&indexed[j].v===indexed[i].v)j++;const avg=(i+j-1)/2/(n-1);for(let k=i;k<j;k++)ranks[indexed[k].i]=avg;i=j;}
-  const res={};plans.forEach((p,i)=>{res[p]=ranks[i];});return res;
-}
-function bdays(d1,d2){let count=0;const cur=new Date(d1);cur.setHours(0,0,0,0);const end=new Date(d2);end.setHours(0,0,0,0);while(cur<end){cur.setDate(cur.getDate()+1);const day=cur.getDay();if(day!==0&&day!==6)count++;}return count;}
-function addBdays(d,n){const cur=new Date(d);cur.setHours(0,0,0,0);let added=0;while(added<n){cur.setDate(cur.getDate()+1);if(cur.getDay()!==0&&cur.getDay()!==6)added++;}return cur;}
-function fmtLocalDate(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day;}
-function parseAlloc(str){
-  const alloc={};if(!str)return{'Money_Market':1.0};
-  str.split(',').forEach(part=>{const bits=part.trim().split(':');if(bits[0]&&bits[1])alloc[bits[0].trim()]=parseFloat(bits[1])/100;});
-  const total=Object.values(alloc).reduce((s,v)=>s+v,0);
-  if(total>0)Object.keys(alloc).forEach(p=>{alloc[p]/=total;});
-  return alloc;
-}
-function computeSignalV43(navMatrix,dates,plans,extArrays){
-  const n=navMatrix.length;
-  const idx=n-1-SIGNAL_LAG;
-  if(idx<MIN_HIST_DAYS)throw new Error('ข้อมูลน้อยเกินไป: มี '+n+' แถว ต้องการ '+(MIN_HIST_DAYS+2)+' ขึ้นไป');
-  const signalDate=dates[idx];
-  const navArr={};plans.forEach(p=>{navArr[p]=navMatrix.map(r=>r[p]);});
-  const signalArr={},signalSrc={};
-  plans.forEach(p=>{
-    if(extArrays&&EXT_PLAN_MAP[p]&&extArrays[p]&&extArrays[p][idx]!==null){signalArr[p]=extArrays[p];signalSrc[p]=EXT_PLAN_MAP[p];}
-    else{signalArr[p]=navArr[p];signalSrc[p]='NAV';}
-  });
-  const raw={};
-  plans.forEach(plan=>{
-    const nav=signalArr[plan];if(!nav[idx]){raw[plan]=null;return;}
-    let valid=0;for(let i=0;i<=idx;i++)if(nav[i]!=null)valid++;
-    if(valid<MIN_HIST_DAYS){raw[plan]=null;return;}
-    const mom5=pctAt(nav,idx,5),mom20=pctAt(nav,idx,20),mom60=pctAt(nav,idx,60);
-    const dr20=dailyRets(nav,idx,20),mu20=mean(dr20),sg20=stdDev(dr20);
-    const sharpe20=sg20>0?mu20/sg20:0;
-    const mmNav=signalArr['Money_Market']||navArr['Money_Market'];
-    const mmM20=mmNav?pctAt(mmNav,idx,20):0;
-    const relStr=mom20-mmM20;
-    const volScaled=sg20>0?mom20/(sg20*Math.sqrt(20)):0;
-    const align=(mom5>0&&mom20>0&&mom60>0)?1:(mom5<0&&mom20<0&&mom60<0)?-1:0;
-    const ema60=computeEMA(nav,60,idx);
-    raw[plan]={mom5,mom20,mom60,sharpe20,align,relStr,volScaled,nav:nav[idx],ema60,sg20};
-  });
-  const vp=plans.filter(p=>raw[p]!==null);
-  const r5=csRank(vp,p=>raw[p].mom5),r20=csRank(vp,p=>raw[p].mom20),r60=csRank(vp,p=>raw[p].mom60);
-  const radj=csRank(vp,p=>raw[p].sharpe20),rAlign=csRank(vp,p=>raw[p].align);
-  const rRsmm=csRank(vp,p=>raw[p].relStr),rVs=csRank(vp,p=>raw[p].volScaled);
-  const scores={};
-  vp.forEach(plan=>{
-    let s=W5*r5[plan]+W20*r20[plan]+W60*r60[plan]+WR*radj[plan]+W_ALIGN*rAlign[plan]+W_RSMM*rRsmm[plan]+W_VS*rVs[plan];
-    if(raw[plan].nav<raw[plan].ema60)s*=0.75;
-    if(raw[plan].mom5<0&&raw[plan].mom20>0)s*=0.90;
-    scores[plan]=s;
-  });
-  plans.filter(p=>!raw[p]).forEach(p=>{scores[p]=0;});
-  const vals=Object.values(scores),minV=Math.min(...vals),maxV=Math.max(...vals),range=maxV-minV;
-  if(range>0)plans.forEach(p=>{scores[p]=(scores[p]-minV)/range;});
-  const rawVals={};
-  vp.forEach(p=>{rawVals[p]={mom5:+(raw[p].mom5*100).toFixed(2),mom20:+(raw[p].mom20*100).toFixed(2),mom60:+(raw[p].mom60*100).toFixed(2),sharpe20:+raw[p].sharpe20.toFixed(3),ema_ok:raw[p].nav>=raw[p].ema60,decay:raw[p].mom5<0&&raw[p].mom20>0,src:signalSrc[p]||'NAV'};});
-  return{scores,rawVals,signalDate};
-}
-
-// ================================================================
-//  DECISION ENGINE
-// ================================================================
-function makeDecision({scores,currentAlloc,quotaUsed,lastRebStr,lastExitStr,prevExitStr,peakValue,currentValue,referenceDate}){
-  // referenceDate: ใช้ใน history mode — ถ้าไม่ส่งมาใช้วันปัจจุบัน
-  const today = referenceDate ? new Date(referenceDate) : new Date();
-  today.setHours(0,0,0,0);
-  const quotaLeft=QUOTA_PER_YR-quotaUsed;
-  const ddPct=peakValue>0?(currentValue/peakValue-1)*100:0;
-  const isInMM=Object.keys(currentAlloc).length===1&&(currentAlloc['Money_Market']||0)>=0.99;
-  let extraPauseStr='';
-  if(lastExitStr&&prevExitStr){
-    const bdBetween=bdays(new Date(prevExitStr),new Date(lastExitStr));
-    if(bdBetween>0&&bdBetween<=CONSEC_PAUSE){const pauseEnd=addBdays(new Date(lastExitStr),CONSEC_PAUSE);extraPauseStr=fmtLocalDate(pauseEnd);}
-  }
-  if(ddPct<EXIT_DD_PCT&&!isInMM)return{action:'EXIT_DD',level:'CRITICAL',reason:'Drawdown '+ddPct.toFixed(2)+'% ต่ำกว่า threshold '+EXIT_DD_PCT+'%',targetAlloc:{'Money_Market':1.0},ddPct,quotaLeft:Math.max(0,quotaLeft-1)};
-  if(isInMM&&lastExitStr){
-    if(extraPauseStr&&today<new Date(extraPauseStr))return{action:'HOLD_EXTRA_PAUSE',level:'WARNING',reason:'Extra pause จนถึง '+extraPauseStr,targetAlloc:currentAlloc,ddPct,quotaLeft};
-    const bdSince=bdays(new Date(lastExitStr),today);
-    if(bdSince<EXIT_COOLDOWN)return{action:'HOLD_EXIT_COOLDOWN',level:'WARNING',reason:'Exit cooldown: ผ่านมา '+bdSince+'/'+EXIT_COOLDOWN+' วันทำการ',daysLeft:EXIT_COOLDOWN-bdSince,targetAlloc:currentAlloc,ddPct,quotaLeft};
-    const topScore=Math.max(...Object.values(scores));
-    if(topScore<REENTRY_SCORE)return{action:'HOLD_REENTRY',level:'WARNING',reason:'Top score '+topScore.toFixed(3)+' < reentry threshold '+REENTRY_SCORE,targetAlloc:currentAlloc,ddPct,quotaLeft};
-  }
-  if(quotaLeft<=0)return{action:'HOLD_QUOTA',level:'INFO',reason:'Quota หมดปีนี้ ('+quotaUsed+'/'+QUOTA_PER_YR+')',targetAlloc:currentAlloc,ddPct,quotaLeft:0};
-  if(lastRebStr){const bdSince=bdays(new Date(lastRebStr),today);if(bdSince<COOLDOWN_DAYS)return{action:'HOLD_COOLDOWN',level:'INFO',reason:'Cooldown: ผ่านมาแล้ว '+bdSince+'/'+COOLDOWN_DAYS+' วันทำการ',daysLeft:COOLDOWN_DAYS-bdSince,targetAlloc:currentAlloc,ddPct,quotaLeft};}
-  // Build target alloc
-  const topN=Object.entries(scores).filter(([,s])=>s>0).sort(([,a],[,b])=>b-a).slice(0,N_TOP);
-  if(topN.length===0)return{action:'HOLD_GAP',level:'INFO',reason:'ไม่มีแผนที่มี score > 0',targetAlloc:currentAlloc,ddPct,quotaLeft};
-  if(topN.length>1&&(topN[0][1]-topN[1][1])<SCORE_GAP_MIN){}
-  let rawAlloc={};
-  const tot=topN.reduce((s,x)=>s+x[1],0);
-  topN.forEach(([p,s])=>{rawAlloc[p]=tot>0?s/tot:1/topN.length;});
-  // G_CAP: ทองคำ ≤ 25%
-  if((rawAlloc['G']||0)>G_CAP){const excess=rawAlloc['G']-G_CAP;rawAlloc['G']=G_CAP;const others=Object.keys(rawAlloc).filter(p=>p!=='G');const os=others.reduce((s,p)=>s+(rawAlloc[p]||0),0);if(os>0)others.forEach(p=>{rawAlloc[p]+=excess*(rawAlloc[p]/os);});else rawAlloc['Money_Market']=(rawAlloc['Money_Market']||0)+excess;const tw=Object.values(rawAlloc).reduce((s,v)=>s+v,0);if(tw>0)Object.keys(rawAlloc).forEach(p=>{rawAlloc[p]/=tw;});}
-  // PR_CAP: อสังหาฯ ≤ 20% (v15)
-  if((rawAlloc['PR']||0)>PR_CAP){const excess=rawAlloc['PR']-PR_CAP;rawAlloc['PR']=PR_CAP;const others=Object.keys(rawAlloc).filter(p=>p!=='PR');const os=others.reduce((s,p)=>s+(rawAlloc[p]||0),0);if(os>0)others.forEach(p=>{rawAlloc[p]+=excess*(rawAlloc[p]/os);});else rawAlloc['Money_Market']=(rawAlloc['Money_Market']||0)+excess;const tw=Object.values(rawAlloc).reduce((s,v)=>s+v,0);if(tw>0)Object.keys(rawAlloc).forEach(p=>{rawAlloc[p]/=tw;});}
-  // Round to 5%
-  let sum=0;Object.keys(rawAlloc).forEach(p=>{rawAlloc[p]=Math.round(rawAlloc[p]*100/5)*5/100;sum+=rawAlloc[p];});
-  const diff=Math.round((1-sum)*100);if(diff!==0){const top=Object.keys(rawAlloc).reduce((a,b)=>rawAlloc[a]>=rawAlloc[b]?a:b);rawAlloc[top]=Math.round(rawAlloc[top]*100+diff)/100;}
-  // Check change
-  const curKeys=Object.keys(currentAlloc).sort().join(','),tgtKeys=Object.keys(rawAlloc).sort().join(',');
-  const isSmallChg=curKeys===tgtKeys&&Object.keys(rawAlloc).every(p=>Math.abs((rawAlloc[p]||0)-(currentAlloc[p]||0))<CHANGE_THRESH);
-  if(isSmallChg)return{action:'HOLD_SMALL_CHANGE',level:'INFO',reason:'การเปลี่ยนแปลงน้อยกว่า '+Math.round(CHANGE_THRESH*100)+'% — ไม่คุ้มค่า rebalance',targetAlloc:currentAlloc,ddPct,quotaLeft};
-  return{action:'REBALANCE',level:'ACTION',reason:'Signal ชัดเจน — แนะนำ Rebalance',targetAlloc:rawAlloc,ddPct,quotaLeft:quotaLeft-1,quotaAfter:quotaLeft-1};
-}
-
-// ================================================================
-//  YAHOO FINANCE
-// ================================================================
-async function fetchYahoo(ticker){
-  const url='https://query1.finance.yahoo.com/v8/finance/chart/'+encodeURIComponent(ticker)+'?interval=1d&range=1y';
-  for(const proxy of['https://api.allorigins.win/raw?url=','https://corsproxy.io/?','https://api.codetabs.com/v1/proxy?quest=']){
-    try{
-      const r=await fetch(proxy+encodeURIComponent(url));
-      if(!r.ok)continue;
-      const data=await r.json();
-      const res=data?.chart?.result?.[0];if(!res)continue;
-      const ts=res.timestamp,cls=res.indicators?.adjclose?.[0]?.adjclose||res.indicators?.quote?.[0]?.close;
-      if(!ts||!cls)continue;
-      const map=new Map();
-      for(let i=0;i<ts.length;i++){if(cls[i]==null)continue;const d=new Date(ts[i]*1000);const k=d.getUTCFullYear()+'-'+String(d.getUTCMonth()+1).padStart(2,'0')+'-'+String(d.getUTCDate()).padStart(2,'0');map.set(k,cls[i]);}
-      return map;
-    }catch(e){}
-  }
-  throw new Error('Yahoo fetch failed: '+ticker);
-}
-async function fetchExtSignalsAuto(dates){
-  const[gcMap,fxMap,urthMap,setMap]=await Promise.all([fetchYahoo('GC=F'),fetchYahoo('USDTHB=X'),fetchYahoo('URTH'),fetchYahoo('^SET.BK')]);
-  const lastOf=m=>{const d=[...m.keys()].sort();return d.length?{date:d[d.length-1],val:m.get(d[d.length-1])}:null;};
-  const gcLast=lastOf(gcMap),fxLast=lastOf(fxMap),urthLast=lastOf(urthMap),setLast=lastOf(setMap);
-  const allDates=[...new Set([...gcMap.keys(),...fxMap.keys(),...urthMap.keys(),...setMap.keys()])].sort();
-  const extMap=new Map();
-  allDates.forEach(d=>{
-    const gc=gcMap.get(d),fx=fxMap.get(d),urth=urthMap.get(d),setv=setMap.get(d);
-    if(!gc||!fx)return;
-    extMap.set(d,{XAU_THB:gc*fx,F_composite:urth?urth*fx:null,SET:setv||null,USD_THB:fx,gc_usd:gc,urth_usd:urth||null});
-  });
-  const xauN=[...extMap.values()].filter(v=>v.XAU_THB>0).length;
-  if(xauN<MIN_HIST_DAYS)throw new Error('Yahoo: ข้อมูลไม่เพียงพอ ('+xauN+' rows)');
-  const extDates=[...extMap.keys()].sort(),lastDate=extDates[extDates.length-1];
-  return{extMap,lastDate,counts:{xau:xauN,f:[...extMap.values()].filter(v=>v.F_composite).length,set:[...extMap.values()].filter(v=>v.SET).length},tickers:{gc:gcLast,fx:fxLast,urth:urthLast,set:setLast}};
-}
-function buildExtArrays(dates,extMap){
-  const result={G:[],F:[],TH:[]};
-  const extDates=[...extMap.keys()].sort();
-  let lastExt=null;
-  dates.forEach(dateStr=>{
-    let lo=0,hi=extDates.length-1,found=null;
-    while(lo<=hi){const mid=(lo+hi)>>1;if(extDates[mid]<=dateStr){found=extDates[mid];lo=mid+1;}else hi=mid-1;}
-    const ext=found?extMap.get(found):null;if(ext)lastExt=ext;
-    result.G.push(lastExt?lastExt['XAU_THB']:null);
-    result.F.push(lastExt?lastExt['F_composite']:null);
-    result.TH.push(lastExt?lastExt['SET']:null);
-  });
-  const nG=result.G.filter(v=>v!==null).length;
-  if(nG<MIN_HIST_DAYS)return null;
-  return result;
-}
-function getExtAtDate(extMap,dateStr){
-  const extDates=[...extMap.keys()].sort();
-  let lo=0,hi=extDates.length-1,found=null;
-  while(lo<=hi){const mid=(lo+hi)>>1;if(extDates[mid]<=dateStr){found=extDates[mid];lo=mid+1;}else hi=mid-1;}
-  if(!found)return null;
-  const entry=extMap.get(found);return{...entry,date:found};
-}
-
-// Manual ext CSV loader
-function loadExtFromCSV(csvText){
-  const rows=parseCSV(csvText);if(rows.length<2)return null;
-  const headers=rows[0].map(h=>h.trim());
-  const dateIdx=headers.findIndex(h=>h.toLowerCase()==='date'||h.toLowerCase().includes('date'));
-  if(dateIdx<0)throw new Error('Ext sheet: ไม่พบคอลัมน์ Date');
-  const colIdx={};
-  ['SET','F_composite','XAU_THB','USD_THB'].forEach(c=>{const i=headers.findIndex(h=>h===c);if(i>=0)colIdx[c]=i;});
-  const extMap=new Map();
-  for(let i=1;i<rows.length;i++){
-    const r=rows[i];const rawDate=r[dateIdx];if(!rawDate)continue;
-    const d=new Date(rawDate);if(isNaN(d.getTime()))continue;
-    const k=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
-    const entry={};
-    ['SET','F_composite','XAU_THB','USD_THB'].forEach(c=>{if(colIdx[c]!==undefined){const v=parseFloat(r[colIdx[c]]);if(!isNaN(v))entry[c]=v;}});
-    if(Object.keys(entry).length>0)extMap.set(k,entry);
-  }
-  return extMap.size>0?extMap:null;
-}
-
-// ================================================================
-//  EXT MODE UI
-// ================================================================
-function setExtMode(mode){
-  currentExtMode=mode;
-  const autoBtn=el('ext-mode-auto'),manBtn=el('ext-mode-manual');
-  const autoInfo=el('ext-auto-info'),manFields=el('ext-manual-fields');
-  if(!autoBtn)return;
-  if(mode==='auto'){
-    autoBtn.style.cssText='flex:1;padding:7px;border-radius:7px;border:1px solid rgba(0,230,118,.4);background:rgba(0,230,118,.08);color:var(--green);font-size:12px;font-family:var(--sans);cursor:pointer;';
-    manBtn.style.cssText='flex:1;padding:7px;border-radius:7px;border:1px solid var(--b2);background:none;color:var(--t2);font-size:12px;font-family:var(--sans);cursor:pointer;';
-    if(autoInfo)autoInfo.style.display='block';if(manFields)manFields.style.display='none';
-  }else{
-    manBtn.style.cssText='flex:1;padding:7px;border-radius:7px;border:1px solid rgba(0,200,240,.4);background:rgba(0,200,240,.08);color:var(--acc);font-size:12px;font-family:var(--sans);cursor:pointer;';
-    autoBtn.style.cssText='flex:1;padding:7px;border-radius:7px;border:1px solid var(--b2);background:none;color:var(--t2);font-size:12px;font-family:var(--sans);cursor:pointer;';
-    if(manFields)manFields.style.display='flex';if(autoInfo)autoInfo.style.display='none';
-  }
-  try{const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');s['ext-mode']=mode;localStorage.setItem(STORE_KEY,JSON.stringify(s));}catch(e){}
-}
-
-// ================================================================
-//  SIGNAL — alloc grid helpers
-// ================================================================
-function buildGrid(gridId,plans){
-  const grid=el(gridId);if(!grid)return;
-  grid.innerHTML='';
-  plans.forEach(p=>{
-    const div=document.createElement('div');div.className='alloc-item';
-    div.innerHTML='<label>'+p.name+' <span>('+p.key+')</span></label>'
-      +'<input type="number" id="a_'+p.key+'" min="0" max="100" value="0" oninput="onAllocChange()">';
-    grid.appendChild(div);
-  });
-}
-function getAllocTotal(){
-  return ALL_PLAN_DEFS.reduce((s,p)=>{const v=parseFloat(el('a_'+p.key)?.value||'0');return s+(isNaN(v)?0:v);},0);
-}
-function getAllocStr(){
-  return ALL_PLAN_DEFS.filter(p=>{const v=parseFloat(el('a_'+p.key)?.value||'0');return v>0;})
-    .map(p=>p.key+':'+parseFloat(el('a_'+p.key).value).toFixed(0)).join(',');
-}
-function onAllocChange(){
-  const total=getAllocTotal();
-  const lbl=el('alloc-sum-val');
-  lbl.textContent=total.toFixed(0)+'%';
-  lbl.className='';
-  if(Math.abs(total-100)<0.01)lbl.className='ok';
-  else if(total>100)lbl.className='bad';
-}
-
-// ================================================================
-//  SIGNAL PERSIST
-// ================================================================
-const FIELDS=['last-rebal','current-value','peak-value','quota-used','last-exit','prev-exit','ext-sheet-id','ext-sheet-name'];
+const SIG_FIELDS=['last-rebal','quota-used','current-menu'];
 function save(){
   try{
     const obj={};
-    FIELDS.forEach(id=>{const e=el(id);if(e)obj[id]=e.value;});
-    ALL_PLAN_DEFS.forEach(p=>{const e=el('a_'+p.key);if(e)obj['a_'+p.key]=e.value;});
+    SIG_FIELDS.forEach(id=>{const e=el(id);if(e)obj[id]=e.value;});
     localStorage.setItem(STORE_KEY,JSON.stringify(obj));
   }catch(e){}
 }
 function load(){
   try{
     const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
-    FIELDS.forEach(id=>{if(s[id]!==undefined){const e=el(id);if(e)e.value=s[id];}});
-    ALL_PLAN_DEFS.forEach(p=>{const k='a_'+p.key;if(s[k]!==undefined){const e=el(k);if(e)e.value=s[k];}});
+    SIG_FIELDS.forEach(id=>{if(s[id]!==undefined){const e=el(id);if(e)e.value=s[id];}});
   }catch(e){}
 }
-function bindSave(){FIELDS.forEach(id=>{const e=el(id);if(e)e.addEventListener('change',save);});}
+function bindSave(){SIG_FIELDS.forEach(id=>{const e=el(id);if(e)e.addEventListener('change',save);});}
 
 // ================================================================
 //  QUOTA BAR
@@ -2542,7 +1397,109 @@ function updateQuotaBar(){
 }
 
 // ================================================================
-//  VIEW MODE (today / history)
+//  LOAD ALL
+// ================================================================
+async function loadAll(){
+  const dbId=el('cfg-db-id').value.trim();
+  const dbSheet=el('cfg-db-sheet').value.trim()||'Database';
+  const txId=el('cfg-tx-id').value.trim();
+  const txSheet=el('cfg-tx-sheet').value.trim()||'GPF';
+  if(!dbId){alert('กรุณากรอก Database Sheet ID');return;}
+  setLoadLoading(true);showPortLoading('กำลังโหลด NAV Database...');
+  try{
+    const dbCsv=await fetchSheet(dbId,dbSheet);
+    NAV_SIGNAL=loadNavFromCSV(dbCsv);cachedDates=NAV_SIGNAL.dates;
+    NAV_PORT=parseNav(dbCsv);
+    if(NAV_PORT.length>0){
+      const lastNavRow=NAV_PORT[NAV_PORT.length-1];
+      const navDateStr=new Date(lastNavRow.date).toLocaleDateString('th-TH',{day:'numeric',month:'short',year:'numeric'});
+      setBadgeCfg('db','ok','โหลดสำเร็จ · NAV ล่าสุด: '+navDateStr);
+    }else{setBadgeCfg('db','ok','โหลดสำเร็จ');}
+    el('run-btn').disabled=false;
+    el('date-nav').style.display='flex';
+    const dp=el('hist-date');
+    if(dp&&cachedDates.length>0){
+      dp.min=cachedDates[MIN_HIST_DAYS]||cachedDates[0];
+      dp.max=cachedDates[cachedDates.length-1];
+      if(!dp.value||dp.value>dp.max)dp.value=dp.max;
+    }
+    if(txId){
+      showPortLoading('กำลังโหลด Transaction...');
+      try{
+        const txCsv=await fetchSheet(txId,txSheet);TX_PORT=parseTx(txCsv);
+        setBadgeCfg('tx','ok','โหลดสำเร็จ ('+(TX_PORT.length)+' รายการ)');
+      }catch(e){TX_PORT=[];setBadgeCfg('tx','err','โหลดไม่ได้: '+e.message.substring(0,30));}
+    }
+    if(NAV_PORT.length>0){renderPortAll();}else{showPortErr('ไม่พบข้อมูล NAV ใน Database sheet');}
+    el('last-update-hdr').textContent='อัพเดต '+new Date().toLocaleTimeString('th-TH');
+    saveCfg();
+  }catch(e){
+    showPortErr(e.message);setBadgeCfg('db','err',e.message.substring(0,40));
+  }finally{setLoadLoading(false);}
+}
+function setLoadLoading(on){
+  el('btn-load-all').disabled=on;
+  el('load-spinner').style.display=on?'block':'none';
+  el('load-btn-txt').textContent=on?'กำลังโหลด...':'⟳ โหลดทั้งหมด';
+}
+function showPortLoading(msg){
+  el('port-loading').classList.add('show');el('port-load-msg').textContent=msg||'กำลังโหลด...';
+  el('port-err').classList.remove('show');el('port-dash').style.display='none';
+}
+function showPortErr(msg){
+  el('port-loading').classList.remove('show');el('port-err').classList.add('show');
+  el('port-err-msg').textContent=msg||'เกิดข้อผิดพลาด';el('port-dash').style.display='none';
+}
+function showPortDash(){
+  el('port-loading').classList.remove('show');el('port-err').classList.remove('show');
+  el('port-dash').style.display='block';
+}
+
+// ================================================================
+//  FILE HANDLING
+// ================================================================
+async function handleFiles(e){
+  const files=Array.from(e.target.files);
+  if(files.length<1){alert('เลือกอย่างน้อย 1 ไฟล์');return;}
+  showPortLoading('กำลังอ่านไฟล์...');setLoadLoading(true);
+  try{
+    const db=files.find(f=>f.name.toLowerCase().includes('database'))||files[0];
+    const txFile=files.find(f=>!f.name.toLowerCase().includes('database')&&files.length>1);
+    const dbCsv=await db.text();
+    NAV_SIGNAL=loadNavFromCSV(dbCsv);cachedDates=NAV_SIGNAL.dates;
+    NAV_PORT=parseNav(dbCsv);
+    if(txFile){TX_PORT=parseTx(await txFile.text());}
+    el('run-btn').disabled=false;el('date-nav').style.display='flex';
+    if(NAV_PORT.length>0)renderPortAll();else showPortErr('ไม่พบข้อมูล NAV');
+  }catch(err){showPortErr(err.message);}
+  finally{setLoadLoading(false);e.target.value='';}
+}
+document.addEventListener('dragover',e=>e.preventDefault());
+document.addEventListener('drop',async e=>{
+  e.preventDefault();
+  const files=Array.from(e.dataTransfer.files).filter(f=>f.name.endsWith('.csv'));
+  if(!files.length)return;
+  const inp=el('file-input');const dt=new DataTransfer();
+  files.forEach(f=>dt.items.add(f));inp.files=dt.files;
+  await handleFiles({target:inp});
+});
+
+// ================================================================
+//  DEMO DATA
+// ================================================================
+const DEMO_NAV = "Date,A35,Base_Plan,B,Money_Market,A20,A65,TH,PR,F,Global_Bond,G,A75\n2019-01-02,14.8765,13.0021,11.8432,10.1234,12.3456,15.6789,18.2345,10.9876,25.1234,11.2345,28.7654,16.5432\n2019-07-01,15.2341,13.4521,12.0123,10.2456,12.7891,16.3456,19.1234,11.3456,26.7891,11.5678,31.2345,17.2345\n2020-01-02,14.9876,13.1234,11.9876,10.3678,12.5432,15.9876,17.8765,11.0123,25.8765,11.3456,32.4567,16.7891\n2020-07-01,15.8765,13.8765,12.2345,10.4891,13.2345,17.2345,19.6789,11.5678,28.1234,11.6789,38.9876,18.1234\n2021-01-04,17.2345,14.8765,12.5678,10.6234,14.1234,19.2345,22.3456,12.3456,32.4567,11.9876,42.3456,20.2345\n2021-07-01,17.9876,15.3456,12.7891,10.7456,14.6789,20.1234,23.4567,12.7891,34.5678,12.1234,45.6789,21.3456\n2022-01-03,17.5432,15.0123,12.6789,10.8678,14.4567,19.6789,22.1234,12.5432,33.2345,12.3456,48.7891,20.7891\n2022-07-01,15.3456,13.4567,12.1234,11.0123,13.0123,17.1234,19.3456,11.7891,29.6789,12.0123,44.3456,18.0123\n2023-01-02,16.2345,14.1234,12.3456,11.1456,13.7891,18.2345,20.5678,12.0123,31.4567,12.2345,47.8765,19.2345\n2023-07-03,17.4567,15.0987,12.6789,11.2678,14.5234,19.8765,22.4567,12.4567,34.1234,12.4567,52.3456,20.8765\n2024-01-02,18.6789,16.2345,12.9876,11.3891,15.3456,21.4567,24.3456,12.8765,37.2345,12.6789,58.7654,22.5678\n2024-07-01,19.8765,17.2891,13.2345,11.5123,16.1234,23.0123,26.2345,13.2345,40.5678,12.8765,62.4567,24.1234\n2025-01-02,21.2345,18.4567,13.5678,11.6456,17.0123,24.7891,28.1234,13.6789,43.8765,13.0987,68.9876,25.8765\n2025-07-01,22.3456,19.3456,13.7891,11.7678,17.7891,26.1234,29.8765,14.0123,46.5432,13.2345,71.2345,27.2345\n2025-10-01,22.8765,19.8765,13.9234,11.8901,18.1234,26.8765,30.5678,14.2345,47.8901,13.3456,73.4567,27.9876\n2025-12-15,23.1234,20.1234,14.0234,11.9123,18.3456,27.2345,30.9876,14.3456,48.5678,13.4123,74.6789,28.3456\n2026-01-15,23.4567,20.4567,14.1234,11.9345,18.5678,27.6789,31.4567,14.4567,49.2345,13.4789,76.1234,28.7891\n2026-02-15,23.6789,20.6789,14.2123,11.9567,18.7891,27.9876,31.7891,14.5234,49.8765,13.5234,77.2345,29.1234\n2026-03-07,23.8901,20.8901,14.2987,11.9789,18.9876,28.2345,32.0123,14.5901,50.3456,13.5678,77.9876,29.4567";
+const DEMO_TX = ",,,,,,,,Today Port,แผนต่างประเทศ (F),,,Gold (G),,,แผนเชิงรุก 65 (A65),,,ตราสารหนี้ (Money_Market),,,แผนเชิงรุก 75 (A75),,\n,,,,,,,,,,,,,0.00,,,,,,,,,,\nDate,รายการ,หมายเหตุ,แผนการลงทุน,เงินชดเชย ฿,เงินสะสม ฿,เงินสมทบ ฿,เงินสะสมส่วมเพิ่ม ฿,Total ,NAV (F),Unit (F),Bath (F),NAV (G),Unit (G),Bath (G),NAV (A65),Unit (A65),Bath (A65),NAV (MM),Unit (MM),Bath (MM),NAV (A75),Unit (A75),Bath (A75)\n15/01/2025,เงินนำส่ง,,F,2400,3600,3600,0,9600,43.5,220.6896,9600,,,,,,,,,,,,\n25/02/2025,เงินนำส่ง,,F,2400,3600,3600,0,9600,44.1,217.6871,9600,,,,,,,,,,,,\n25/03/2025,เงินนำส่ง,,F,2400,3600,3600,0,9600,44.8,214.2857,9600,,,,,,,,,,,,\n25/04/2025,เปลี่ยนแผนออก,Rebalance,F,-5000,-7500,-7500,0,-20000,45.2,-442.4779,-20000,,,,,,,,,,,,\n25/04/2025,เปลี่ยนแผนเข้า,Rebalance,F:G,5000,7500,7500,0,20000,45.5,310.5607,14138,,57.2,101.3986,5802,,,,,,,,\n25/05/2025,เงินนำส่ง,,F:G,2400,3600,3600,0,9600,46.2,155.8441,7200,,58.1,41.3080,2400,,,,,,,,\n25/06/2025,เงินนำส่ง,,F:G,2400,3600,3600,0,9600,47.1,152.8662,7200,,59.3,40.4722,2400,,,,,,,,\n25/07/2025,เงินนำส่ง,,F:G,2400,3600,3600,0,9600,48.3,149.0062,7200,,61.2,39.2157,2400,,,,,,,,\n25/08/2025,เงินนำส่ง,,F:G,2400,3600,3600,0,9600,49.2,146.3415,7200,,63.4,37.8549,2400,,,,,,,,\n25/09/2025,เงินนำส่ง,,F:G,2400,3600,3600,0,9600,50.3,143.1213,7200,,65.8,36.4742,2400,,,,,,,,\n16/02/2026,เปลี่ยนแผนออก,Rebalance,F:G,-2000,-3000,-3000,0,-8000,49.8,-120.4819,-6000,,77.2,-25.9067,-2000,,,,,,,,\n16/02/2026,เปลี่ยนแผนเข้า,Rebalance,TH:PR,2000,3000,3000,0,8000,,,,,,,,,,,,,,,,,";
+function loadDemoData(){
+  try{
+    NAV_SIGNAL=loadNavFromCSV(DEMO_NAV);cachedDates=NAV_SIGNAL.dates;
+    NAV_PORT=parseNav(DEMO_NAV);TX_PORT=parseTx(DEMO_TX);
+    el('run-btn').disabled=false;el('date-nav').style.display='flex';
+    renderPortAll();
+  }catch(err){showPortErr(err.message);}
+}
+
+// ================================================================
+//  VIEW MODE
 // ================================================================
 function setViewMode(mode){
   viewMode=mode;
@@ -2567,44 +1524,40 @@ function stepHistDate(delta){
 }
 
 // ================================================================
+//  PARSE MENU NAME → ALLOC
+// ================================================================
+function parseMenuAlloc(menuName){
+  if(!menuName) return {};
+  const MENU = generateMenu();
+  if(MENU[menuName]) return MENU[menuName];
+  // Try fuzzy match (case insensitive)
+  const key = Object.keys(MENU).find(k => k.toLowerCase() === menuName.toLowerCase());
+  if(key) return MENU[key];
+  return {};
+}
+
+// ================================================================
 //  RUN SIGNAL
 // ================================================================
 async function runSignal(){
   save();hideError();
   if(!NAV_SIGNAL){showError('กรุณาโหลดข้อมูลก่อน (ปุ่ม ⟳ โหลดทั้งหมด ด้านบน)');return;}
-
   const isHistory=(viewMode==='history');
   const histDateVal=isHistory?(el('hist-date')?.value||''):'';
-
-  if(!isHistory){
-    const total=getAllocTotal();
-    if(Math.abs(total-100)>0.01){showError('ผลรวม Allocation = '+total+'% ต้องเท่ากับ 100%');return;}
-    const allocStr=getAllocStr();
-    const isInMM100=allocStr==='Money_Market:100';
-    const lastExit=el('last-exit').value;
-    if(isInMM100&&!lastExit){showError('⚠️ พอร์ตปัจจุบันเป็น Money_Market 100%\nกรุณากรอก "วัน EXIT_DD ล่าสุด" ด้วย');return;}
-    const curVal=parseFloat(el('current-value').value)||0;
-    const peakVal=parseFloat(el('peak-value').value)||0;
-    if(curVal>0&&(peakVal===0||curVal>peakVal)){
-      el('peak-value').value=curVal;save();
-      showError(peakVal===0?'⚠️ กรุณากรอก Peak Value\nถ้ายังไม่มี Peak — ใส่ค่าเดียวกับ Current Value ('+curVal.toLocaleString()+'฿)':'⚠️ Current Value สูงกว่า Peak Value\nอัปเดต Peak Value แล้ว');
-      return;
-    }
-  }
 
   setRunLoading(true);
   try{
     let{navMatrix,dates,plans}=NAV_SIGNAL;
 
-    // Update date picker
     const dateNav=el('date-nav');
     if(dateNav){
       dateNav.style.display='flex';
       const dp=el('hist-date');
-      if(dp){dp.min=dates[MIN_HIST_DAYS]||dates[0];dp.max=dates[dates.length-1];if(isHistory&&histDateVal)dp.value=histDateVal;else if(!dp.value||dp.value>dp.max)dp.value=dp.max;}
+      if(dp){dp.min=dates[MIN_HIST_DAYS]||dates[0];dp.max=dates[dates.length-1];
+        if(isHistory&&histDateVal)dp.value=histDateVal;
+        else if(!dp.value||dp.value>dp.max)dp.value=dp.max;}
     }
 
-    // Slice for history mode
     if(isHistory&&histDateVal){
       let cutIdx=dates.length-1;
       for(let i=dates.length-1;i>=0;i--){if(dates[i]<=histDateVal){cutIdx=i;break;}}
@@ -2612,123 +1565,23 @@ async function runSignal(){
       navMatrix=navMatrix.slice(0,cutIdx+1);dates=dates.slice(0,cutIdx+1);
     }
 
-    // Fetch ext signals
-    showProgress(2);
-    let extArrays=null;
-    const extEl=el('ext-status');
-    try{
-      if(currentExtMode==='auto'){
-        if(extEl){extEl.className='ext-load';extEl.style.display='block';extEl.innerHTML='<div class="tst-spinner" style="display:inline-block;width:12px;height:12px;border:2px solid rgba(0,200,240,.3);border-top-color:var(--acc);border-radius:50%;animation:spin .6s linear infinite;flex-shrink:0"></div><span>กำลังดึง Yahoo Finance…</span>';}
-        const{extMap,lastDate,counts,tickers}=await fetchExtSignalsAuto(dates);
-        extArrays=buildExtArrays(dates,extMap);
-        if(extEl){
-          const signalDateStr=dates[dates.length-1];
-          const isHistMode=isHistory&&histDateVal;
-          let dispEntry,dispLabel;
-          if(isHistMode){
-            dispEntry=getExtAtDate(extMap,signalDateStr);
-            // Show which date's data was actually used
-            const usedDateStr = dispEntry?.date || signalDateStr;
-            dispLabel = dispEntry
-              ? '<b style="font-size:11px">✅ Yahoo Finance: ข้อมูล ณ '+usedDateStr+'</b>'
-                + '<span style="font-size:10px;color:var(--t2);margin-left:6px">(รันย้อนหลัง '+histDateVal+')</span>'
-              : '<b style="font-size:11px;color:var(--amber)">⚠ Yahoo Finance: ไม่มีข้อมูล ณ '+signalDateStr+'</b>';
-          }else{
-            dispEntry={date:tickers.gc?.date||'?',XAU_THB:(tickers.gc&&tickers.fx)?tickers.gc.val*tickers.fx.val:null,F_composite:(tickers.urth&&tickers.fx)?tickers.urth.val*tickers.fx.val:null,SET:tickers.set?.val||null,USD_THB:tickers.fx?.val||null,gc_usd:tickers.gc?.val||null,urth_usd:tickers.urth?.val||null};
-            dispLabel='<b style="font-size:11px">✅ Yahoo Finance: ล่าสุด ('+dispEntry.date+')</b>';
-          }
-          const fmt2=v=>v!=null?(+v).toLocaleString('th-TH',{maximumFractionDigits:2}):'—';
-          // Build rows with date annotation per value
-          let rows = '-';
-          if(dispEntry){
-            if(isHistMode){
-              // History: all values from same date
-              const d = dispEntry.date;
-              rows=[
-                '<span style="color:var(--gold)">G  XAU/THB</span>  <b>'+fmt2(dispEntry.XAU_THB)+'</b> <span style="color:var(--t3);font-size:10px">('+d+')</span>',
-                '<span style="color:var(--acc)">F  URTH×THB</span> <b>'+fmt2(dispEntry.F_composite)+'</b> <span style="color:var(--t3);font-size:10px">('+d+')</span>',
-                '<span style="color:var(--green)">TH SET</span>       <b>'+fmt2(dispEntry.SET)+'</b> <span style="color:var(--t3);font-size:10px">('+d+')</span>',
-              ].join('<br>');
-            }else{
-              // Live: each ticker may have different latest date
-              const gcD  = tickers.gc?.date   || '?';
-              const urthD= tickers.urth?.date  || '?';
-              const setD = tickers.set?.date   || '?';
-              rows=[
-                '<span style="color:var(--gold)">G  XAU/THB</span>  <b>'+fmt2(dispEntry.XAU_THB)+'</b> <span style="color:var(--t3);font-size:10px">('+gcD+')</span>',
-                '<span style="color:var(--acc)">F  URTH×THB</span> <b>'+fmt2(dispEntry.F_composite)+'</b> <span style="color:var(--t3);font-size:10px">('+urthD+')</span>',
-                '<span style="color:var(--green)">TH SET</span>       <b>'+fmt2(dispEntry.SET)+'</b> <span style="color:var(--t3);font-size:10px">('+setD+')</span>',
-              ].join('<br>');
-            }
-          }
-          extEl.className=extArrays?'ext-ok':'ext-off';
-          extEl.innerHTML=dispLabel+'<br><div style="margin-top:5px;line-height:2.1;font-size:11px;font-family:var(--mono)">'+rows+'</div>';
-        }
-      }else{
-        const extId=el('ext-sheet-id').value.trim(),extName=el('ext-sheet-name').value.trim()||'Sheet1';
-        if(extId){const extCsv=await fetchSheet(extId,extName);const extMap=loadExtFromCSV(extCsv);extArrays=extMap?buildExtArrays(dates,extMap):null;if(extEl&&extArrays){extEl.className='ext-ok';extEl.style.display='block';extEl.innerHTML='Manual Sheet: สำเร็จ';}}
-      }
-    }catch(e){extArrays=null;if(extEl){extEl.className='ext-off';extEl.style.display='block';extEl.innerHTML=(currentExtMode==='auto'?'Yahoo Finance':'Manual Sheet')+': ดึงไม่ได้ → fallback NAV ('+e.message+')';}}
+    // Compute v19 signal
+    const{scores, momReturns, signalDate}=computeSignalV19(navMatrix,dates,plans);
 
-    // Compute signal
-    showProgress(3);
-    const{scores,rawVals,signalDate}=computeSignalV43(navMatrix,dates,plans,extArrays);
-    const topScores=plans.map(pl=>({plan:pl,score:+(scores[pl]||0).toFixed(4)})).sort((a,b)=>b.score-a.score);
+    // Get current menu from input
+    const currentMenu = el('current-menu').value.trim();
+    const currentAlloc = parseMenuAlloc(currentMenu);
+    const quotaUsed = Math.min(12,Math.max(0,parseInt(el('quota-used').value)||0));
+    const lastSwitchStr = el('last-rebal').value;
 
-    if(isHistory){
-      // ── Auto mode: compute portfolio state as-of histDateVal ──
-      let histPortfolio = null;
-      if(portInputMode === 'auto' && TX_PORT.length > 0 && histDateVal){
-        histPortfolio = getPortfolioAsOf(histDateVal);
-      }
-      // Fall back to manual inputs if no auto data
-      const hCurVal  = histPortfolio?.curVal  || parseFloat(el('current-value').value)||0;
-      const hPeakVal = histPortfolio?.peakVal || parseFloat(el('peak-value').value)||0;
-      const hLastRebal = histPortfolio?.lastRebalIso || el('last-rebal').value;
-      const hQuotaUsed = histPortfolio != null ? histPortfolio.quotaUsed : (parseInt(el('quota-used').value)||0);
+    // Decision
+    const decision = makeDecisionV19({
+      scores, currentMenu, currentAlloc, quotaUsed, lastSwitchStr,
+      referenceDate: isHistory ? histDateVal : null
+    });
 
-      // Build allocation from TX as-of date (auto) or from inputs (manual)
-      let hCurrentAlloc = {};
-      if(histPortfolio?.allocation && Object.keys(histPortfolio.allocation).length > 0){
-        // Convert % map to decimal
-        for(const[f,pct] of Object.entries(histPortfolio.allocation))
-          hCurrentAlloc[f] = pct / 100;
-      } else {
-        hCurrentAlloc = parseAlloc(getAllocStr());
-      }
-
-      // Always call makeDecision in history mode (same as live mode)
-      const decision = makeDecision({
-        scores,
-        currentAlloc: hCurrentAlloc,
-        quotaUsed: hQuotaUsed,
-        lastRebStr: hLastRebal,
-        lastExitStr: el('last-exit').value,
-        prevExitStr: el('prev-exit').value||'',
-        peakValue: hPeakVal,
-        currentValue: hCurVal,
-        referenceDate: histDateVal   // ← key fix: ใช้วันที่ย้อนหลัง ไม่ใช่วันนี้
-      });
-
-      renderHistoryResults({
-        topScores, rawVals, signalDate,
-        dataRows: navMatrix.length,
-        hasExt: extArrays !== null,
-        decision,
-        histPortfolio,
-        isAutoPort: histPortfolio != null
-      });
-    }else{
-      const allocStr=getAllocStr();
-      const curVal=parseFloat(el('current-value').value)||0;
-      const peakVal=parseFloat(el('peak-value').value)||0;
-      const currentAlloc=parseAlloc(allocStr);
-      const quotaUsed=Math.min(12,Math.max(0,parseInt(el('quota-used').value)||0));
-      const decision=makeDecision({scores,currentAlloc,quotaUsed,lastRebStr:el('last-rebal').value,lastExitStr:el('last-exit').value,prevExitStr:el('prev-exit').value||'',peakValue:peakVal,currentValue:curVal});
-      renderResults({decision,topScores,rawVals,signalDate,dataRows:navMatrix.length,hasExt:extArrays!==null});
-      const pauseEl=el('auto-pause-result');
-      if(pauseEl&&decision.action==='HOLD_EXTRA_PAUSE')pauseEl.textContent='⚡ Extra Pause สิ้นสุด: '+fmtDateMono(decision.reason.split('จนถึง ')[1]||'');
-    }
+    // Render
+    renderResults({decision, scores, momReturns, signalDate, dataRows: navMatrix.length, plans, isHistory, histDateVal});
     el('run-time').textContent='อัปเดต: '+new Date().toLocaleTimeString('th-TH');
 
   }catch(e){
@@ -2739,217 +1592,146 @@ async function runSignal(){
 }
 
 // ================================================================
-//  RENDER — signal results
+//  RENDER — Signal Results
 // ================================================================
 const ACTION_MAP={
-  'REBALANCE':{cls:'action',label:'✅ REBALANCE'},
-  'EXIT_DD':{cls:'critical',label:'🚨 EXIT_DD'},
+  'SWITCH':{cls:'action',label:'✅ SWITCH — เปลี่ยนแผน'},
   'HOLD_COOLDOWN':{cls:'info',label:'⏳ HOLD — Cooldown'},
-  'HOLD_GAP':{cls:'info',label:'⏸ HOLD — Gap ไม่พอ'},
   'HOLD_QUOTA':{cls:'info',label:'🔒 HOLD — Quota หมด'},
+  'HOLD_SAME':{cls:'info',label:'✓ HOLD — แผนดีอยู่แล้ว'},
   'HOLD_SMALL_CHANGE':{cls:'info',label:'⏸ HOLD — เปลี่ยนน้อย'},
-  'HOLD_EXIT_COOLDOWN':{cls:'warning',label:'⏳ HOLD — Exit Cooldown'},
-  'HOLD_EXTRA_PAUSE':{cls:'warning',label:'⏳ HOLD — Extra Pause'},
-  'HOLD_REENTRY':{cls:'warning',label:'⏳ HOLD — Reentry Score'},
+  'HOLD_NO_SIGNAL':{cls:'info',label:'⏸ HOLD — ไม่มี signal'},
 };
+
 function renderResults(data){
-  const{decision,topScores,rawVals,signalDate,dataRows,hasExt}=data;
-  const dd=decision.ddPct||0;
-  el('hist-banner').style.display='none';
-  el('decision-banner').style.display='';
+  const{decision, scores, momReturns, signalDate, dataRows, plans, isHistory, histDateVal}=data;
+
+  // History banner
+  const hb=el('hist-banner');
+  if(isHistory && hb){
+    hb.innerHTML='<b>📅 ย้อนหลัง — '+fmtDateMono(signalDate)+'</b>';
+    hb.style.display='block';
+  }else if(hb){hb.style.display='none';}
+
+  // Stats
   el('stat-date').textContent=fmtDateMono(signalDate);
-  el('stat-dd').textContent=dd.toFixed(2)+'%';
-  el('stat-dd').className='stat-val '+(dd<-3?'red':dd<-1?'amber':'green');
+  const MENU = generateMenu();
+  el('stat-menus').textContent=Object.keys(MENU).length;
   el('stat-quota').textContent=(decision.quotaLeft??'—')+' / 12';
   el('stat-rows').textContent=(dataRows||'?').toLocaleString?.()|| dataRows;
-  renderDDBar(dd);
-  renderDecision(decision);renderTargetAllocBox(decision);renderScores(topScores,rawVals,decision,hasExt);
+
+  // Decision banner
+  renderDecision(decision);
+
+  // App instruction
+  renderAppInstr(decision);
+
+  // Fund scores
+  renderFundScores(plans, scores, momReturns);
+
+  // Menu ranking
+  renderMenuRanking(decision.topMenus||[]);
+
   el('results-section').style.display='flex';
   setTimeout(()=>el('results-section').scrollIntoView({behavior:'smooth',block:'start'}),100);
 }
-function applyGCapAndRound(rawAlloc){
-  const alloc=Object.assign({},rawAlloc);
-  // G cap: ทองคำ ≤ 25%
-  if((alloc['G']||0)>G_CAP){
-    const excess=alloc['G']-G_CAP;alloc['G']=G_CAP;
-    const others=Object.keys(alloc).filter(p=>p!=='G');
-    const os=others.reduce((s,p)=>s+(alloc[p]||0),0);
-    if(os>0)others.forEach(p=>{alloc[p]+=excess*(alloc[p]/os);});
-    else alloc['Money_Market']=(alloc['Money_Market']||0)+excess;
-    const tw=Object.values(alloc).reduce((s,v)=>s+v,0);
-    if(tw>0)Object.keys(alloc).forEach(p=>{alloc[p]/=tw;});
-  }
-  // PR cap: อสังหาฯ ≤ 20% (v15)
-  if((alloc['PR']||0)>PR_CAP){
-    const excess=alloc['PR']-PR_CAP;alloc['PR']=PR_CAP;
-    const others=Object.keys(alloc).filter(p=>p!=='PR');
-    const os=others.reduce((s,p)=>s+(alloc[p]||0),0);
-    if(os>0)others.forEach(p=>{alloc[p]+=excess*(alloc[p]/os);});
-    else alloc['Money_Market']=(alloc['Money_Market']||0)+excess;
-    const tw=Object.values(alloc).reduce((s,v)=>s+v,0);
-    if(tw>0)Object.keys(alloc).forEach(p=>{alloc[p]/=tw;});
-  }
-  let sum=0;Object.keys(alloc).forEach(p=>{alloc[p]=Math.round(alloc[p]*100/5)*5/100;sum+=alloc[p];});
-  const diff=Math.round((1-sum)*100);if(diff!==0){const top=Object.keys(alloc).reduce((a,b)=>alloc[a]>=alloc[b]?a:b);alloc[top]=Math.round(alloc[top]*100+diff)/100;}
-  return alloc;
-}
-function renderHistoryResults({topScores,rawVals,signalDate,dataRows,hasExt,decision,histPortfolio,isAutoPort}){
-  const top2=topScores.slice(0,2);const tot=top2.reduce((s,x)=>s+x.score,0);
-  const rawAlloc={};top2.forEach(x=>{rawAlloc[x.plan]=tot>0?x.score/tot:0.5;});
-  const cappedAlloc=applyGCapAndRound(rawAlloc);
 
-  // Use decision's targetAlloc if available, else fallback to cappedAlloc
-  const displayDecision = decision || {action:'HISTORY', targetAlloc:cappedAlloc, ddPct:0};
-
-  const hb=el('hist-banner');
-  if(hb){
-    const pills=Object.entries(cappedAlloc).sort((a,b)=>b[1]-a[1])
-      .map(([p,v])=>'<span style="font-family:var(--mono);font-weight:700;color:var(--gold)">'+p+':'+Math.round(v*100)+'%</span>')
-      .join(' + ');
-    const portLine = histPortfolio
-      ? '<br><span style="font-size:10px;color:var(--t3);font-family:var(--mono)">'
-        +'💼 '+(isAutoPort?'🔗 Auto TX':'Manual')
-        +'  มูลค่า: <b style="color:var(--green)">฿'+Math.round(histPortfolio.curVal).toLocaleString()+'</b>'
-        +'  Peak: <b style="color:var(--gold)">฿'+Math.round(histPortfolio.peakVal).toLocaleString()+'</b>'
-        +'  DD: <b style="color:'+(histPortfolio.curVal/histPortfolio.peakVal < 0.97?'var(--red)':'var(--green)')+'">'+((histPortfolio.curVal/histPortfolio.peakVal-1)*100).toFixed(2)+'%</b>'
-        +'  Quota: <b style="color:var(--acc)">'+histPortfolio.quotaUsed+'/12</b>'
-        +'</span>'
-      : '<br><span style="font-size:10px;color:var(--amber)">⚠ ไม่พบ TX data — ใช้ Manual inputs แทน (Portfolio ปัจจุบัน)</span>';
-    hb.innerHTML='<b>📅 ย้อนหลัง — '+fmtDateMono(signalDate)+'</b> &nbsp;|&nbsp; Signal top2: '+pills
-      + portLine;
-    hb.style.display='block';
-  }
-
-  // Show decision banner & target alloc (same as live mode)
-  if(decision && decision.action !== 'HISTORY'){
-    renderDecision(decision);
-    renderTargetAllocBox(decision);
-  } else {
-    el('decision-banner').style.display='none';
-    el('target-alloc-box').style.display='none';
-  }
-
-  // Stats bar
-  el('stat-date').textContent=fmtDateMono(signalDate);
-  const ddPct = displayDecision.ddPct || 0;
-  el('stat-dd').textContent = ddPct !== 0 ? ddPct.toFixed(2)+'%' : (histPortfolio ? ((histPortfolio.curVal/histPortfolio.peakVal-1)*100).toFixed(2)+'%' : '—');
-  el('stat-dd').className = 'stat-val'+(ddPct < -3 ? ' neg' : '');
-  el('stat-quota').textContent = histPortfolio ? histPortfolio.quotaUsed+'/12' : '—';
-  el('stat-rows').textContent = (dataRows||'?').toLocaleString?.() || dataRows;
-
-  renderScores(topScores,rawVals,displayDecision,hasExt);
-  el('results-section').style.display='flex';
-  setTimeout(()=>el('results-section').scrollIntoView({behavior:'smooth',block:'start'}),100);
-}
 function renderDecision(d){
-  if(d.action==='HISTORY')return;
-  const banner=el('decision-banner');const info=ACTION_MAP[d.action]||{cls:'info',label:d.action};
+  const banner=el('decision-banner');
+  const info=ACTION_MAP[d.action]||{cls:'info',label:d.action};
   banner.className=info.cls;banner.style.display='block';
-  el('banner-pill').textContent=info.label;el('banner-reason').textContent=d.reason||'';
-  let meta='Drawdown: '+(d.ddPct||0).toFixed(2)+'%';if(d.daysLeft)meta+='  ·  อีก '+d.daysLeft+' วันทำการ';
+  el('banner-pill').textContent=info.label;
+  el('banner-reason').textContent=d.reason||'';
+  let meta='';
+  if(d.daysLeft) meta+='อีก '+d.daysLeft+' วันทำการ  ·  ';
+  meta+='Quota เหลือ: '+(d.quotaLeft??'—')+'/12';
   el('banner-meta').textContent=meta;
+
   const row=el('target-row');row.innerHTML='';
   if(d.targetAlloc&&Object.keys(d.targetAlloc).length){
-    const isAct=d.action==='REBALANCE'||d.action==='EXIT_DD';
-    const lbl=document.createElement('span');lbl.className='target-label';lbl.textContent=isAct?'⟶ Target:':'Current:';row.appendChild(lbl);
-    Object.entries(d.targetAlloc).sort((a,b)=>b[1]-a[1]).forEach(kv=>{const pill=document.createElement('span');pill.className='tpill'+(isAct?' new':'');pill.textContent=kv[0]+': '+(kv[1]*100).toFixed(0)+'%';row.appendChild(pill);});
+    const isAct=(d.action==='SWITCH');
+    const lbl=document.createElement('span');lbl.className='target-label';
+    lbl.textContent=isAct?'⟶ เปลี่ยนเป็น: '+d.targetMenu:'ปัจจุบัน: '+(d.targetMenu||'—');
+    row.appendChild(lbl);
+    Object.entries(d.targetAlloc).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+      const pill=document.createElement('span');
+      pill.className='tpill'+(isAct?' new':'');
+      pill.textContent=k+': '+(v*100).toFixed(0)+'%';
+      row.appendChild(pill);
+    });
   }
 }
-function renderTargetAllocBox(d){
-  const box=el('target-alloc-box');if(!box)return;
-  const isAct=d.action==='REBALANCE'||d.action==='EXIT_DD';
-  if(!isAct||!d.targetAlloc){box.style.display='none';return;}
+
+function renderAppInstr(d){
+  const box=el('app-instr-box');
+  if(d.action!=='SWITCH'){box.style.display='none';return;}
   box.style.display='block';
-  const planNames={'F':'หุ้นต่างประเทศ','TH':'ตราสารทุนไทย','G':'ทองคำ','PR':'อสังหาฯ','Global_Bond':'ตราสารหนี้ตปท.','B':'ตราสารหนี้','Money_Market':'ตลาดเงิน','A75':'แผนผสม 75%','A65':'แผนผสม 65%','A35':'แผนผสม 35%','A20':'แผนผสม 20%','Base_Plan':'แผนหลัก'};
-  let html2='<div style="font-size:10px;color:var(--t2);font-weight:600;letter-spacing:.10em;text-transform:uppercase;margin-bottom:8px">สัดส่วนแผนที่แนะนำ (เป้าหมาย)</div><div style="display:flex;flex-wrap:wrap;gap:8px;">';
-  Object.entries(d.targetAlloc).sort((a,b)=>b[1]-a[1]).forEach(kv=>{
-    html2+='<div style="flex:1;min-width:110px;background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.3);border-radius:10px;padding:12px;text-align:center;">'
-      +'<div style="font-family:var(--mono);font-size:22px;font-weight:700;color:var(--green)">'+(kv[1]*100).toFixed(0)+'%</div>'
-      +'<div style="font-family:var(--mono);font-size:13px;color:#e8f4ff;margin-top:2px;font-weight:600">'+kv[0]+'</div>'
-      +'<div style="font-size:10px;color:var(--t2);margin-top:2px">'+(planNames[kv[0]]||kv[0])+'</div>'
-      +'</div>';
-  });
-  box.innerHTML=html2+'</div>';
+  const alloc=d.targetAlloc;
+  const keys=Object.keys(alloc);
+  const isPreset=keys.length===1 && alloc[keys[0]]>=0.99;
+  const planNames={'F':'หุ้นต่างประเทศ','TH':'ตราสารทุนไทย','G':'ทองคำ','PR':'อสังหาฯ & โครงสร้าง','Global_Bond':'ตราสารหนี้ต่างประเทศ','B':'ตราสารหนี้','Money_Market':'ตลาดเงิน','A75':'แผนผสม 75%','A65':'แผนผสม 65%','A35':'แผนผสม 35%','A20':'แผนผสม 20%','Base_Plan':'แผนหลัก','Shariah':'ชะรีอะฮ์'};
+
+  let html='<div class="app-instr-title">📱 สิ่งที่ต้องกดใน App กบข.</div>';
+
+  if(isPreset){
+    const fund=keys[0];
+    html+='<div class="app-instr-step"><span class="step-num">1</span><span>เปิด App กบข. → เปลี่ยนแผนการลงทุน</span></div>';
+    html+='<div class="app-instr-step"><span class="step-num">2</span><span>เลือกแผน <span class="app-instr-val">'+(planNames[fund]||fund)+' 100%</span></span></div>';
+    html+='<div class="app-instr-step"><span class="step-num">3</span><span>ยืนยัน → รอ T+2~3 วันทำการ</span></div>';
+  }else{
+    html+='<div class="app-instr-step"><span class="step-num">1</span><span>เปิด App กบข. → เปลี่ยนแผนการลงทุน</span></div>';
+    html+='<div class="app-instr-step"><span class="step-num">2</span><span>เลือก <span class="app-instr-val">แผนผสมสัดส่วนเอง</span></span></div>';
+    html+='<div class="app-instr-step"><span class="step-num">3</span><span>กรอกสัดส่วน:</span></div>';
+    Object.entries(alloc).sort((a,b)=>b[1]-a[1]).forEach(([k,v])=>{
+      html+='<div style="margin-left:30px;font-size:12px;color:var(--text);font-family:var(--mono)">'
+        +'<span class="app-instr-val">'+(planNames[k]||k)+'</span> = <span style="color:var(--green);font-weight:700">'+(v*100).toFixed(0)+'%</span></div>';
+    });
+    html+='<div class="app-instr-step"><span class="step-num">4</span><span>ยืนยัน → รอ T+2~3 วันทำการ</span></div>';
+  }
+  box.innerHTML=html;
 }
-function renderScores(topScores,rawVals,decision,hasExt){
-  const tgtSet=new Set(Object.keys(decision.targetAlloc||{}));
-  const curSet=new Set(getAllocStr().split(',').map(p=>p.split(':')[0]));
-  const isAct=decision.action==='REBALANCE'||decision.action==='EXIT_DD';
+
+function renderFundScores(plans, scores, momReturns){
   const tbody=el('scores-body');tbody.innerHTML='';
-  const SRC_BADGE={'XAU_THB':{cls:'xau',label:'XAU/THB'},'F_composite':{cls:'fc',label:'MSCI'},'SET':{cls:'set',label:'SET'},'NAV':{cls:'nav',label:'NAV'}};
-  topScores.forEach(item=>{
-    const plan=item.plan,score=item.score,rv=(rawVals&&rawVals[plan])||{};
-    const inT=isAct&&tgtSet.has(plan),inC=curSet.has(plan);
-    const cls='pkey'+(inT?' tgt':inC?' cur':'');
-    const tbdg=inT?'<span style="font-size:9px;color:var(--green);margin-left:5px">TARGET</span>':'';
-    const cbdg=(inC&&!inT)?'<span style="font-size:9px;color:var(--acc);margin-left:5px">NOW</span>':'';
-    const fl=[(rv.ema_ok===false?'<span class="tag tag-ema">EMA</span>':''),(rv.decay===true?'<span class="tag tag-dcy">DCY</span>':'')].filter(Boolean).join(' ');
-    const bg=inT?'background:rgba(0,230,118,.035)':inC?'background:rgba(0,200,240,.025)':'';
-    const pct=(score*100).toFixed(0);
-    const src=rv.src||'NAV';const bdgInfo=SRC_BADGE[src]||SRC_BADGE['NAV'];
-    const srcBadge='<span class="ext-badge '+bdgInfo.cls+'">'+bdgInfo.label+'</span>';
+  const sorted=plans.map(p=>({plan:p,score:scores[p]||0})).sort((a,b)=>b.score-a.score);
+  const maxScore=Math.max(...sorted.map(s=>Math.abs(s.score)),0.01);
+
+  sorted.forEach(item=>{
+    const plan=item.plan,score=item.score;
+    const mr=momReturns[plan]||{};
+    const pct=Math.max(0,Math.min(100,(score/maxScore)*50+50));
+    const cls=score>0?'pos':'neg';
+    const m20=mr.mom20!=null?(mr.mom20*100).toFixed(2)+'%':'—';
+    const m60=mr.mom60!=null?(mr.mom60*100).toFixed(2)+'%':'—';
+    const m120=mr.mom120!=null?(mr.mom120*100).toFixed(2)+'%':'—';
     tbody.insertAdjacentHTML('beforeend',
-      '<tr><td style="'+bg+'"><span class="'+cls+'">'+plan+'</span>'+tbdg+cbdg+'</td>'
-      +'<td style="'+bg+'"><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><span class="score-num">'+score.toFixed(4)+'</span></div></td>'
-      +'<td class="'+(rv.mom5>=0?'pos':'neg')+'">'+(rv.mom5!=null?rv.mom5.toFixed(2)+'%':'—')+'</td>'
-      +'<td class="'+(rv.mom20>=0?'pos':'neg')+'">'+(rv.mom20!=null?rv.mom20.toFixed(2)+'%':'—')+'</td>'
-      +'<td class="'+(rv.mom60>=0?'pos':'neg')+'">'+(rv.mom60!=null?rv.mom60.toFixed(2)+'%':'—')+'</td>'
-      +'<td>'+srcBadge+'</td>'
-      +'<td>'+(fl||'—')+'</td></tr>');
+      '<tr><td><span class="pkey">'+plan+'</span></td>'
+      +'<td><div class="bar-wrap"><div class="bar-track"><div class="bar-fill" style="width:'+pct+'%"></div></div><span class="score-num '+cls+'">'+score.toFixed(3)+'</span></div></td>'
+      +'<td class="'+(mr.mom20>=0?'pos':'neg')+'">'+m20+'</td>'
+      +'<td class="'+(mr.mom60>=0?'pos':'neg')+'">'+m60+'</td>'
+      +'<td class="'+(mr.mom120>=0?'pos':'neg')+'">'+m120+'</td></tr>');
   });
 }
 
-// ================================================================
-//  DD BAR
-// ================================================================
-function renderDDBar(ddPct){
-  const sec=el('dd-bar-section');if(!sec)return;
-  if(ddPct===null||ddPct===undefined){sec.style.display='none';return;}
-  sec.style.display='block';
-  const THRESHOLD=EXIT_DD_PCT;
-  const pct=Math.min(100,Math.max(0,(ddPct/THRESHOLD)*100));
-  const fill=el('dd-bar-fill'),lbl=el('dd-bar-pct-label'),stat=el('dd-bar-status');
-  let zone,emoji,msg;
-  if(ddPct>-3){zone='safe';emoji='🟢';msg='ปลอดภัย — ห่างจาก EXIT อีก '+(ddPct-THRESHOLD).toFixed(2)+'%';}
-  else if(ddPct>-5){zone='warn';emoji='🟡';msg='เฝ้าระวัง — ห่างจาก EXIT อีก '+(ddPct-THRESHOLD).toFixed(2)+'%';}
-  else{zone='danger';emoji='🔴';msg='ใกล้ EXIT_DD! เหลือ '+(ddPct-THRESHOLD).toFixed(2)+'% — เตรียม Money_Market';}
-  fill.style.width=pct+'%';fill.className='dd-fill '+zone;
-  lbl.textContent=ddPct.toFixed(2)+'%';lbl.className='dd-bar-pct '+zone;
-  stat.innerHTML=emoji+' <span style="color:var(--t2);font-size:11px">'+msg+' &nbsp;|&nbsp; '+pct.toFixed(0)+'% ของ threshold ถูกใช้แล้ว</span>';
-}
-
-// ================================================================
-//  EXIT DD TRACKER
-// ================================================================
-function getExitLog(){try{return JSON.parse(localStorage.getItem(EXIT_LOG_KEY)||'[]');}catch(e){return[];}}
-function saveExitLog(log){try{localStorage.setItem(EXIT_LOG_KEY,JSON.stringify(log));}catch(e){}}
-function logExitDD(){
-  const today=new Date().toISOString().slice(0,10);const log=getExitLog();
-  if(log.length&&log[log.length-1]===today){if(!confirm('วันนี้บันทึก EXIT แล้ว — บันทึกซ้ำอีกครั้ง?'))return;}
-  log.push(today);saveExitLog(log);renderExitTracker();
-  const btn=document.querySelector('.exit-log-btn');
-  if(btn){const orig=btn.textContent;btn.textContent='✅ บันทึกแล้ว!';btn.style.color='var(--green)';setTimeout(()=>{btn.textContent=orig;btn.style.color='';},1500);}
-}
-function undoExitDD(){
-  const log=getExitLog();if(!log.length)return;
-  if(!confirm('ยกเลิก EXIT ล่าสุด ('+log[log.length-1]+')?'))return;
-  log.pop();saveExitLog(log);renderExitTracker();
-}
-function renderExitTracker(){
-  const log=getExitLog();const grid=el('exit-year-grid'),total=el('exit-total-row');if(!grid)return;
-  const byYear={};log.forEach(d=>{const yr=d.slice(0,4);byYear[yr]=(byYear[yr]||0)+1;});
-  const years=Object.keys(byYear).sort();
-  if(years.length===0){grid.innerHTML='<span style="font-size:11px;color:var(--t2)">ยังไม่มีประวัติ EXIT_DD</span>';total.innerHTML='';return;}
-  grid.innerHTML=years.map(yr=>{
-    const cnt=byYear[yr],cls=cnt>=4?'hot':cnt>=2?'mid':'ok';const isCur=(yr===new Date().getFullYear().toString());
-    return'<div class="exit-year-pill '+cls+'" '+(isCur?'style="outline:1px solid rgba(0,200,240,.3)"':'')+'>'
-      +'<span class="ey-yr">'+yr+(isCur?' ←':'')+'</span>'
-      +'<span class="ey-cnt">'+cnt+'ครั้ง</span></div>';
-  }).join('');
-  const totalCnt=log.length,lastDate=log[log.length-1];
-  total.innerHTML='รวมทั้งหมด: <span style="color:var(--text);font-weight:700">'+totalCnt+' ครั้ง</span>'
-    +' &nbsp;|&nbsp; ล่าสุด: <span style="color:var(--amber)">'+fmtDateMono(lastDate)+'</span>'
-    +' &nbsp;|&nbsp; <span style="color:var(--t2)">backtest 15ปี: 14 ครั้ง (avg 0.9/ปี)</span>';
+function renderMenuRanking(topMenus){
+  const tbody=el('menu-body');tbody.innerHTML='';
+  if(!topMenus||topMenus.length===0){
+    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--t3)">รันก่อนเพื่อดู ranking</td></tr>';
+    return;
+  }
+  const MENU = generateMenu();
+  topMenus.slice(0,15).forEach(([name,score],i)=>{
+    const alloc=MENU[name]||{};
+    const allocStr=Object.entries(alloc).sort((a,b)=>b[1]-a[1])
+      .map(([k,v])=>k+':'+(v*100).toFixed(0)+'%').join(' + ');
+    const cls=i===0?'rank1':'';
+    const scoreClr=score>0?'color:var(--green)':'color:var(--red)';
+    tbody.insertAdjacentHTML('beforeend',
+      '<tr class="'+cls+'"><td style="font-family:var(--mono);font-weight:600;color:var(--gold)">'+(i+1)+'</td>'
+      +'<td style="font-family:var(--mono);font-weight:600;color:#e8f4ff;text-align:left">'+esc(name)+'</td>'
+      +'<td style="font-size:10px;color:var(--t2);text-align:left">'+allocStr+'</td>'
+      +'<td style="'+scoreClr+';font-weight:600">'+score.toFixed(4)+'</td></tr>');
+  });
 }
 
 // ================================================================
@@ -2958,85 +1740,260 @@ function renderExitTracker(){
 function showError(msg){const e=el('error-box');e.innerHTML=msg.replace(/\n/g,'<br>');e.style.display='';}
 function hideError(){el('error-box').style.display='none';}
 function setRunLoading(on){
-  const btn=el('run-btn');
-  const sp=el('run-spinner'),txt=el('run-btn-txt');
-  // Also handle the small hist-run-btn in date-nav
-  const hBtn=el('hist-run-btn');
-  const hSp=el('hist-run-spinner'),hTxt=el('hist-run-txt');
-
-  btn.disabled=on;
-  if(hBtn) hBtn.disabled=on;
-
+  const btn=el('run-btn'),sp=el('run-spinner'),txt=el('run-btn-txt');
+  const hBtn=el('hist-run-btn'),hSp=el('hist-run-spinner'),hTxt=el('hist-run-txt');
+  btn.disabled=on;if(hBtn)hBtn.disabled=on;
   if(on){
-    const isHist = viewMode==='history';
-    // Main button
     if(sp)sp.classList.add('active');
-    if(txt)txt.textContent = isHist ? '◌ กำลังรัน ย้อนหลัง…' : '◌ กำลังรัน…';
-    // Hist mini button
-    if(hSp){ hSp.classList.add('active'); }
-    if(hTxt) hTxt.textContent = '◌ รัน…';
-  } else {
+    if(txt)txt.textContent=viewMode==='history'?'◌ กำลังรัน ย้อนหลัง…':'◌ กำลังรัน…';
+    if(hSp)hSp.classList.add('active');if(hTxt)hTxt.textContent='◌ รัน…';
+  }else{
     if(sp)sp.classList.remove('active');
     if(hSp)hSp.classList.remove('active');
-    if(hTxt)hTxt.textContent = 'รัน';
-    showProgress(0);
+    if(hTxt)hTxt.textContent='รัน';
+    if(txt)txt.textContent=viewMode==='history'?'▶ รัน (ย้อนหลัง)':'▶ รัน Signal วันนี้';
   }
 }
 
-function showProgress(step){
-  const isHist = viewMode==='history';
-  const histDate = el('hist-date')?.value||'';
-  const steps=[
-    {id:1,label:'ดึง NAV…'},
-    {id:2,label:'ดึง Ext Signals…'},
-    {id:3,label:'คำนวณ Signal…'}
+// ================================================================
+//  PORTFOLIO — Analytics & Render (from v18)
+// ================================================================
+function calcHold(tx){
+  const u={};
+  for(const t of tx)for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;
+  for(const k of Object.keys(u))if(Math.abs(u[k])<0.0001)delete u[k];
+  return u;
+}
+function calcPort(nav,tx,days){
+  const cut=days>0?new Date(Date.now()-days*864e5):new Date(0);
+  const nf=nav.filter(n=>n.date>=cut);if(!nf.length)return{l:[],v:[],iv:[]};
+  const ts=[...tx].sort((a,b)=>a.date-b.date);
+  const l=[],v=[],iv=[];
+  for(const n of nf){
+    const u={};let inv=0;
+    for(const t of ts){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;if(t.type==='เงินนำส่ง'&&t.total!=null)inv+=t.total;}
+    let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
+    if(val>0||v.length>0){l.push(n.date);v.push(val);iv.push(inv);}
+  }
+  return{l,v,iv};
+}
+function calcAnalytics(hold,nav,tx){
+  const ln=nav[nav.length-1],pn=nav[nav.length-2];
+  const portSeries=[];
+  const txSorted=[...tx].sort((a,b)=>a.date-b.date);
+  const txDateSet=new Set(tx.map(t=>t.date.toDateString()));
+  for(const n of nav){
+    const u={};for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;}
+    let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
+    if(val>0||portSeries.length>0)portSeries.push({date:n.date,val,hasTx:txDateSet.has(n.date.toDateString())});
+  }
+  let tot=0,prev=0,cost=0;
+  for(const[f,u]of Object.entries(hold)){const nv=ln?.funds[f];if(nv)tot+=u*nv;const pv=pn?.funds[f];if(pv)prev+=u*pv;}
+  for(const t of tx)if(t.type==='เงินนำส่ง'&&t.total!=null)cost+=t.total;
+  const pnl=tot-cost,pp=cost>0?(pnl/cost)*100:0;
+  const dc=prev>0?tot-prev:0,dp=prev>0?(dc/prev)*100:0;
+  let peak=0,peakValue=0,maxDD=0,ddEnd=null;
+  for(const p of portSeries){if(p.val>peak){peak=p.val;peakValue=p.val;}const dd=peak>0?(p.val-peak)/peak*100:0;if(dd<maxDD){maxDD=dd;ddEnd=p.date;}}
+  const firstTx=tx.find(t=>t.type==='เงินนำส่ง');
+  const startDate=firstTx?.date;
+  const daysHeld=startDate?Math.round((ln.date-startDate)/864e5):0;
+  const yearsHeld=daysHeld/365;
+  const cagr=(yearsHeld>0&&cost>0&&tot>0)?(Math.pow(tot/cost,1/yearsHeld)-1)*100:null;
+  const dailyRet=[];
+  for(let i=1;i<portSeries.length;i++){const prev2=portSeries[i-1],cur=portSeries[i];if(cur.hasTx)continue;if(prev2.val>0)dailyRet.push({r:(cur.val-prev2.val)/prev2.val*100,date:cur.date,chg:cur.val-prev2.val});}
+  const rets=dailyRet.map(d=>d.r);
+  const avgRet=rets.length>0?rets.reduce((a,b)=>a+b,0)/rets.length:0;
+  const variance=rets.length>1?rets.reduce((a,b)=>a+(b-avgRet)**2,0)/(rets.length-1):0;
+  const dailyVol=Math.sqrt(variance);
+  const annVol=dailyVol*Math.sqrt(252);
+  const sharpe=annVol>0?(avgRet*252-1.5)/annVol:null;
+  let bestDay={ret:-Infinity,date:null,val:0},worstDay={ret:Infinity,date:null,val:0};
+  for(const d of dailyRet){if(d.r>bestDay.ret)bestDay={ret:d.r,date:d.date,val:d.chg};if(d.r<worstDay.ret)worstDay={ret:d.r,date:d.date,val:d.chg};}
+  const winDays=rets.filter(r=>r>0).length;
+  const winRate=rets.length>0?winDays/rets.length*100:0;
+  const txDeposits=tx.filter(t=>t.type==='เงินนำส่ง');
+  const avgMonthly=txDeposits.length>0?cost/txDeposits.length:0;
+  const lastTx=[...tx].reverse().find(t=>t.plan);
+  return{tot,prev,cost,pnl,pp,dc,dp,navDt:ln?.date?fDt(ln.date):'-',maxDD,ddEnd,peakValue,cagr,yearsHeld,daysHeld,annVol,sharpe,winRate,winDays,totalDays:rets.length,bestDay,worstDay,avgMonthly,txCount:txDeposits.length,currentPlan:lastTx?.plan||'-',startDate,portSeries};
+}
+
+function renderPortAll(){
+  const hold=calcHold(TX_PORT);
+  const analytics=calcAnalytics(hold,NAV_PORT,TX_PORT);
+  renderPortCards(hold,analytics);renderHold(hold,NAV_PORT);renderNavTbl(NAV_PORT,hold);
+  renderDaily(NAV_PORT,TX_PORT);renderTxTbl(TX_PORT);renderMon(TX_PORT);
+  showPortDash();
+  requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    renderPortChart(curPeriod);renderAlloc(hold,NAV_PORT);renderFund(NAV_PORT);renderNavCh(NAV_PORT,hold);
+  });});
+  el('port-last-update').textContent='อัพเดต: '+new Date().toLocaleTimeString('th-TH');
+  // Auto-sync to Signal tab
+  applyAutoSync(analytics,hold);
+}
+
+function applyAutoSync(analytics,hold){
+  if(!analytics||analytics.tot<=0)return;
+  // Auto-fill rebalance date + quota from TX
+  const rebalTx=TX_PORT.filter(t=>t.type&&(t.type.includes('เปลี่ยนแผน')||t.type.toLowerCase().includes('rebal'))).sort((a,b)=>a.date-b.date);
+  if(rebalTx.length>0){
+    const lastRebal=rebalTx[rebalTx.length-1].date;
+    const fmtIso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    el('last-rebal').value=fmtIso(lastRebal);
+  }
+  const nowYear=new Date().getFullYear();
+  const rebalDatesThisYear=new Set(rebalTx.filter(t=>t.date.getFullYear()===nowYear).map(t=>t.date.toDateString()));
+  el('quota-used').value=String(rebalDatesThisYear.size);
+  updateQuotaBar();
+
+  // Show sync info
+  el('sync-badge').classList.add('show');
+  el('autosync-box').classList.add('show');
+  el('autosync-msg').textContent='Auto-synced: มูลค่า ฿'+Math.round(analytics.tot).toLocaleString()+' · Quota '+rebalDatesThisYear.size+'/12 · แผน: '+analytics.currentPlan;
+  el('alloc-sync-note').style.display='inline';
+  save();
+}
+
+function renderPortCards(hold,a){
+  const co=v=>v>0?'var(--green)':v<0?'var(--red)':'var(--t2)';
+  const row1=[
+    {l:'มูลค่า Portfolio',v:'฿'+fmt(a.tot,0),s:'ณ '+a.navDt,c:'cg',clr:'var(--gold)'},
+    {l:'เงินลงทุนสะสม',v:'฿'+fmt(a.cost,0),s:a.txCount+' ครั้ง · เฉลี่ย ฿'+fmt(a.avgMonthly,0),c:'ct',clr:'var(--teal)'},
+    {l:'กำไร/ขาดทุน (฿)',v:fmtS(a.pnl),s:fmtS(a.pp)+'%',c:a.pnl>=0?'cG':'cr',clr:co(a.pnl)},
+    {l:'% ผลตอบแทน',v:fmtS(a.pp)+'%',s:'เทียบต้นทุนรวม',c:a.pp>=0?'cG':'cr',clr:co(a.pp)},
+    {l:'เปลี่ยนแปลง 1 วัน',v:fmtS(a.dc),s:fmtS(a.dp)+'%',c:a.dc>=0?'cG':'cr',clr:co(a.dc)},
+    {l:'แผนลงทุนปัจจุบัน',v:esc(a.currentPlan),s:'Transaction ล่าสุด',c:'cb',clr:'var(--blue)'},
   ];
-  const txt=el('run-btn-txt'),sp=el('run-spinner');
-  if(!txt)return;
-  if(step===0){
-    txt.textContent=isHist?'▶ รัน (ย้อนหลัง)':'▶ รัน Signal วันนี้';
-    if(sp)sp.classList.remove('active');
-    return;
-  }
-  if(sp)sp.classList.add('active');
-  const cur=steps.find(s=>s.id===step);
-  const prefix = isHist ? '◌ [ย้อนหลัง '+histDate+'] ' : '◌ ';
-  if(cur)txt.textContent=prefix+cur.label;
+  const row2=[
+    {l:'Peak Value',v:'฿'+fmt(a.peakValue,0),s:'มูลค่าสูงสุดตลอด',c:'ca',clr:'var(--amber)'},
+    {l:'Max Drawdown',v:fmt(a.maxDD,2)+'%',s:'ต่ำสุด ณ '+fDt(a.ddEnd),c:'cr',clr:a.maxDD<0?'var(--red)':'var(--t2)'},
+    {l:'Annualized Return',v:a.cagr!=null?fmtS(a.cagr)+'%':'-',s:'CAGR/ปี',c:a.cagr>=0?'cG':'cr',clr:a.cagr!=null?co(a.cagr):'var(--t2)'},
+    {l:'Volatility (ปี)',v:a.annVol>0?fmt(a.annVol,2)+'%':'-',s:'ความผันผวน Annualized',c:'cp',clr:'var(--purple)'},
+    {l:'Sharpe Ratio',v:a.sharpe!=null?fmt(a.sharpe,2):'-',s:a.sharpe>=1?'ดีมาก':a.sharpe>=0.5?'ดี':'พอใช้',c:'cp',clr:'var(--purple)'},
+    {l:'Win Rate',v:fmt(a.winRate,1)+'%',s:a.winDays+'/'+a.totalDays+' วัน',c:'ct',clr:a.winRate>=50?'var(--teal)':'var(--t2)'},
+  ];
+  const durStr=a.daysHeld>0?(a.daysHeld>=365?fmt(a.yearsHeld,1)+' ปี':a.daysHeld+' วัน'):'-';
+  const row3=[
+    {l:'Best Day',v:a.bestDay.date?fmtS(a.bestDay.ret)+'%':'-',s:a.bestDay.date?fDt(a.bestDay.date)+' · ฿'+fmtS(a.bestDay.val||0):'-',c:'cG',clr:'var(--green)'},
+    {l:'Worst Day',v:a.worstDay.date?fmtS(a.worstDay.ret)+'%':'-',s:a.worstDay.date?fDt(a.worstDay.date)+' · ฿'+fmtS(a.worstDay.val||0):'-',c:'cr',clr:'var(--red)'},
+    {l:'ระยะเวลาลงทุน',v:durStr,s:'เริ่ม '+fDt(a.startDate),c:'cg',clr:'var(--gold)'},
+  ];
+  const mkCard=x=>'<div class="pc '+x.c+'"><div class="clbl">'+x.l+'</div><div class="cval" style="color:'+x.clr+'">'+x.v+'</div><div class="csub">'+x.s+'</div></div>';
+  el('cards-row1').innerHTML=row1.map(mkCard).join('');
+  el('cards-row2').innerHTML=row2.map(mkCard).join('');
+  el('cards-row3').innerHTML=row3.map(mkCard).join('');
+}
+function renderHold(hold,nav){
+  const ln=nav[nav.length-1],pn=nav[nav.length-2];
+  let rows=[],grand=0;
+  for(const[f,u]of Object.entries(hold)){const nv=ln?.funds[f],pv=pn?.funds[f];const val=nv?u*nv:null;const chg=(nv&&pv)?((nv-pv)/pv)*100:null;if(val!=null)grand+=val;rows.push({f,u,nv,val,chg});}
+  rows.sort((a,b)=>(b.val||0)-(a.val||0));
+  const tRows=rows.map(r=>{const pct=grand>0&&r.val?(r.val/grand)*100:0;const m=FM[r.f]||{l:r.f,c:'#888'};const cc=r.chg==null?'pneu':r.chg>=0?'ppos':'pneg';
+    return'<tr><td><div class="fb"><span class="fdot" style="background:'+m.c+'"></span>'+m.l+'</div></td><td>'+fmt(r.u,4)+'</td><td>'+fmt(r.nv,4)+'</td><td style="font-weight:600">'+(r.val!=null?'฿'+fmt(r.val,2):'-')+'</td><td><div style="display:flex;align-items:center;gap:7px"><span style="min-width:36px">'+fmt(pct,1)+'%</span><div class="pbar-wrap" style="flex:1;min-width:48px"><div class="pbar" style="width:'+pct+'%;background:'+m.c+'"></div></div></div></td><td class="'+cc+'">'+(r.chg!=null?fmtS(r.chg)+'%':'-')+'</td></tr>';
+  }).join('');
+  el('t-hold').innerHTML='<thead><tr><th>กองทุน</th><th>หน่วย</th><th>NAV</th><th>มูลค่า (฿)</th><th>สัดส่วน</th><th>เปลี่ยน 1 วัน</th></tr></thead><tbody>'+tRows+'<tr style="border-top:1px solid var(--b2)"><td colspan="3" style="font-weight:700;color:var(--t2)">รวม</td><td style="font-weight:700;color:var(--gold)">฿'+fmt(grand,2)+'</td><td colspan="2"></td></tr></tbody>';
+}
+function renderNavTbl(nav,hold){
+  const active=Object.keys(hold).filter(f=>FM[f]&&nav.some(n=>n.funds[f]));
+  const allNav=[...nav].reverse();
+  const hdrs='<thead><tr><th>วันที่</th>'+active.map(f=>'<th>'+(FM[f]?.s||f)+'</th>').join('')+'</tr></thead>';
+  const bdy=allNav.map((r,i)=>{const p=allNav[i+1];return'<tr><td>'+fDt(r.date)+'</td>'+active.map(f=>{const v=r.funds[f],pv=p?.funds[f];const chg=(v&&pv)?((v-pv)/pv)*100:null;return'<td><div style="font-family:var(--mono)">'+(v!=null?fmt(v,4):'-')+'</div>'+(chg!=null?'<div style="font-size:10px;color:'+(chg>=0?'var(--green)':'var(--red)')+'">'+fmtS(chg)+'%</div>':'')+'</td>';}).join('')+'</tr>';}).join('');
+  el('t-nav').innerHTML=hdrs+'<tbody>'+bdy+'</tbody>';
+}
+function renderTxTbl(tx){
+  const s=[...tx].reverse();
+  const tc=t=>t.includes('นำส่ง')?'tdep':t.includes('เข้า')?'tin':t.includes('ออก')?'tout':'treb';
+  const ti=t=>t.includes('นำส่ง')?'↓':t.includes('เข้า')?'+':t.includes('ออก')?'−':'↔';
+  const bdy=s.map(t=>{const funds=Object.entries(t.amounts).map(([f,a])=>{const m=FM[f]||{s:f};return'<span class="'+(a.u>=0?'ppos':'pneg')+'" style="font-size:11px">'+m.s+':'+fmtS(a.u)+'</span>';}).join(' ');
+    return'<tr><td>'+fDt(t.date)+'</td><td class="'+tc(t.type)+'">'+ti(t.type)+' '+esc(t.type)+'</td><td style="color:var(--t2);font-size:12px">'+esc(t.plan||'-')+'</td><td style="color:var(--t3);font-size:12px">'+esc(t.note||'-')+'</td><td>'+(t.comp!=null?fmt(t.comp,2):'-')+'</td><td>'+(t.accum!=null?fmt(t.accum,2):'-')+'</td><td>'+(t.match!=null?fmt(t.match,2):'-')+'</td><td>'+(t.extra!=null?fmt(t.extra,2):'-')+'</td><td style="font-weight:700;color:'+((t.total||0)>=0?'var(--green)':'var(--red)')+'">'+( t.total!=null?fmtS(t.total):'-')+'</td><td style="font-size:11px">'+(funds||'-')+'</td></tr>';}).join('');
+  el('t-tx').innerHTML='<thead><tr><th>วันที่</th><th>ประเภท</th><th>แผน</th><th>หมายเหตุ</th><th>ชดเชย</th><th>สะสม</th><th>สมทบ</th><th>สะสมส่วนเพิ่ม</th><th>รวม</th><th>กองทุน</th></tr></thead><tbody>'+bdy+'</tbody>';
+}
+function renderMon(tx){
+  const m={};for(const t of tx){if(t.type!=='เงินนำส่ง')continue;const k=t.date.getFullYear()+'-'+String(t.date.getMonth()+1).padStart(2,'0');if(!m[k])m[k]={c:0,a:0,mt:0,ex:0,t:0};m[k].c+=t.comp||0;m[k].a+=t.accum||0;m[k].mt+=t.match||0;m[k].ex+=t.extra||0;m[k].t+=t.total||0;}
+  const keys=Object.keys(m).sort().reverse();
+  const bdy=keys.map(k=>{const d=m[k],[y,mo]=k.split('-');const lbl=new Date(+y,+mo-1,1).toLocaleDateString('th-TH',{year:'numeric',month:'long'});return'<tr><td style="font-weight:600">'+lbl+'</td><td>'+fmt(d.c,2)+'</td><td>'+fmt(d.a,2)+'</td><td>'+fmt(d.mt,2)+'</td><td>'+fmt(d.ex,2)+'</td><td style="font-weight:700;color:var(--gold)">฿'+fmt(d.t,2)+'</td></tr>';}).join('');
+  const totals=['c','a','mt','ex','t'].map(k=>{const s=keys.reduce((a,ky)=>a+m[ky][k],0);return'<td style="font-weight:700;color:'+(k==='t'?'var(--gold)':'var(--text)')+'">'+( k==='t'?'฿':'')+fmt(s,2)+'</td>';}).join('');
+  el('t-monthly').innerHTML='<thead><tr><th>เดือน</th><th>ชดเชย</th><th>สะสม</th><th>สมทบ</th><th>สะสมส่วนเพิ่ม</th><th>รวม</th></tr></thead><tbody>'+bdy+'<tr style="border-top:1px solid var(--b2)"><td style="font-weight:700">รวม</td>'+totals+'</tr></tbody>';
+}
+function renderDaily(nav,tx){
+  const txSorted=[...tx].sort((a,b)=>a.date-b.date);const txDateSet=new Set(tx.map(t=>t.date.toDateString()));const portFull=[];
+  for(const n of nav){const u={};for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;}let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}let inv=0;for(const t of txSorted){if(t.date>n.date)break;if(t.type==='เงินนำส่ง'&&t.total!=null)inv+=t.total;}portFull.push({date:n.date,val,inv,hasTx:txDateSet.has(n.date.toDateString())});}
+  const series=portFull.filter(p=>p.val>0);const reversed=[...series].reverse();
+  const bdy=reversed.map((p,i)=>{const prev=reversed[i+1];const dayChg=(prev&&!p.hasTx)?p.val-prev.val:null;const dayPct=(prev&&prev.val>0&&!p.hasTx)?(dayChg/prev.val)*100:null;const pnl=p.val-p.inv,pnlPct=p.inv>0?(pnl/p.inv)*100:0;const txMark=p.hasTx?'<span style="font-size:10px;color:var(--gold);margin-left:4px">● TX</span>':'';const chgClr=dayChg==null?'var(--t3)':dayChg>=0?'var(--green)':'var(--red)';
+    return'<tr'+(p.hasTx?' style="background:rgba(255,193,32,.04)"':'')+'><td>'+fDt(p.date)+txMark+'</td><td style="font-weight:600;color:var(--gold)">฿'+fmt(p.val,2)+'</td><td style="color:'+chgClr+'">'+(dayChg!=null?fmtS(dayChg):'-')+'</td><td style="color:'+chgClr+'">'+(dayPct!=null?fmtS(dayPct)+'%':p.hasTx?'TX day':'-')+'</td><td>฿'+fmt(p.inv,2)+'</td><td style="color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+fmtS(pnl)+'</td><td style="color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+fmtS(pnlPct)+'%</td></tr>';}).join('');
+  el('t-daily').innerHTML='<thead><tr><th>วันที่</th><th>มูลค่าพอร์ต</th><th>เปลี่ยน (฿)</th><th>เปลี่ยน (%)</th><th>เงินลงทุนสะสม</th><th>P&L (฿)</th><th>P&L (%)</th></tr></thead><tbody>'+bdy+'</tbody>';
 }
 
 // ================================================================
-//  CONSTANTS CHECK
+//  CHARTS (from v18)
 // ================================================================
-function logConstantsCheck(){
-  const expected={N_TOP:2,COOLDOWN_DAYS:15,SCORE_GAP_MIN:0.20,EXIT_DD_PCT:-6.0,EXIT_COOLDOWN:10,REENTRY_SCORE:0.55,CONSEC_PAUSE:30,G_CAP:0.25,PR_CAP:0.20,QUOTA_PER_YR:12,CHANGE_THRESH:0.05,MIN_HIST_DAYS:120,SIGNAL_LAG:0};
-  const actual={N_TOP,COOLDOWN_DAYS,SCORE_GAP_MIN,EXIT_DD_PCT,EXIT_COOLDOWN,REENTRY_SCORE,CONSEC_PAUSE,G_CAP,PR_CAP,QUOTA_PER_YR,CHANGE_THRESH,MIN_HIST_DAYS,SIGNAL_LAG};
-  let allOk=true;const lines=['🔍 GPF v13 — Constants vs Backtest v4.7b'];
-  Object.entries(expected).forEach(([k,exp])=>{const act=actual[k];const ok=act===exp;if(!ok)allOk=false;lines.push((ok?'✅':'❌')+' '+k+': actual='+act+' | expected='+exp);});
-  lines.push(allOk?'✅ All constants match backtest!':'⚠️ Mismatch found');
-  lines.push('ALGO_VERSION: '+ALGO_VERSION);
-  console.log(lines.join('\n'));
+const CD={responsive:true,maintainAspectRatio:false,resizeDelay:0,animation:{duration:400},plugins:{legend:{labels:{color:'#7888a8',font:{family:'Sarabun',size:11}}}},scales:{x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',maxTicksLimit:8,font:{size:10,family:'IBM Plex Mono'}}},y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:10,family:'IBM Plex Mono'}}}}};
+const fmtDateChart=d=>d.toLocaleDateString('th-TH',{month:'short',day:'numeric'});
+function destroyChart(key){if(portCharts[key]){try{portCharts[key].destroy();}catch(e){}delete portCharts[key];}}
+
+function renderPortChart(days){
+  const{l,v,iv}=calcPort(NAV_PORT,TX_PORT,days);const ctx=el('port-chart');if(!ctx)return;
+  destroyChart('port');
+  if(l.length<2){const c=ctx.getContext('2d');c.clearRect(0,0,ctx.width,ctx.height);c.fillStyle='#7888a8';c.font='13px Sarabun';c.textAlign='center';c.fillText(TX_PORT.length===0?'ไม่พบ Transaction — โหลด TX Sheet ด้วย':'ข้อมูลน้อยเกินไป ลอง All',ctx.clientWidth/2||200,110);return;}
+  portCharts.port=new Chart(ctx.getContext('2d'),{type:'line',data:{labels:l.map(fmtDateChart),datasets:[{label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,backgroundColor:ctx2=>{const g=ctx2.chart.ctx.createLinearGradient(0,0,0,260);g.addColorStop(0,'rgba(255,193,32,.18)');g.addColorStop(1,'rgba(255,193,32,0)');return g;}},{label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3}]},options:{...CD,interaction:{mode:'index',intersect:false},plugins:{...CD.plugins,tooltip:{mode:'index',intersect:false,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:12,titleColor:'#7888a8',titleFont:{family:'Sarabun',size:12},bodyFont:{family:'IBM Plex Mono',size:12},callbacks:{label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;return[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)'];}}}}}}); }
+function renderAlloc(hold,nav){
+  const ln=nav[nav.length-1];const ls=[],data=[],cs=[];
+  for(const[f,u]of Object.entries(hold)){const nv=ln?.funds[f];if(!nv||u*nv<=0)continue;const m=FM[f]||{l:f,c:'#888'};ls.push(m.l);data.push(u*nv);cs.push(m.c);}
+  const ctx=el('alloc-chart').getContext('2d');destroyChart('alloc');
+  portCharts.alloc=new Chart(ctx,{type:'doughnut',data:{labels:ls,datasets:[{data,backgroundColor:cs,borderColor:'#0d1526',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#7888a8',font:{family:'Sarabun',size:11},padding:8}},tooltip:{callbacks:{label:c=>{const total=data.reduce((a,b)=>a+b,0);return' '+c.label+': ฿'+c.parsed.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+((c.parsed/total)*100).toFixed(1)+'%)';}}}}}}); }
+function renderFund(nav, days){
+  if(days===undefined)days=fundPeriod;
+  const fs=['F','G','A65','A75','Money_Market','B','TH'];
+  const av=fs.filter(f=>nav.some(n=>n.funds[f]!=null));
+  let rc;if(days===0){rc=nav;}else{const cut=new Date(Date.now()-days*864e5);rc=nav.filter(n=>n.date>=cut);}
+  if(rc.length<2)return;
+  const ds=av.map(f=>{const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fv)/fv)*100);const m=FM[f]||{l:f,c:'#888'};return{label:m.l,data,borderColor:m.c,borderWidth:1.5,pointRadius:0,tension:.3,fill:false};}).filter(Boolean);
+  const lbls=rc.filter(n=>n.funds[av[0]]!=null).map(n=>fmtDateChart(n.date));
+  const ctx=el('fund-chart').getContext('2d');destroyChart('fund');
+  portCharts.fund=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,callbacks:{label:c=>' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'}}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
+}
+function renderNavCh(nav,hold){
+  const active=Object.keys(hold).filter(f=>FM[f]&&nav.some(n=>n.funds[f]));
+  const rc=nav.slice(-90);const fn={};
+  for(const f of active){const v=rc.find(n=>n.funds[f]!=null)?.funds[f];if(v)fn[f]=v;}
+  const ds=active.map(f=>{const m=FM[f]||{s:f,c:'#888'};const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fn[f])/fn[f])*100);return{label:m.s,data,borderColor:m.c,borderWidth:1.5,pointRadius:0,tension:.3,fill:false};});
+  const lbls=rc.filter(n=>n.funds[active[0]]!=null).map(n=>fmtDateChart(n.date));
+  const ctx=el('nav-chart').getContext('2d');destroyChart('navchart');
+  portCharts.navchart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,callbacks:{title:items=>'NAV '+items[0]?.label||'',label:c=>{const f=active[c.datasetIndex];const navPt=rc.filter(n=>n.funds[f]!=null)[c.dataIndex];const navVal=navPt?navPt.funds[f]:null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'+(navVal?' (NAV '+fmt(navVal,4)+')':'')}}}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
+}
+function setPeriod(btn,days){document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');curPeriod=days;destroyChart('port');renderPortChart(days);}
+function setFundPeriod(btn,days){document.querySelectorAll('.fpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');fundPeriod=days;if(NAV_PORT.length>0){destroyChart('fund');renderFund(NAV_PORT,days);}}
+
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+  btn.classList.add('active');
+  if(id==='portfolio'&&NAV_PORT.length>0){
+    requestAnimationFrame(()=>{
+      const hold=calcHold(TX_PORT);
+      destroyChart('port');destroyChart('alloc');destroyChart('fund');destroyChart('navchart');
+      renderPortChart(curPeriod);renderAlloc(hold,NAV_PORT);renderFund(NAV_PORT);renderNavCh(NAV_PORT,hold);
+    });
+  }
+}
+function portTab(btn,id){
+  document.querySelectorAll('.ttbtn').forEach(b=>b.classList.remove('active'));
+  document.querySelectorAll('.tpanel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');el(id).classList.add('active');
 }
 
 // ================================================================
 //  BOOTSTRAP
 // ================================================================
 window.addEventListener('DOMContentLoaded',function(){
-  buildGrid('grid-diy',DIY);
-  buildGrid('grid-mix',MIX);
-  loadCfg();load();bindSave();onAllocChange();updateQuotaBar();renderExitTracker();
-  logConstantsCheck();
+  loadCfg();load();bindSave();updateQuotaBar();
   el('quota-used').addEventListener('input',function(){updateQuotaBar();save();});
-  try{
-    const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
-    setExtMode(s['ext-mode']||'auto');
-    setPortMode(s['port-mode']||'auto');
-  }catch(e){setExtMode('auto');setPortMode('auto');}
   const prev=el('step-prev'),next=el('step-next');
   if(prev)prev.addEventListener('click',()=>stepHistDate(-1));
   if(next)next.addEventListener('click',()=>stepHistDate(+1));
-  // Check if previously had data
   const cfgDbId=el('cfg-db-id').value.trim();
   if(cfgDbId)el('btn-load-all').disabled=false;
+  console.log('GPF LiveTrade '+ALGO_VERSION+' loaded | Menu options: '+Object.keys(generateMenu()).length);
 });
 </script>
 </body>
