@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
-<title>GPF Live Trade v21</title>
+<title>GPF Live Trade v22</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -765,8 +765,8 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div class="logo-box">
       <div class="logo-icon">กบข</div>
       <div>
-        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v21</span></div>
-        <div class="logo-sub">Acceleration Engine · v6.21</div>
+        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v22</span></div>
+        <div class="logo-sub">Acceleration Engine + Fund Filter · v6.22</div>
       </div>
     </div>
     <div class="tab-nav">
@@ -871,7 +871,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div>
       <label>วันที่เปลี่ยนแผนล่าสุด</label>
       <input type="date" id="last-rebal">
-      <div class="field-note">cooldown 30 วันทำการ</div>
+      <div class="field-note">cooldown 30 วันทำการ (บล็อคทั้ง exit+entry)</div>
     </div>
     <div>
       <label>Quota ที่ใช้แล้วปีนี้</label>
@@ -912,7 +912,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <!-- V21: Position Tracking -->
   <hr class="divider">
   <div class="pos-input-card" style="background:transparent;border:none;padding:0">
-    <div class="pos-input-title">V21 Position Tracking</div>
+    <div class="pos-input-title">V22 Position Tracking</div>
     <div class="pos-row3">
       <div>
         <label>มูลค่าตอน Switch เข้า (฿)</label>
@@ -1026,7 +1026,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 
   <!-- V21: Acceleration Table -->
   <div class="card" style="padding:12px 14px">
-    <div class="card-head" style="color:var(--purple)">⚡ V21 Acceleration Dashboard</div>
+    <div class="card-head" style="color:var(--purple)">⚡ V22 Acceleration Dashboard</div>
     <table class="accel-tbl">
       <thead><tr><th>Allocation</th><th>Velocity</th><th>Accel (bp)</th><th>สถานะ</th><th>Signal</th></tr></thead>
       <tbody id="accel-body"></tbody>
@@ -1060,9 +1060,9 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 
 <div id="run-time"></div>
 <div class="sig-footer">
-  v6.21 · V21 Acceleration Engine · vel_span=5 · accel_span=3 · accel_tp=3% · accel_exit=-5bp<br>
-  cooldown=30bd · trail=3% · regime=60d(F+TH) · BULL>3% · BEAR<-3% · quota=12/yr · G_cap=25%<br>
-  <span class="calib-badge">⚙ Calibrated: V21 backtest · Sharpe=2.055 · TWR=+68.9% · MaxDD=-3.9% · Switches=18</span>
+  v6.22 · V22 Acceleration Engine + Fund Filter · vel_span=5 · accel_span=3 · accel_tp=3% · accel_exit=-5bp<br>
+  cooldown=30bd (blocks exit+entry) · trail=3% · regime=60d(F+TH) · BULL>3% · BEAR<-3% · quota=12/yr · G_cap=25% · V22B: underlying fund filter<br>
+  <span class="calib-badge">⚙ Calibrated: V22B backtest · Sharpe=2.073 · TWR=+65.8% · MaxDD=-3.9% · Switches=18 · 0 overlaps</span>
 </div>
 
 </div><!-- /sig-wrap -->
@@ -1199,7 +1199,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 // ================================================================
 //  CONSTANTS — v5.19
 // ================================================================
-const ALGO_VERSION  = 'v6.21';
+const ALGO_VERSION  = 'v6.22';
 const COOLDOWN_DAYS = 30;
 const G_CAP         = 0.25;
 const QUOTA_PER_YR  = 12;
@@ -1232,7 +1232,7 @@ const PRESET_PLANS = {
   'TH_100':      {TH: 1.00},
 };
 const ALL_PLANS = ['A35','Base_Plan','B','Money_Market','A20','A65','TH','PR','F','Global_Bond','G','A75','Shariah'];
-const STORE_KEY    = 'gpf_live_v21';
+const STORE_KEY    = 'gpf_live_v22';
 const FM = {
   F:{l:'หุ้นต่างประเทศ (F)',c:'#3b82f6',s:'F',dash:[]},
   G:{l:'ทองคำ (G)',c:'#facc15',s:'G',dash:[]},
@@ -1397,7 +1397,7 @@ function parseTx(csv){
 }
 
 // ================================================================
-//  SIGNAL ENGINE — v6.21 Acceleration + Regime
+//  SIGNAL ENGINE — v6.22 Acceleration + Regime
 // ================================================================
 function computeSignalV21(navMatrix, dates, plans, delay) {
   const n = navMatrix.length;
@@ -1613,9 +1613,9 @@ function generateMenu() {
 }
 
 // ================================================================
-//  DECISION ENGINE — v21 Acceleration + Regime
+//  DECISION ENGINE — v22 Acceleration + Regime + Fund Filter
 // ================================================================
-function makeDecisionV21({scores, velocity, acceleration, regime, allocVel, allocAccel, ALLOCATIONS,
+function makeDecisionV22({scores, velocity, acceleration, regime, allocVel, allocAccel, ALLOCATIONS,
                           currentMenu, currentAlloc, quotaUsed, lastSwitchStr, referenceDate,
                           positionEntryDate, positionEntryValue, currentPortValue, positionPeakValue,
                           positionNavReturn}) {
@@ -1625,6 +1625,7 @@ function makeDecisionV21({scores, velocity, acceleration, regime, allocVel, allo
 
   const OFFENSIVE = ['F100', 'TH100', 'F75_G25', 'TH75_G25', 'F50_TH25_G25'];
   const DEFENSIVE = ['B100', 'MM'];
+  const EQUITY_FUNDS = ['F', 'TH', 'G', 'PR'];  // non-defensive funds
 
   // Determine current allocation type
   function allocKey(alloc) {
@@ -1653,11 +1654,23 @@ function makeDecisionV21({scores, velocity, acceleration, regime, allocVel, allo
     posRet = currentPortValue / positionEntryValue - 1;
   }
 
-  // Find best accelerating offensive fund
+  // V22B: Find best accelerating offensive fund WITH underlying fund filter
+  // Target allocation must not have ANY equity fund with accel < ACCEL_EXIT_LEVEL
   function pickBestAccel(exclude) {
     let best = null, bestA = -Infinity;
     OFFENSIVE.forEach(alloc => {
       if (alloc === exclude) return;
+      // V22B: check ALL underlying equity funds
+      const weights = ALLOCATIONS[alloc];
+      let allFundsOk = true;
+      Object.entries(weights).forEach(([fund, w]) => {
+        if (fund === 'B' || fund === 'Money_Market') return; // skip defensive
+        const fundAccel = acceleration[fund];
+        if (fundAccel !== null && fundAccel < ACCEL_EXIT_LEVEL) {
+          allFundsOk = false;
+        }
+      });
+      if (!allFundsOk) return; // V22B: reject allocation with decelerating fund
       const v = allocVel[alloc];
       const a = allocAccel[alloc];
       if (v !== null && a !== null && v > 0 && a > 0 && a > bestA) {
@@ -1700,14 +1713,29 @@ function makeDecisionV21({scores, velocity, acceleration, regime, allocVel, allo
              targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
   }
 
-  // 2. Cooldown calculation (used later — NOT a blocker for exits)
+  // 2. Cooldown check — blocks BOTH exit and entry (V22 design: prevents over-trading)
   let inCooldown = false, bdSince = 999;
   if (lastSwitchStr) {
     bdSince = bdays(new Date(lastSwitchStr), today);
     inCooldown = bdSince < COOLDOWN_DAYS;
   }
+  if (inCooldown) {
+    const cdNote = bdSince + '/' + COOLDOWN_DAYS + ' วันทำการ';
+    // Still show position info if offensive
+    if (isOffensive && posRet !== null) {
+      const curAccel = allocAccel[curKey];
+      const sensorOn = posRet >= ACCEL_TP_THRESHOLD;
+      const accelStr = curAccel !== null ? (curAccel*10000).toFixed(1) + 'bp' : '—';
+      return { action: 'HOLD_COOLDOWN', reason: 'Cooldown: ' + cdNote + (sensorOn ? ' | sensor ON: accel=' + accelStr : ' | กำไร ' + (posRet*100).toFixed(1) + '%'),
+               daysLeft: COOLDOWN_DAYS - bdSince,
+               targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
+    }
+    return { action: 'HOLD_COOLDOWN', reason: 'Cooldown: ' + cdNote,
+             daysLeft: COOLDOWN_DAYS - bdSince,
+             targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
+  }
 
-  // === OFFENSIVE: EXIT LOGIC (ignores cooldown — protective exits must fire) ===
+  // === OFFENSIVE: EXIT LOGIC ===
   if (isOffensive && posRet !== null) {
     const curAccel = allocAccel[curKey];
     const curVel = allocVel[curKey];
@@ -1722,7 +1750,7 @@ function makeDecisionV21({scores, velocity, acceleration, regime, allocVel, allo
                  targetMenu: best.fund, targetAlloc, ...info };
       } else {
         return { action: 'ACCEL_TP_DEF', level: 'ACTION',
-                 reason: 'AccelTP: กำไร ' + (posRet*100).toFixed(1) + '% + ชะลอตัว (accel=' + (curAccel*10000).toFixed(1) + 'bp) + ไม่มี fund เร่ง → defensive',
+                 reason: 'AccelTP: กำไร ' + (posRet*100).toFixed(1) + '% + ชะลอตัว (accel=' + (curAccel*10000).toFixed(1) + 'bp) + ไม่มี fund เร่ง (V22B filter) → defensive',
                  targetMenu: 'B100', targetAlloc: { B: 1.0 }, ...info };
       }
     }
@@ -1753,16 +1781,14 @@ function makeDecisionV21({scores, velocity, acceleration, regime, allocVel, allo
                targetMenu: 'B100', targetAlloc: { B: 1.0 }, ...info };
     }
 
-    // INFO: Show acceleration status (not blocked by cooldown either)
+    // INFO: Show acceleration status
     if (posRet >= ACCEL_TP_THRESHOLD && curAccel !== null && curAccel >= ACCEL_EXIT_LEVEL) {
-      const cdNote = inCooldown ? ' [CD: ' + bdSince + '/' + COOLDOWN_DAYS + 'd]' : '';
-      return { action: 'HOLD_ACCEL_WATCH', reason: 'กำไร ' + (posRet*100).toFixed(1) + '% — Acceleration sensor ON: accel=' + (curAccel*10000).toFixed(1) + 'bp (threshold ' + (ACCEL_EXIT_LEVEL*10000).toFixed(0) + 'bp)' + cdNote,
+      return { action: 'HOLD_ACCEL_WATCH', reason: 'กำไร ' + (posRet*100).toFixed(1) + '% — Acceleration sensor ON: accel=' + (curAccel*10000).toFixed(1) + 'bp (threshold ' + (ACCEL_EXIT_LEVEL*10000).toFixed(0) + 'bp)',
                targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
     }
 
     if (posRet < ACCEL_TP_THRESHOLD) {
-      const cdNote = inCooldown ? ' [CD: ' + bdSince + '/' + COOLDOWN_DAYS + 'd]' : '';
-      return { action: 'HOLD_BUILDING', reason: 'กำไร ' + (posRet*100).toFixed(1) + '% < 3% — ปล่อยวิ่ง (sensor OFF)' + cdNote,
+      return { action: 'HOLD_BUILDING', reason: 'กำไร ' + (posRet*100).toFixed(1) + '% < 3% — ปล่อยวิ่ง (sensor OFF)',
                targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
     }
   }
@@ -1777,14 +1803,7 @@ function makeDecisionV21({scores, velocity, acceleration, regime, allocVel, allo
              targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
   }
 
-  // 3. Cooldown check (blocks ENTRY only — not exits above)
-  if (inCooldown) {
-    return { action: 'HOLD_COOLDOWN', reason: 'Cooldown: ' + bdSince + '/' + COOLDOWN_DAYS + ' วันทำการ',
-             daysLeft: COOLDOWN_DAYS - bdSince,
-             targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
-  }
-
-  // === DEFENSIVE: ENTRY LOGIC (after cooldown check) ===
+  // === DEFENSIVE: ENTRY LOGIC ===
   if (isDefensive) {
     if (regime === 'BEAR') {
       return { action: 'HOLD_BEAR_GATE', reason: 'Regime = BEAR → ห้ามเข้า equity (BEAR gate)',
@@ -1795,11 +1814,11 @@ function makeDecisionV21({scores, velocity, acceleration, regime, allocVel, allo
     if (best.fund) {
       const targetAlloc = ALLOCATIONS[best.fund];
       return { action: 'ENTER', level: 'ACTION',
-               reason: 'Enter: ' + best.fund + ' (accel=' + (best.accel*10000).toFixed(1) + 'bp, vel>0) [' + regime + ']',
+               reason: 'Enter: ' + best.fund + ' (accel=' + (best.accel*10000).toFixed(1) + 'bp, vel>0) [' + regime + '] — V22B fund filter passed',
                targetMenu: best.fund, targetAlloc, ...info };
     }
 
-    return { action: 'HOLD_NO_ACCEL', reason: 'ไม่มี fund ที่ accel>0 + vel>0 → รอ [' + regime + ']',
+    return { action: 'HOLD_NO_ACCEL', reason: 'ไม่มี fund ที่ accel>0 + vel>0 (V22B filter) → รอ [' + regime + ']',
              targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
   }
 
@@ -2071,8 +2090,39 @@ document.addEventListener('drop',async e=>{
 // ================================================================
 //  VIEW MODE
 // ================================================================
+function clearSignalResults(){
+  // Reset decision banner
+  const pill=el('banner-pill');if(pill)pill.textContent='—';
+  const reason=el('banner-reason');if(reason)reason.textContent='';
+  const meta=el('banner-meta');if(meta)meta.textContent='';
+  const target=el('target-row');if(target)target.innerHTML='';
+  const db=el('decision-banner');if(db)db.className='';
+  // Hide regime bar
+  const rb=el('regime-bar');if(rb)rb.style.display='none';
+  // Hide pos card
+  const pc=el('pos-card');if(pc)pc.style.display='none';
+  // Clear stats
+  ['stat-nav-date','stat-date','stat-menus','stat-quota','stat-rows'].forEach(id=>{const e=el(id);if(e)e.textContent='—';});
+  // Clear accel table
+  const ab=el('accel-body');if(ab)ab.innerHTML='';
+  // Clear score/menu tables
+  const sb2=el('scores-body');if(sb2)sb2.innerHTML='';
+  const mb=el('menu-body');if(mb)mb.innerHTML='';
+  // Hide instruction box
+  const ai=el('app-instr-box');if(ai)ai.style.display='none';
+  // Hide sim banner
+  const simB=el('sim-banner');if(simB)simB.style.display='none';
+  // Hide hist banner
+  const hb=el('hist-banner');if(hb)hb.innerHTML='';
+  // Clear run time
+  const rt=el('run-time');if(rt)rt.textContent='';
+  // Clear error
+  const eb=el('error-box');if(eb)eb.style.display='none';
+}
+
 function setViewMode(mode){
   viewMode=mode;
+  clearSignalResults();
   const todayBtn=el('mode-today'),histBtn=el('mode-history'),simBtn=el('mode-sim');
   const histWrap=el('hist-date-wrap'),simPanel=el('sim-panel');
   const runBtn=el('run-btn'),histRunBtn=el('hist-run-btn');
@@ -2477,8 +2527,9 @@ async function runSignal(){
       currentAlloc = simAlloc;
       currentMenu = simAllocName;
 
-      // Sim mode: NO cooldown — this is hypothetical
-      lastSwitchStr = '';
+      // Sim mode: cooldown starts from entry date (V22: cooldown blocks both exit+entry)
+      // Entry date = when the hypothetical switch happened → cooldown counts from there
+      lastSwitchStr = simEntryStr;
 
       // Quota: count real TX switches before sim ref date
       if (TX_PORT && TX_PORT.length > 0) {
@@ -2486,6 +2537,14 @@ async function runSignal(){
         const refYear = simRefDate.getFullYear();
         const rebalBeforeRef = new Set(rebalTxAll.filter(t => t.date.getFullYear() === refYear && t.date < simRefDate).map(t => t.date.toDateString()));
         quotaUsed = rebalBeforeRef.size;
+      }
+
+      // Mid-period deposits (calculate early for banner display)
+      let depositMid = 0;
+      if (TX_PORT && TX_PORT.length > 0) {
+        TX_PORT.filter(t => t.date > simEntryDate && t.date <= simRefDate).forEach(t => {
+          if (t.total && t.total > 0 && t.type && !t.type.includes('เปลี่ยนแผน') && !t.type.toLowerCase().includes('rebal')) depositMid += t.total;
+        });
       }
 
       // NAV-weighted return from entry to ref
@@ -2505,12 +2564,12 @@ async function runSignal(){
           }
           if (valid) {
             histNavReturn = navRet;
-            // Entry value from real TX deposits up to entry date
-            const txBefore = TX_PORT.filter(t => t.date <= simEntryDate);
-            let totalDeposit = 0;
-            txBefore.forEach(t => { if (t.total && t.total > 0 && t.type && !t.type.includes('เปลี่ยนแผน') && !t.type.toLowerCase().includes('rebal')) totalDeposit += t.total; });
-            histPosEntry = totalDeposit > 0 ? totalDeposit : null;
-            histPosCurrent = totalDeposit > 0 ? totalDeposit * (1 + navRet) : null;
+            // Entry value = deposits up to entry date
+            const txBeforeEntry = TX_PORT.filter(t => t.date <= simEntryDate);
+            let depositEntry = 0;
+            txBeforeEntry.forEach(t => { if (t.total && t.total > 0 && t.type && !t.type.includes('เปลี่ยนแผน') && !t.type.toLowerCase().includes('rebal')) depositEntry += t.total; });
+            histPosEntry = depositEntry > 0 ? depositEntry : null;
+            histPosCurrent = depositEntry > 0 ? depositEntry * (1 + navRet) + depositMid : null;
 
             // Peak NAV return
             let peakRet = 0;
@@ -2525,7 +2584,7 @@ async function runSignal(){
             }
             histNavPeakReturn = peakRet;
             histNavDD = navRet - peakRet;
-            histPosPeak = histPosEntry ? histPosEntry * (1 + peakRet) : null;
+            histPosPeak = histPosEntry ? histPosEntry * (1 + peakRet) + depositMid : null;
             console.log('[V21 sim] alloc:', simAllocName, 'entry:', simEntryStr, 'ref:', histDateVal);
             console.log('[V21 sim] NAV return:', (navRet*100).toFixed(2)+'%', 'peak:', (peakRet*100).toFixed(2)+'%', 'DD:', ((navRet-peakRet)*100).toFixed(2)+'%');
           }
@@ -2535,9 +2594,14 @@ async function runSignal(){
       // Show sim banner
       const sb = el('sim-banner');
       if (sb) {
+        const simRefDate2 = new Date(histDateVal); simRefDate2.setHours(0,0,0,0);
+        const cdBd = bdays(simEntryDate, simRefDate2);
+        const cdActive = cdBd < COOLDOWN_DAYS;
         sb.style.display = 'block';
         sb.innerHTML = '<b>🔬 Simulation</b> — ถ้าถือ <b>' + simAllocName + '</b> ตั้งแต่ ' + simEntryStr + ' ถึง ' + histDateVal
-          + (histNavReturn !== null ? ' → return <b>' + (histNavReturn >= 0 ? '+' : '') + (histNavReturn*100).toFixed(2) + '%</b>' : '');
+          + (histNavReturn !== null ? ' → return <b>' + (histNavReturn >= 0 ? '+' : '') + (histNavReturn*100).toFixed(2) + '%</b>' : '')
+          + (depositMid > 0 ? ' · เงินเพิ่ม ฿' + depositMid.toLocaleString('th-TH',{maximumFractionDigits:0}) : '')
+          + (cdActive ? ' · <span style="color:var(--gold)">CD: ' + cdBd + '/' + COOLDOWN_DAYS + 'd</span>' : '');
       }
     } else {
       const sb = el('sim-banner'); if(sb) sb.style.display='none';
@@ -2549,7 +2613,7 @@ async function runSignal(){
     const posPeakVal = histPosPeak !== null ? histPosPeak : (el('position-peak-value') ? parseFloat(el('position-peak-value').value) : null);
 
     // Decision
-    const decision = makeDecisionV21({
+    const decision = makeDecisionV22({
       scores, velocity, acceleration, regime, allocVel, allocAccel, ALLOCATIONS: ALLOC_MAP,
       currentMenu, currentAlloc, quotaUsed, lastSwitchStr,
       referenceDate: (isHistory||isSim) ? histDateVal : null,
@@ -3198,6 +3262,7 @@ Chart.Tooltip.positioners.topLeft = function() {
 // Sort tooltip items by value descending
 const ttSortDesc = (a,b) => (b.parsed?.y ?? b.parsed ?? 0) - (a.parsed?.y ?? a.parsed ?? 0);
 const fmtDateChart=d=>d.toLocaleDateString('th-TH',{month:'short',day:'numeric'});
+const fmtDateTooltip=d=>{const s=d.toLocaleDateString('th-TH',{year:'numeric',month:'short',day:'numeric'});return s;};
 function destroyChart(key){if(portCharts[key]){try{portCharts[key].destroy();}catch(e){}delete portCharts[key];}}
 
 // Sync hover between paired port+DD charts
@@ -3281,7 +3346,7 @@ function renderPortChart(days){
           backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:12,
           titleColor:'#7888a8',titleFont:{family:'Sarabun',size:12},bodyFont:{family:'IBM Plex Mono',size:12},
           filter:item=>item.dataset.label!=='📌 Rebalance',
-          callbacks:{label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
+          callbacks:{title:items=>{const i=items[0]?.dataIndex;return i!=null&&l[i]?fmtDateTooltip(l[i]):items[0]?.label||'';},label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
             afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const ddIcon=dd>-2?'🟢':dd>-5?'🟡':'🔴';const parts=[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)',' '+ddIcon+' DD: '+dd.toFixed(2)+'%'];if(rebalData[i]!==null)parts.push(' 📌 Rebalance');return parts;}}
         }
       }
@@ -3316,19 +3381,19 @@ function renderFund(nav, days){
   const av=fs.filter(f=>nav.some(n=>n.funds[f]!=null));
   let rc;if(days===0){rc=nav;}else{const cut=new Date(Date.now()-days*864e5);rc=nav.filter(n=>n.date>=cut);}
   if(rc.length<2)return;
-  const ds=av.map(f=>{const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fv)/fv)*100);const m=FM[f]||{l:f,c:'#888'};return{label:m.l,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false};}).filter(Boolean);
-  const lbls=rc.filter(n=>n.funds[av[0]]!=null).map(n=>fmtDateChart(n.date));
+  const lbls=rc.map(n=>fmtDateChart(n.date));
+  const ds=av.map(f=>{const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;const data=rc.map(n=>n.funds[f]!=null?((n.funds[f]-fv)/fv)*100:null);const m=FM[f]||{l:f,c:'#888'};return{label:m.l,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};}).filter(Boolean);
   const ctx=el('fund-chart').getContext('2d');destroyChart('fund');
-  portCharts.fund=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{label:c=>' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'}}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
+  portCharts.fund=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{title:items=>{const i=items[0]?.dataIndex;return i!=null&&rc[i]?fmtDateTooltip(rc[i].date):items[0]?.label||'';},label:c=>{if(c.parsed.y==null)return null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%';}},filter:c=>c.parsed.y!=null}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
 }
 function renderNavCh(nav,hold){
   const active=Object.keys(hold).filter(f=>FM[f]&&nav.some(n=>n.funds[f]));
   const rc=nav.slice(-90);const fn={};
   for(const f of active){const v=rc.find(n=>n.funds[f]!=null)?.funds[f];if(v)fn[f]=v;}
-  const ds=active.map(f=>{const m=FM[f]||{s:f,c:'#888'};const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fn[f])/fn[f])*100);return{label:m.s,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false};});
-  const lbls=rc.filter(n=>n.funds[active[0]]!=null).map(n=>fmtDateChart(n.date));
+  const ds=active.map(f=>{const m=FM[f]||{s:f,c:'#888'};const data=rc.map(n=>n.funds[f]!=null&&fn[f]?((n.funds[f]-fn[f])/fn[f])*100:null);return{label:m.s,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};});
+  const lbls=rc.map(n=>fmtDateChart(n.date));
   const ctx=el('nav-chart').getContext('2d');destroyChart('navchart');
-  portCharts.navchart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{title:items=>'NAV '+items[0]?.label||'',label:c=>{const f=active[c.datasetIndex];const navPt=rc.filter(n=>n.funds[f]!=null)[c.dataIndex];const navVal=navPt?navPt.funds[f]:null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'+(navVal?' (NAV '+fmt(navVal,4)+')':'')}}}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
+  portCharts.navchart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{title:items=>{const i=items[0]?.dataIndex;return i!=null&&rc[i]?fmtDateTooltip(rc[i].date):items[0]?.label||'';},label:c=>{if(c.parsed.y==null)return null;const f=active[c.datasetIndex];const navVal=rc[c.dataIndex]?.funds[f];return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'+(navVal?' (NAV '+fmt(navVal,4)+')':'')}},filter:c=>c.parsed.y!=null}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
 }
 function setPeriod(btn,days){document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');curPeriod=days;destroyChart('port');renderPortChart(days);}
 function setFundPeriod(btn,days){document.querySelectorAll('.fpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');fundPeriod=days;if(NAV_PORT.length>0){destroyChart('fund');renderFund(NAV_PORT,days);}}
@@ -3635,7 +3700,7 @@ function renderFsChart(chartKey){
       interaction:{mode:'index',intersect:false},
       scales:{x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'transparent',maxTicksLimit:12,font:{size:10,family:'IBM Plex Mono'}},afterFit(axis){axis.paddingRight=FS_X_PAD_R;axis.paddingLeft=0;}},y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:11,family:'IBM Plex Mono'}},afterFit(axis){axis.width=FS_Y_W;}}},
       plugins:{legend:{labels:{color:'#7888a8',font:{family:'Sarabun',size:12}}},
-        tooltip:{...fsTTOpts({label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
+        tooltip:{...fsTTOpts({title:items=>{const i=items[0]?.dataIndex;return i!=null&&l[i]?fmtDateTooltip(l[i]):items[0]?.label||'';},label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
           afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const ddIcon=dd>-2?'🟢':dd>-5?'🟡':'🔴';const parts=[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)',' '+ddIcon+' DD: '+dd.toFixed(2)+'%'];if(rebalData[i]!==null)parts.push(' 📌 Rebalance');return parts;}
         }),filter:item=>item.dataset.label!=='📌 Rebalance'}
       }
@@ -3669,13 +3734,13 @@ function renderFsChart(chartKey){
     const av=fs2.filter(f=>NAV_PORT.some(n=>n.funds[f]!=null));
     let rc;if(days===0){rc=NAV_PORT;}else{const cut=new Date(Date.now()-days*864e5);rc=NAV_PORT.filter(n=>n.date>=cut);}
     if(rc.length<2)return;
-    const ds=av.map(f=>{const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fv)/fv)*100);const m=FM[f]||{l:f,c:'#888'};return{label:m.l,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false};}).filter(Boolean);
-    const lbls=rc.filter(n=>n.funds[av[0]]!=null).map(n=>fmtDateChart(n.date));
+    const lbls=rc.map(n=>fmtDateChart(n.date));
+    const ds=av.map(f=>{const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;const data=rc.map(n=>n.funds[f]!=null?((n.funds[f]-fv)/fv)*100:null);const m=FM[f]||{l:f,c:'#888'};return{label:m.l,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};}).filter(Boolean);
     fsChart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},
       options:{...CD,responsive:true,maintainAspectRatio:false,
         interaction:{mode:'index',intersect:false},
         plugins:{...CD.plugins,
-          tooltip:fsTTOpts({label:c=>' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'})
+          tooltip:{...fsTTOpts({title:items=>{const i=items[0]?.dataIndex;return i!=null&&rc[i]?fmtDateTooltip(rc[i].date):items[0]?.label||'';},label:c=>{if(c.parsed.y==null)return null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%';}}),filter:c=>c.parsed.y!=null}
         },
         scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v.toFixed(1)+'%'}}}
       }});
@@ -3684,13 +3749,13 @@ function renderFsChart(chartKey){
     const active=Object.keys(hold).filter(f=>FM[f]&&NAV_PORT.some(n=>n.funds[f]));
     const rc=NAV_PORT.slice(-90);const fn={};
     for(const f of active){const v=rc.find(n=>n.funds[f]!=null)?.funds[f];if(v)fn[f]=v;}
-    const ds=active.map(f=>{const m=FM[f]||{s:f,c:'#888'};const data=rc.filter(n=>n.funds[f]!=null).map(n=>((n.funds[f]-fn[f])/fn[f])*100);return{label:m.s,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false};});
-    const lbls=rc.filter(n=>n.funds[active[0]]!=null).map(n=>fmtDateChart(n.date));
+    const ds=active.map(f=>{const m=FM[f]||{s:f,c:'#888'};const data=rc.map(n=>n.funds[f]!=null&&fn[f]?((n.funds[f]-fn[f])/fn[f])*100:null);return{label:m.s,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};});
+    const lbls=rc.map(n=>fmtDateChart(n.date));
     fsChart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},
       options:{...CD,responsive:true,maintainAspectRatio:false,
         interaction:{mode:'index',intersect:false},
         plugins:{...CD.plugins,
-          tooltip:fsTTOpts({label:c=>' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'})
+          tooltip:{...fsTTOpts({title:items=>{const i=items[0]?.dataIndex;return i!=null&&rc[i]?fmtDateTooltip(rc[i].date):items[0]?.label||'';},label:c=>{if(c.parsed.y==null)return null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%';}}),filter:c=>c.parsed.y!=null}
         },
         scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v.toFixed(1)+'%'}}}
       }});
