@@ -754,6 +754,159 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 }
 .expand-btn:hover { border-color: var(--acc); color: var(--acc); }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* ================================================================
+   MOBILE RESPONSIVE — Smartphone (≤480px)
+   ================================================================ */
+@media(max-width:480px) {
+  body { font-size: 12px; }
+
+  /* HEADER — stack vertically */
+  .hdr { padding: 0 10px; }
+  .hdr-inner {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 8px 0;
+    gap: 8px;
+  }
+  .logo-box { gap: 8px; }
+  .logo-icon { width: 28px; height: 28px; font-size: 11px; }
+  .logo-text { font-size: 13px; }
+  .logo-sub  { font-size: 9px; }
+  .hdr-right { font-size: 9px; }
+
+  /* TAB NAV — full width, scroll horizontal */
+  .tab-nav {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    gap: 2px;
+    padding: 3px;
+    order: 3;
+  }
+  .tab-nav::-webkit-scrollbar { display: none; }
+  .tab-btn { padding: 5px 12px; font-size: 11px; flex-shrink: 0; }
+
+  /* PAGE WRAP */
+  .page-wrap { padding: 0 10px 40px; }
+
+  /* CONFIG CARD */
+  .cfg-card { padding: 12px 10px; margin-top: 12px; }
+  .cfg-row {
+    grid-template-columns: 1fr !important;
+    gap: 6px;
+    padding: 8px 10px;
+  }
+  .cfg-lbl { grid-column: 1/-1; }
+  .cbadge  { grid-column: 1/-1; }
+  .cfg-actions { flex-direction: column; align-items: stretch; }
+  .btn-primary { justify-content: center; font-size: 12px; padding: 10px 16px; }
+  .howto { font-size: 10px; line-height: 1.7; }
+
+  /* SIGNAL TAB */
+  .sig-wrap { max-width: 100%; padding-top: 10px; gap: 8px; }
+  .card { padding: 10px 12px; border-radius: 10px; }
+  .card-head { font-size: 10px; }
+
+  /* REGIME BAR */
+  .regime-bar { padding: 8px 10px; gap: 6px; }
+  .regime-badge { font-size: 12px; padding: 4px 10px; }
+  .regime-meta { font-size: 10px; }
+
+  /* POSITION CARD */
+  .pos-card { padding: 10px; gap: 8px; justify-content: space-around; }
+  .pos-stat-val { font-size: 13px; }
+  .pos-stat-label { font-size: 8px; }
+  .pos-sensor { font-size: 9px; padding: 3px 8px; }
+  .pos-row3 { grid-template-columns: 1fr !important; gap: 6px; }
+
+  /* ACCELERATION TABLE — horizontal scroll */
+  .accel-tbl { font-size: 10px; min-width: 420px; }
+  .accel-tbl th { padding: 5px 6px; font-size: 8px; }
+  .accel-tbl td { padding: 5px 6px; font-size: 10px; }
+  .accel-tag { font-size: 8px; padding: 1px 5px; }
+
+  /* MENU TABLE */
+  .menu-tbl { font-size: 10px; min-width: 380px; }
+  .menu-tbl th { padding: 4px 5px; font-size: 8px; }
+  .menu-tbl td { padding: 4px 5px; font-size: 10px; }
+
+  /* Wrap tables in scroll container */
+  .card:has(.accel-tbl),
+  .card:has(.menu-tbl) {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* SIMULATION */
+  .sim-alloc-grid { gap: 4px; }
+  .sim-alloc-btn { padding: 5px 10px; font-size: 10px; }
+  .sim-row2 { grid-template-columns: 1fr; gap: 6px; }
+
+  /* PORTFOLIO TAB */
+  .pcards6, .pcards3 { grid-template-columns: repeat(2,1fr) !important; gap: 6px; }
+  .pcards { grid-template-columns: repeat(2,1fr) !important; gap: 6px; }
+  .pc { padding: 10px 12px; border-radius: 10px; }
+  .clbl { font-size: 9px; }
+  .cval { font-size: 15px; }
+  .csub { font-size: 10px; }
+
+  /* CHARTS */
+  .cgrid { grid-template-columns: 1fr !important; gap: 8px; }
+  .ccrd { padding: 10px; }
+  .chart-box.h220 { height: 180px; }
+  .chart-box.h200 { height: 160px; }
+  .ctitle { font-size: 9px; flex-wrap: wrap; gap: 4px; }
+  .pbtns { gap: 2px; flex-wrap: wrap; }
+  .pbtn { padding: 2px 6px; font-size: 10px; }
+  .fpbtn { padding: 2px 5px; font-size: 9px; }
+
+  /* TRANSACTION TABLES */
+  .ttbtn { padding: 7px 10px; font-size: 11px; }
+  .tscroll { -webkit-overflow-scrolling: touch; }
+  thead th { padding: 6px 8px; font-size: 9px; }
+  tbody td { padding: 7px 8px; font-size: 11px; }
+
+  /* FULLSCREEN CHART */
+  .fs-overlay { padding: 10px; }
+  .fs-header { padding: 8px 10px; }
+  .fs-title { font-size: 11px; }
+
+  /* FOOTER */
+  .sig-footer { font-size: 9px; }
+  .port-footer { font-size: 10px; }
+
+  /* SECTION DIVIDERS */
+  .sec { font-size: 9px; margin: 16px 0 8px; }
+
+  /* GUIDE */
+  .guide { padding: 10px 12px; font-size: 10px; }
+  details summary { font-size: 10px; }
+}
+
+/* ================================================================
+   SMALL MOBILE (≤360px) — very small phones
+   ================================================================ */
+@media(max-width:360px) {
+  .pcards6, .pcards3, .pcards { grid-template-columns: 1fr !important; }
+  .cval { font-size: 14px; }
+  .tab-btn { padding: 4px 9px; font-size: 10px; }
+  .pos-card { flex-direction: column; align-items: stretch; }
+  .pos-stat { text-align: left; display: flex; align-items: center; gap: 8px; }
+}
+
+/* ================================================================
+   TABLET (481px — 768px)
+   ================================================================ */
+@media(min-width:481px) and (max-width:768px) {
+  .hdr-inner { gap: 10px; }
+  .tab-btn { padding: 5px 14px; font-size: 12px; }
+  .pcards6 { grid-template-columns: repeat(3,1fr) !important; }
+  .pcards3 { grid-template-columns: repeat(3,1fr); }
+  .cgrid { grid-template-columns: 1fr; }
+  .chart-box.h220 { height: 200px; }
+}
 </style>
 </head>
 <body>
@@ -1025,7 +1178,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <div class="pos-card" id="pos-card" style="display:none"></div>
 
   <!-- V21: Acceleration Table -->
-  <div class="card" style="padding:12px 14px">
+  <div class="card" style="padding:12px 14px; overflow-x:auto; -webkit-overflow-scrolling:touch">
     <div class="card-head" style="color:var(--purple)">⚡ V26 Dynamic Optimizer Dashboard</div>
     <table class="accel-tbl">
       <thead><tr><th>Allocation</th><th>Velocity</th><th>Accel (bp)</th><th>สถานะ</th><th>Signal</th></tr></thead>
@@ -1036,7 +1189,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <!-- Legacy: Fund scores (collapsed by default) -->
   <details>
     <summary>📊 Legacy Momentum Scores (ขยายดู)</summary>
-    <div class="card" style="padding:12px 14px;margin-top:6px">
+    <div class="card" style="padding:12px 14px;margin-top:6px; overflow-x:auto; -webkit-overflow-scrolling:touch">
       <div class="card-head">Fund Momentum Scores</div>
       <table class="score-tbl">
         <thead><tr><th>แผน</th><th>Score</th><th>mom20%</th><th>mom60%</th><th>mom120%</th></tr></thead>
@@ -1048,7 +1201,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <!-- Menu ranking (collapsed) -->
   <details>
     <summary>🏆 Menu Ranking — Top 15 (ขยายดู)</summary>
-    <div class="card" style="padding:12px 14px;margin-top:6px">
+    <div class="card" style="padding:12px 14px;margin-top:6px; overflow-x:auto; -webkit-overflow-scrolling:touch">
       <div class="card-head gold">Menu Ranking (Top 15)</div>
       <table class="menu-tbl">
         <thead><tr><th>#</th><th>เมนู</th><th>สัดส่วน</th><th>Score</th></tr></thead>
