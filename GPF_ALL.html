@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
-<title>GPF Live Trade v22</title>
+<title>GPF Live Trade v26</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -765,8 +765,8 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div class="logo-box">
       <div class="logo-icon">กบข</div>
       <div>
-        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v22</span></div>
-        <div class="logo-sub">Acceleration Engine + Fund Filter · v6.22</div>
+        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v26</span></div>
+        <div class="logo-sub">Dynamic Optimizer + Smart Quota · v6.26</div>
       </div>
     </div>
     <div class="tab-nav">
@@ -912,7 +912,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <!-- V21: Position Tracking -->
   <hr class="divider">
   <div class="pos-input-card" style="background:transparent;border:none;padding:0">
-    <div class="pos-input-title">V22 Position Tracking</div>
+    <div class="pos-input-title">V26 Position Tracking</div>
     <div class="pos-row3">
       <div>
         <label>มูลค่าตอน Switch เข้า (฿)</label>
@@ -1026,7 +1026,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 
   <!-- V21: Acceleration Table -->
   <div class="card" style="padding:12px 14px">
-    <div class="card-head" style="color:var(--purple)">⚡ V22 Acceleration Dashboard</div>
+    <div class="card-head" style="color:var(--purple)">⚡ V26 Dynamic Optimizer Dashboard</div>
     <table class="accel-tbl">
       <thead><tr><th>Allocation</th><th>Velocity</th><th>Accel (bp)</th><th>สถานะ</th><th>Signal</th></tr></thead>
       <tbody id="accel-body"></tbody>
@@ -1060,9 +1060,9 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 
 <div id="run-time"></div>
 <div class="sig-footer">
-  v6.22 · V22 Acceleration Engine + Fund Filter · vel_span=5 · accel_span=3 · accel_tp=3% · accel_exit=-5bp<br>
-  cooldown=30bd (blocks exit+entry) · trail=3% · regime=60d(F+TH) · BULL>3% · BEAR<-3% · quota=12/yr · G_cap=25% · V22B: underlying fund filter<br>
-  <span class="calib-badge">⚙ Calibrated: V22B backtest · Sharpe=2.073 · TWR=+65.8% · MaxDD=-3.9% · Switches=18 · 0 overlaps</span>
+  v6.26 · V26 Dynamic Optimizer + Smart Quota · vel_fast=5 · vel_slow=15 · accel_span=3 · accel_tp=3% · accel_exit=-5bp<br>
+  min_hold=10bd · monthly_cap=1 · trail=3-6%(adaptive) · regime=60d(F+TH) · BULL>3% · BEAR<-3% · quota=12/yr · G_cap=25% · V22B fund filter<br>
+  <span class="calib-badge">⚙ Walk-forward confirmed: OOS +25.6% (ann +11.3%) · MaxDD=-11.4% · TRAIL_MIN=0.03 stable · MONTHLY_CAP=1 stable</span>
 </div>
 
 </div><!-- /sig-wrap -->
@@ -1197,24 +1197,36 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 
 <script>
 // ================================================================
-//  CONSTANTS — v5.19
+//  CONSTANTS — v6.26 (walk-forward confirmed)
 // ================================================================
-const ALGO_VERSION  = 'v6.22';
-const COOLDOWN_DAYS = 30;
+const ALGO_VERSION  = 'v6.26';
 const G_CAP         = 0.25;
 const QUOTA_PER_YR  = 12;
 const T_DELAY       = 2;
 const MIN_HIST_DAYS = 120;
 const CHANGE_THRESH = 0.05;
-// V21: Acceleration params
-const VEL_SPAN      = 5;
-const ACCEL_SPAN     = 3;
-const ACCEL_TP_THRESHOLD = 0.03;  // เปิด sensor เมื่อกำไร >= 3%
-const ACCEL_EXIT_LEVEL   = -0.0005; // accel ลบแรงถึงออก
-const TRAIL_PCT     = 0.03;
+// V26: Dual-timeframe velocity
+const VEL_FAST      = 5;      // fast EMA — entry/exit sensitivity
+const VEL_SLOW      = 15;     // slow EMA — trend confirmation
+const ACCEL_SPAN    = 3;
+const ACCEL_TP_THRESHOLD = 0.03;
+const ACCEL_EXIT_LEVEL   = -0.0005;
+// V26: Adaptive trailing stop (walk-forward: TRAIL_MIN=0.03 stable all windows)
+const TRAIL_MIN     = 0.03;
+const TRAIL_MAX     = 0.06;
+const TRAIL_VOL_MULT= 2.0;
+// Regime
 const BULL_TH       = 0.03;
 const BEAR_TH       = -0.03;
-const REENTRY_GUARD = 10;
+// V26: New exit params
+const MAX_HOLD_DAYS      = 60;   // time-decay exit: held too long without profit
+const STALE_PROFIT_TH    = 0.01; // profit below 1% after MAX_HOLD → exit
+const STALE_VEL_DAYS     = 20;   // consecutive negative vel days → stale
+// V26: Quota management (walk-forward: MONTHLY_CAP=1 stable all windows)
+const MONTHLY_CAP        = 1;    // max 1 switch per month — prevents over-trading
+const CRITICAL_RESERVE   = 2;    // keep 2 quota for emergency exits
+const MIN_HOLD_DAYS      = 10;   // min hold before non-critical exit (bdays)
+const REENTRY_GUARD = 5;
 // Legacy (kept for menu scoring display)
 const MOM_LOOKBACKS = [20, 60, 120];
 const MOM_WEIGHTS   = [0.5, 0.3, 0.2];
@@ -1232,7 +1244,7 @@ const PRESET_PLANS = {
   'TH_100':      {TH: 1.00},
 };
 const ALL_PLANS = ['A35','Base_Plan','B','Money_Market','A20','A65','TH','PR','F','Global_Bond','G','A75','Shariah'];
-const STORE_KEY    = 'gpf_live_v22';
+const STORE_KEY    = 'gpf_live_v26';
 const FM = {
   F:{l:'หุ้นต่างประเทศ (F)',c:'#3b82f6',s:'F',dash:[]},
   G:{l:'ทองคำ (G)',c:'#facc15',s:'G',dash:[]},
@@ -1397,13 +1409,13 @@ function parseTx(csv){
 }
 
 // ================================================================
-//  SIGNAL ENGINE — v6.22 Acceleration + Regime
+//  SIGNAL ENGINE — v6.26 Dual Velocity + Dynamic Optimizer
 // ================================================================
-function computeSignalV21(navMatrix, dates, plans, delay) {
+function computeSignalV26(navMatrix, dates, plans, delay) {
   const n = navMatrix.length;
   const d = (delay !== undefined) ? delay : 0;
   const idx = n - 1 - d;
-  if(idx < MIN_HIST_DAYS) throw new Error('ข้อมูลน้อยเกินไป: มี '+n+' แถว ต้องการ '+(MIN_HIST_DAYS+d+1)+' ขึ้นไป');
+  if(idx < MIN_HIST_DAYS) throw new Error('Data too short: '+n+' rows, need '+(MIN_HIST_DAYS+d+1)+'+');
   const signalDate = dates[idx];
   const latestNavDate = dates[n - 1];
 
@@ -1418,40 +1430,60 @@ function computeSignalV21(navMatrix, dates, plans, delay) {
     }
   });
 
-  // --- Velocity (EMA of returns) ---
-  const velocity = {};
+  // --- V26: Dual Velocity (fast + slow) + Acceleration ---
+  const velFast = {};
+  const velSlow = {};
   const acceleration = {};
-  const alpha_vel = 2 / (VEL_SPAN + 1);
+  const alpha_fast = 2 / (VEL_FAST + 1);
+  const alpha_slow = 2 / (VEL_SLOW + 1);
   const alpha_accel = 2 / (ACCEL_SPAN + 1);
 
   plans.forEach(plan => {
     const rets = returns[plan];
-    if (!rets || rets.length < 10) { velocity[plan] = null; acceleration[plan] = null; return; }
-    // EMA velocity
-    let vel = rets[0];
-    const vels = [vel];
+    if (!rets || rets.length < VEL_SLOW + 5) {
+      velFast[plan] = null; velSlow[plan] = null; acceleration[plan] = null; return;
+    }
+    // Fast EMA velocity
+    let vf = rets[0]; const vfs = [vf];
     for (let i = 1; i < rets.length; i++) {
-      vel = alpha_vel * rets[i] + (1 - alpha_vel) * vel;
-      vels.push(vel);
+      vf = alpha_fast * rets[i] + (1 - alpha_fast) * vf;
+      vfs.push(vf);
     }
-    velocity[plan] = vel;
-    // Acceleration = diff of velocity, smoothed
-    if (vels.length < 5) { acceleration[plan] = null; return; }
-    let accelEma = vels[1] - vels[0];
-    for (let i = 2; i < vels.length; i++) {
-      const diff = vels[i] - vels[i-1];
-      accelEma = alpha_accel * diff + (1 - alpha_accel) * accelEma;
+    velFast[plan] = vf;
+    // Slow EMA velocity
+    let vs = rets[0];
+    for (let i = 1; i < rets.length; i++) {
+      vs = alpha_slow * rets[i] + (1 - alpha_slow) * vs;
     }
-    acceleration[plan] = accelEma;
+    velSlow[plan] = vs;
+    // Acceleration (from fast velocity diffs)
+    if (vfs.length < 5) { acceleration[plan] = null; return; }
+    let ae = vfs[1] - vfs[0];
+    for (let i = 2; i < vfs.length; i++) {
+      const diff = vfs[i] - vfs[i-1];
+      ae = alpha_accel * diff + (1 - alpha_accel) * ae;
+    }
+    acceleration[plan] = ae;
   });
 
-  // --- Regime Detection (60d avg equity return) ---
+  // --- V26: Realized volatility (20d) for adaptive trailing stop ---
+  const realizedVol = {};
+  plans.forEach(plan => {
+    const rets = returns[plan];
+    if (!rets || rets.length < 20) { realizedVol[plan] = null; return; }
+    const last20 = rets.slice(-20);
+    const mean = last20.reduce((s, v) => s + v, 0) / 20;
+    const variance = last20.reduce((s, v) => s + (v - mean) ** 2, 0) / 20;
+    realizedVol[plan] = Math.sqrt(variance);
+  });
+
+  // --- Regime Detection (60d avg equity return) + V26 strength score ---
   let regime = 'UNKNOWN';
+  let regimeStrength = 0;
   const equityPlans = ['F', 'TH'];
   const regime_lookback = 60;
   if (idx >= regime_lookback) {
-    let avgRet = 0;
-    let cnt = 0;
+    let avgRet = 0; let cnt = 0;
     equityPlans.forEach(ep => {
       const rets = returns[ep];
       if (!rets || rets.length < regime_lookback) return;
@@ -1463,34 +1495,90 @@ function computeSignalV21(navMatrix, dates, plans, delay) {
     if (cnt > 0) {
       avgRet /= cnt;
       regime = avgRet > BULL_TH ? 'BULL' : (avgRet < BEAR_TH ? 'BEAR' : 'SIDEWAYS');
+      regimeStrength = Math.min(1.0, Math.max(-1.0, avgRet / Math.max(Math.abs(BULL_TH), Math.abs(BEAR_TH))));
     }
   }
 
-  // --- Allocations (same as backtest) ---
-  const ALLOCATIONS = {
-    'F100':         {F: 1.0},
-    'TH100':        {TH: 1.0},
-    'F75_G25':      {F: 0.75, G: 0.25},
-    'TH75_G25':     {TH: 0.75, G: 0.25},
-    'F50_TH25_G25': {F: 0.50, TH: 0.25, G: 0.25},
-    'B100':         {B: 1.0},
-    'MM':           {Money_Market: 1.0},
-  };
-
-  // Compute velocity & acceleration for each allocation
-  const allocVel = {};
+  // --- V26: Score ALL 217 menu allocations dynamically ---
+  const MENU = generateMenu();
+  const allocVelFast = {};
+  const allocVelSlow = {};
   const allocAccel = {};
-  Object.entries(ALLOCATIONS).forEach(([name, weights]) => {
-    // Weighted velocity
-    let wVel = 0, wAccel = 0, valid = true;
+  const allocVol = {};
+  const EQUITY_FUNDS = ['F', 'TH', 'G', 'PR'];
+
+  Object.entries(MENU).forEach(([name, weights]) => {
+    let wvf = 0, wvs = 0, wa = 0, wvol = 0, valid = true;
     Object.entries(weights).forEach(([fund, w]) => {
-      if (velocity[fund] === null || acceleration[fund] === null) { valid = false; return; }
-      wVel += velocity[fund] * w;
-      wAccel += acceleration[fund] * w;
+      if (velFast[fund] === null || velSlow[fund] === null || acceleration[fund] === null) { valid = false; return; }
+      wvf += velFast[fund] * w;
+      wvs += velSlow[fund] * w;
+      wa += acceleration[fund] * w;
+      if (realizedVol[fund] !== null) wvol += realizedVol[fund] * w;
     });
-    allocVel[name] = valid ? wVel : null;
-    allocAccel[name] = valid ? wAccel : null;
+    allocVelFast[name] = valid ? wvf : null;
+    allocVelSlow[name] = valid ? wvs : null;
+    allocAccel[name] = valid ? wa : null;
+    allocVol[name] = valid ? wvol : null;
   });
+
+  // --- V26: Classify allocations ---
+  function classifyAlloc(weights) {
+    let eqPct = 0;
+    Object.entries(weights).forEach(([fund, w]) => {
+      if (EQUITY_FUNDS.includes(fund)) eqPct += w;
+    });
+    if (eqPct >= 0.50) return 'OFFENSIVE';
+    if (eqPct < 0.20) return 'DEFENSIVE';
+    return 'MODERATE';
+  }
+
+  // --- V26: Fund-level filter (V22B kept) ---
+  function passV22BFilter(weights) {
+    let ok = true;
+    Object.entries(weights).forEach(([fund, w]) => {
+      if (['B', 'Money_Market', 'Global_Bond'].includes(fund)) return;
+      const fa = acceleration[fund];
+      if (fa !== null && fa < ACCEL_EXIT_LEVEL) ok = false;
+    });
+    return ok;
+  }
+
+  // --- V26: Rank all menus by acceleration score ---
+  const menuRanked = Object.entries(MENU)
+    .filter(([name]) => allocVelFast[name] !== null && allocAccel[name] !== null)
+    .map(([name, weights]) => ({
+      name, weights,
+      velFast: allocVelFast[name],
+      velSlow: allocVelSlow[name],
+      accel: allocAccel[name],
+      vol: allocVol[name],
+      type: classifyAlloc(weights),
+      v22bPass: passV22BFilter(weights),
+      // V26 composite score: acceleration weighted + velocity confirmation
+      score: (allocAccel[name] || 0) * 0.6 + (allocVelFast[name] || 0) * 0.25 + (allocVelSlow[name] || 0) * 0.15,
+    }))
+    .sort((a, b) => b.score - a.score);
+
+  // Top candidates for decision engine
+  const topOffensive = menuRanked
+    .filter(m => m.type === 'OFFENSIVE' && m.v22bPass && m.velFast > 0 && m.accel > 0)
+    .slice(0, 10);
+  const topModerate = menuRanked
+    .filter(m => m.type === 'MODERATE' && m.v22bPass && m.velFast > 0)
+    .slice(0, 5);
+  const topDefensive = menuRanked
+    .filter(m => m.type === 'DEFENSIVE')
+    .slice(0, 3);
+
+  // --- V26: Adaptive trailing stop ---
+  function getAdaptiveTrailPct(weights) {
+    let wvol = 0;
+    Object.entries(weights).forEach(([fund, w]) => {
+      if (realizedVol[fund] !== null) wvol += realizedVol[fund] * w;
+    });
+    return Math.max(TRAIL_MIN, Math.min(TRAIL_MAX, wvol * TRAIL_VOL_MULT));
+  }
 
   // Legacy momentum scores (for display compatibility)
   const scores = {};
@@ -1518,13 +1606,24 @@ function computeSignalV21(navMatrix, dates, plans, delay) {
   });
   plans.forEach(p => { if (!(p in scores)) scores[p] = 0; });
 
+  // Backward-compat: allocVel = allocVelFast for display
+  const allocVel = allocVelFast;
+
   return {
     scores, momReturns, signalDate, latestNavDate,
-    // V21 additions
-    velocity, acceleration, regime,
-    allocVel, allocAccel, ALLOCATIONS,
+    // V26 signals
+    velFast, velSlow, acceleration, realizedVol,
+    regime, regimeStrength,
+    allocVelFast, allocVelSlow, allocAccel, allocVol,
+    // V26 optimizer results
+    menuRanked, topOffensive, topModerate, topDefensive,
+    MENU, classifyAlloc, passV22BFilter, getAdaptiveTrailPct,
+    // Backward compat
+    velocity: velFast, allocVel, ALLOCATIONS: MENU,
   };
 }
+// Backward-compat alias
+const computeSignalV21 = computeSignalV26;
 
 // ================================================================
 //  MENU GENERATOR — 217 options
@@ -1613,40 +1712,55 @@ function generateMenu() {
 }
 
 // ================================================================
-//  DECISION ENGINE — v22 Acceleration + Regime + Fund Filter
+//  DECISION ENGINE — v26 Dynamic Optimizer + Smart Quota
 // ================================================================
 function makeDecisionV22({scores, velocity, acceleration, regime, allocVel, allocAccel, ALLOCATIONS,
                           currentMenu, currentAlloc, quotaUsed, lastSwitchStr, referenceDate,
                           positionEntryDate, positionEntryValue, currentPortValue, positionPeakValue,
-                          positionNavReturn}) {
+                          positionNavReturn,
+                          // V26 new inputs (optional, backward compat)
+                          velFast, velSlow, regimeStrength: _rs, topOffensive, topModerate, topDefensive,
+                          menuRanked, classifyAlloc: _ca, passV22BFilter: _pf, getAdaptiveTrailPct: _gat,
+                          allocVelFast, allocVelSlow, allocVol,
+                          }) {
   const today = referenceDate ? new Date(referenceDate) : new Date();
   today.setHours(0,0,0,0);
   const quotaLeft = QUOTA_PER_YR - quotaUsed;
 
-  const OFFENSIVE = ['F100', 'TH100', 'F75_G25', 'TH75_G25', 'F50_TH25_G25'];
-  const DEFENSIVE = ['B100', 'MM'];
-  const EQUITY_FUNDS = ['F', 'TH', 'G', 'PR'];  // non-defensive funds
+  const EQUITY_FUNDS_SET = new Set(['F', 'TH', 'G', 'PR']);
 
-  // Determine current allocation type
-  function allocKey(alloc) {
-    if (!alloc || Object.keys(alloc).length === 0) return null;
-    // Map current alloc to nearest allocation key
-    const keys = Object.keys(alloc);
-    if (keys.length === 1 && keys[0] === 'F' && alloc.F >= 0.95) return 'F100';
-    if (keys.length === 1 && keys[0] === 'TH' && alloc.TH >= 0.95) return 'TH100';
-    if (keys.length === 1 && keys[0] === 'B' && alloc.B >= 0.95) return 'B100';
-    if (keys.length === 1 && keys[0] === 'Money_Market') return 'MM';
-    if (alloc.F >= 0.7 && alloc.G >= 0.2) return 'F75_G25';
-    if (alloc.TH >= 0.7 && alloc.G >= 0.2) return 'TH75_G25';
-    if (alloc.F >= 0.45 && alloc.TH >= 0.2 && alloc.G >= 0.2) return 'F50_TH25_G25';
-    return null;
+  // --- V26: Classify current allocation ---
+  function classifyCurrentAlloc(alloc) {
+    if (!alloc || Object.keys(alloc).length === 0) return 'UNKNOWN';
+    let eqPct = 0;
+    Object.entries(alloc).forEach(([fund, w]) => { if (EQUITY_FUNDS_SET.has(fund)) eqPct += w; });
+    if (eqPct >= 0.50) return 'OFFENSIVE';
+    if (eqPct < 0.20) return 'DEFENSIVE';
+    return 'MODERATE';
   }
 
-  const curKey = allocKey(currentAlloc);
-  const isOffensive = curKey && OFFENSIVE.includes(curKey);
-  const isDefensive = curKey && DEFENSIVE.includes(curKey);
+  // Find matching menu name for current allocation
+  function findCurrentMenuKey(alloc) {
+    if (!alloc) return null;
+    const MENU = generateMenu();
+    for (const [name, weights] of Object.entries(MENU)) {
+      let match = true;
+      const aKeys = Object.keys(alloc).filter(k => alloc[k] > 0.001);
+      const wKeys = Object.keys(weights).filter(k => weights[k] > 0.001);
+      if (aKeys.length !== wKeys.length) continue;
+      aKeys.forEach(k => { if (Math.abs((alloc[k]||0) - (weights[k]||0)) > 0.02) match = false; });
+      if (match) return name;
+    }
+    return currentMenu || 'CUSTOM';
+  }
 
-  // Position return — prefer NAV-weighted return (immune to deposits) over value-based
+  const curType = classifyCurrentAlloc(currentAlloc);
+  const curKey = findCurrentMenuKey(currentAlloc);
+  const isOffensive = curType === 'OFFENSIVE';
+  const isDefensive = curType === 'DEFENSIVE';
+  const isModerate = curType === 'MODERATE';
+
+  // Position return
   let posRet = null;
   if (positionNavReturn !== null && positionNavReturn !== undefined && !isNaN(positionNavReturn)) {
     posRet = positionNavReturn;
@@ -1654,34 +1768,76 @@ function makeDecisionV22({scores, velocity, acceleration, regime, allocVel, allo
     posRet = currentPortValue / positionEntryValue - 1;
   }
 
-  // V22B: Find best accelerating offensive fund WITH underlying fund filter
-  // Target allocation must not have ANY equity fund with accel < ACCEL_EXIT_LEVEL
-  function pickBestAccel(exclude) {
-    let best = null, bestA = -Infinity;
-    OFFENSIVE.forEach(alloc => {
-      if (alloc === exclude) return;
-      // V22B: check ALL underlying equity funds
-      const weights = ALLOCATIONS[alloc];
-      let allFundsOk = true;
-      Object.entries(weights).forEach(([fund, w]) => {
-        if (fund === 'B' || fund === 'Money_Market') return; // skip defensive
-        const fundAccel = acceleration[fund];
-        if (fundAccel !== null && fundAccel < ACCEL_EXIT_LEVEL) {
-          allFundsOk = false;
+  // --- V26: Quota strategy (replaces cooldown) ---
+  const monthsLeft = Math.max(1, 12 - today.getMonth());
+  const quotaUrgency = quotaLeft <= CRITICAL_RESERVE ? 'CRITICAL' : quotaLeft <= 4 ? 'LOW' : 'NORMAL';
+  const canNonCritical = quotaLeft > CRITICAL_RESERVE; // also checked with monthlyCapMet below
+  const canCritical = quotaLeft > 0;
+
+  // Min-hold check (replaces 30-day cooldown)
+  let bdSince = 999;
+  if (lastSwitchStr) { bdSince = bdays(new Date(lastSwitchStr), today); }
+  const minHoldMet = bdSince >= MIN_HOLD_DAYS;
+
+  // V26: Monthly cap check (walk-forward confirmed: cap=1/month)
+  // Count switches this month from transaction data or lastSwitchStr
+  let monthSwitchCount = 0;
+  const curMonth = today.getMonth();
+  const curYear = today.getFullYear();
+  // Try counting from TX_PORT (real transaction data) if available
+  if (typeof TX_PORT !== 'undefined' && TX_PORT.length > 0) {
+    TX_PORT.forEach(tx => {
+      const t = (tx.type || '').trim();
+      if (t.includes('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e41\u0e1c\u0e19') && t.includes('\u0e2d\u0e2d\u0e01')) { // เปลี่ยนแผน+ออก
+        if (tx.date && tx.date.getMonth() === curMonth && tx.date.getFullYear() === curYear) {
+          monthSwitchCount++;
         }
-      });
-      if (!allFundsOk) return; // V22B: reject allocation with decelerating fund
-      const v = allocVel[alloc];
-      const a = allocAccel[alloc];
-      if (v !== null && a !== null && v > 0 && a > 0 && a > bestA) {
-        bestA = a;
-        best = alloc;
       }
     });
-    return { fund: best, accel: bestA };
+  } else if (lastSwitchStr) {
+    // Fallback: check if last switch was this month
+    const lastSw = new Date(lastSwitchStr);
+    if (lastSw.getMonth() === curMonth && lastSw.getFullYear() === curYear) {
+      monthSwitchCount = 1;
+    }
+  }
+  const monthlyCapMet = monthSwitchCount < MONTHLY_CAP;
+
+  // --- V26: Pick best from optimizer (217 menu) ---
+  function pickBestV26(exclude, typeFilter) {
+    const candidates = (topOffensive || []).concat(topModerate || []);
+    const makeResult = c => ({ fund: c.name, alloc: c.weights, accel: c.accel, velFast: c.velFast, velSlow: c.velSlow, type: c.type });
+    // Pass 1: require both fast AND slow velocity positive
+    for (const c of candidates) {
+      if (c.name === exclude) continue;
+      if (typeFilter && c.type !== typeFilter) continue;
+      if (c.velFast > 0 && c.accel > 0 && c.v22bPass) {
+        if (c.velSlow !== null && c.velSlow > 0) return makeResult(c);
+      }
+    }
+    // Pass 2 (fallback): fast vel only, slow can be null or negative
+    for (const c of candidates) {
+      if (c.name === exclude) continue;
+      if (typeFilter && c.type !== typeFilter) continue;
+      if (c.velFast > 0 && c.accel > 0 && c.v22bPass) return makeResult(c);
+    }
+    return null;
   }
 
+  // --- V26: Adaptive trailing stop ---
+  let adaptiveTrailPct = 0.03; // default fallback
+  if (_gat && currentAlloc) {
+    adaptiveTrailPct = _gat(currentAlloc);
+  }
+
+  // --- V26: Compute current allocation vel/accel from allocVelFast ---
+  let curAllocVelFast = null, curAllocVelSlow = null, curAllocAccel = null;
+  if (curKey && allocVelFast) { curAllocVelFast = allocVelFast[curKey]; }
+  if (curKey && allocVelSlow) { curAllocVelSlow = allocVelSlow[curKey]; }
+  if (curKey && allocAccel) { curAllocAccel = allocAccel[curKey]; }
+
   // Regime badge
+  const regimeStrength = _rs || 0;
   const regimeBadge = regime === 'BULL' ? '🟢 BULL' : regime === 'BEAR' ? '🔴 BEAR' : regime === 'SIDEWAYS' ? '🟡 SIDEWAYS' : '⚪ UNKNOWN';
 
   // Legacy menu scores for display
@@ -1698,131 +1854,191 @@ function makeDecisionV22({scores, velocity, acceleration, regime, allocVel, allo
   const sorted = Object.entries(menuScores).sort(([,a],[,b]) => b - a);
   const topMenus = sorted.slice(0, 15);
 
-  // V21 allocation ranking (by acceleration)
-  const allocRanking = Object.entries(allocAccel)
-    .filter(([k, v]) => v !== null && OFFENSIVE.includes(k))
-    .map(([k, v]) => ({ name: k, accel: v, vel: allocVel[k] }))
-    .sort((a, b) => b.accel - a.accel);
+  // V26 allocation ranking (from optimizer)
+  const allocRanking = (menuRanked || []).slice(0, 15).map(m => ({
+    name: m.name, accel: m.accel, vel: m.velFast, velSlow: m.velSlow, type: m.type, v22bPass: m.v22bPass, score: m.score
+  }));
 
   // Base info object
-  const info = { quotaLeft, quotaUsed, topMenus, regime, regimeBadge, allocRanking, posRet, velocity, acceleration, allocVel, allocAccel };
+  const info = {
+    quotaLeft, quotaUsed, topMenus, regime, regimeBadge, regimeStrength,
+    allocRanking, posRet, velocity, acceleration, allocVel, allocAccel,
+    // V26 extras
+    quotaUrgency, bdSince, minHoldMet, monthlyCapMet, monthSwitchCount,
+    adaptiveTrailPct, curType,
+    curAllocVelFast, curAllocVelSlow, curAllocAccel,
+    topOffensive, topModerate, topDefensive,
+  };
 
-  // 1. Quota check (hard block — can't do anything with 0 quota)
+  // =============================================
+  // 0. QUOTA EXHAUSTED
+  // =============================================
   if (quotaLeft <= 0) {
     return { action: 'HOLD_QUOTA', reason: 'Quota หมด (' + quotaUsed + '/' + QUOTA_PER_YR + ')',
              targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
   }
 
-  // 2. Cooldown check — blocks BOTH exit and entry (V22 design: prevents over-trading)
-  let inCooldown = false, bdSince = 999;
-  if (lastSwitchStr) {
-    bdSince = bdays(new Date(lastSwitchStr), today);
-    inCooldown = bdSince < COOLDOWN_DAYS;
-  }
-  if (inCooldown) {
-    const cdNote = bdSince + '/' + COOLDOWN_DAYS + ' วันทำการ';
-    // Still show position info if offensive
-    if (isOffensive && posRet !== null) {
-      const curAccel = allocAccel[curKey];
-      const sensorOn = posRet >= ACCEL_TP_THRESHOLD;
-      const accelStr = curAccel !== null ? (curAccel*10000).toFixed(1) + 'bp' : '—';
-      return { action: 'HOLD_COOLDOWN', reason: 'Cooldown: ' + cdNote + (sensorOn ? ' | sensor ON: accel=' + accelStr : ' | กำไร ' + (posRet*100).toFixed(1) + '%'),
-               daysLeft: COOLDOWN_DAYS - bdSince,
-               targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
-    }
-    return { action: 'HOLD_COOLDOWN', reason: 'Cooldown: ' + cdNote,
-             daysLeft: COOLDOWN_DAYS - bdSince,
-             targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
-  }
+  // =============================================
+  // OFFENSIVE / MODERATE: EXIT LOGIC
+  // =============================================
+  if ((isOffensive || isModerate) && posRet !== null) {
 
-  // === OFFENSIVE: EXIT LOGIC ===
-  if (isOffensive && posRet !== null) {
-    const curAccel = allocAccel[curKey];
-    const curVel = allocVel[curKey];
-
-    // EXIT 1: Acceleration TP — กำไร >= 3% + decel แรง
-    if (posRet >= ACCEL_TP_THRESHOLD && curAccel !== null && curAccel < ACCEL_EXIT_LEVEL) {
-      const best = pickBestAccel(curKey);
-      if (best.fund) {
-        const targetAlloc = ALLOCATIONS[best.fund];
-        return { action: 'ACCEL_TP_ROTATE', level: 'ACTION',
-                 reason: 'AccelTP: กำไร ' + (posRet*100).toFixed(1) + '% ≥ 3% + ชะลอตัว (accel=' + (curAccel*10000).toFixed(1) + 'bp) → rotate ไป ' + best.fund,
-                 targetMenu: best.fund, targetAlloc, ...info };
-      } else {
-        return { action: 'ACCEL_TP_DEF', level: 'ACTION',
-                 reason: 'AccelTP: กำไร ' + (posRet*100).toFixed(1) + '% + ชะลอตัว (accel=' + (curAccel*10000).toFixed(1) + 'bp) + ไม่มี fund เร่ง (V22B filter) → defensive',
-                 targetMenu: 'B100', targetAlloc: { B: 1.0 }, ...info };
-      }
-    }
-
-    // EXIT 2: Trailing Stop — 3% from peak (safety net)
+    // EXIT 1 (CRITICAL): Adaptive Trailing Stop — bypasses min-hold & quota preservation
     const peakVal = positionPeakValue || (parseFloat((typeof document !== 'undefined' && el('position-peak-value')) ? el('position-peak-value').value : '') || null);
-    if (peakVal && currentPortValue && peakVal > 0) {
+    if (peakVal && currentPortValue && peakVal > 0 && canCritical) {
       const ddFromPeak = (currentPortValue - peakVal) / peakVal;
-      if (ddFromPeak <= -TRAIL_PCT) {
-        const best = pickBestAccel(curKey);
-        if (best.fund) {
-          const targetAlloc = ALLOCATIONS[best.fund];
-          return { action: 'TRAIL_DEF', level: 'ACTION',
-                   reason: 'Trailing Stop: DD จาก peak ' + (ddFromPeak*100).toFixed(1) + '% ≤ -' + (TRAIL_PCT*100).toFixed(0) + '% → rotate ไป ' + best.fund,
-                   targetMenu: best.fund, targetAlloc, ...info };
-        } else {
-          return { action: 'TRAIL_DEF', level: 'ACTION',
-                   reason: 'Trailing Stop: DD จาก peak ' + (ddFromPeak*100).toFixed(1) + '% ≤ -' + (TRAIL_PCT*100).toFixed(0) + '% → defensive',
-                   targetMenu: 'B100', targetAlloc: { B: 1.0 }, ...info };
+      if (ddFromPeak <= -adaptiveTrailPct) {
+        const best = pickBestV26(curKey);
+        if (best) {
+          return { action: 'TRAIL_ROTATE', level: 'ACTION',
+                   reason: 'Trailing Stop: DD ' + (ddFromPeak*100).toFixed(1) + '% ≤ -' + (adaptiveTrailPct*100).toFixed(1) + '% (adaptive) → ' + best.fund,
+                   targetMenu: best.fund, targetAlloc: best.alloc, ...info };
         }
+        return { action: 'TRAIL_DEF', level: 'ACTION',
+                 reason: 'Trailing Stop: DD ' + (ddFromPeak*100).toFixed(1) + '% → defensive (no accel fund)',
+                 targetMenu: 'B_100', targetAlloc: { B: 1.0 }, ...info };
       }
     }
 
-    // EXIT 3: DD Protection — BEAR regime + portfolio DD ≤ -3%
-    if (regime === 'BEAR' && posRet <= -0.03) {
+    // EXIT 2 (CRITICAL): DD + BEAR — bypasses min-hold & quota preservation
+    if (regime === 'BEAR' && posRet <= -0.03 && canCritical) {
       return { action: 'DD_DEF', level: 'ACTION',
-               reason: 'DD Protection: BEAR + portfolio DD ' + (posRet*100).toFixed(1) + '% ≤ -3% → defensive',
-               targetMenu: 'B100', targetAlloc: { B: 1.0 }, ...info };
+               reason: 'DD Protection: BEAR + DD ' + (posRet*100).toFixed(1) + '% ≤ -3% → defensive',
+               targetMenu: 'B_100', targetAlloc: { B: 1.0 }, ...info };
     }
 
-    // INFO: Show acceleration status
-    if (posRet >= ACCEL_TP_THRESHOLD && curAccel !== null && curAccel >= ACCEL_EXIT_LEVEL) {
-      return { action: 'HOLD_ACCEL_WATCH', reason: 'กำไร ' + (posRet*100).toFixed(1) + '% — Acceleration sensor ON: accel=' + (curAccel*10000).toFixed(1) + 'bp (threshold ' + (ACCEL_EXIT_LEVEL*10000).toFixed(0) + 'bp)',
+    // --- Below: non-critical exits require min-hold + quota availability ---
+    if (!minHoldMet) {
+      const holdNote = bdSince + '/' + MIN_HOLD_DAYS + ' วัน min-hold';
+      return { action: 'HOLD_MIN_HOLD', reason: 'Min-hold: ' + holdNote + ' | กำไร ' + (posRet*100).toFixed(1) + '%',
+               daysLeft: MIN_HOLD_DAYS - bdSince,
                targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
     }
 
-    if (posRet < ACCEL_TP_THRESHOLD) {
-      return { action: 'HOLD_BUILDING', reason: 'กำไร ' + (posRet*100).toFixed(1) + '% < 3% — ปล่อยวิ่ง (sensor OFF)',
+    if (!canNonCritical) {
+      return { action: 'HOLD_QUOTA_PRESERVE', reason: 'Quota preservation: เหลือ ' + quotaLeft + ' สำรอง emergency | กำไร ' + (posRet*100).toFixed(1) + '%',
                targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
     }
-  }
 
-  // OFFENSIVE but no position data — show accel info only
-  if (isOffensive && posRet === null) {
-    const curAccel = allocAccel[curKey];
-    const curVel = allocVel[curKey];
-    const accelStr = curAccel !== null ? (curAccel*10000).toFixed(1) + 'bp' : '—';
-    const velStr = curVel !== null ? (curVel*10000).toFixed(1) + 'bp' : '—';
-    return { action: 'HOLD_NO_SIGNAL', reason: 'ถือ ' + curKey + ' [' + regime + '] — กรอก Position Tracking เพื่อเปิด exit logic (vel=' + velStr + ', accel=' + accelStr + ')',
+    if (!monthlyCapMet) {
+      return { action: 'HOLD_MONTHLY_CAP', reason: 'Monthly cap: เปลี่ยนแผนแล้ว ' + monthSwitchCount + '/' + MONTHLY_CAP + ' ครั้งเดือนนี้ | กำไร ' + (posRet*100).toFixed(1) + '%',
+               targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
+    }
+
+    // EXIT 3: AccelTP (profit ≥ 3% + decel)
+    if (posRet >= ACCEL_TP_THRESHOLD && curAllocAccel !== null && curAllocAccel < ACCEL_EXIT_LEVEL) {
+      const best = pickBestV26(curKey);
+      if (best) {
+        return { action: 'ACCEL_TP_ROTATE', level: 'ACTION',
+                 reason: 'AccelTP: กำไร ' + (posRet*100).toFixed(1) + '% + decel (' + (curAllocAccel*10000).toFixed(1) + 'bp) → ' + best.fund,
+                 targetMenu: best.fund, targetAlloc: best.alloc, ...info };
+      }
+      return { action: 'ACCEL_TP_DEF', level: 'ACTION',
+               reason: 'AccelTP: กำไร ' + (posRet*100).toFixed(1) + '% + decel → defensive (no accel)',
+               targetMenu: 'B_100', targetAlloc: { B: 1.0 }, ...info };
+    }
+
+    // EXIT 4 (V26 NEW): Time-decay — held too long without profit
+    if (positionEntryDate) {
+      const entryD = new Date(positionEntryDate); entryD.setHours(0,0,0,0);
+      const holdDays = bdays(entryD, today);
+      if (holdDays >= MAX_HOLD_DAYS && posRet < STALE_PROFIT_TH) {
+        const best = pickBestV26(curKey);
+        if (best) {
+          return { action: 'TIME_DECAY_ROTATE', level: 'ACTION',
+                   reason: 'Time-decay: ถือ ' + holdDays + ' วัน กำไร ' + (posRet*100).toFixed(1) + '% < ' + (STALE_PROFIT_TH*100) + '% → ' + best.fund,
+                   targetMenu: best.fund, targetAlloc: best.alloc, ...info };
+        }
+        return { action: 'TIME_DECAY_DEF', level: 'ACTION',
+                 reason: 'Time-decay: ถือ ' + holdDays + ' วัน กำไร ' + (posRet*100).toFixed(1) + '% → defensive',
+                 targetMenu: 'B_100', targetAlloc: { B: 1.0 }, ...info };
+      }
+    }
+
+    // EXIT 5 (V26 NEW): Velocity reversal — slow trend turned negative while still profitable
+    if (curAllocVelSlow !== null && curAllocVelSlow < 0 && posRet > 0) {
+      const best = pickBestV26(curKey);
+      if (best) {
+        return { action: 'VEL_REVERSAL_ROTATE', level: 'ACTION',
+                 reason: 'Velocity reversal: slow vel ' + (curAllocVelSlow*10000).toFixed(1) + 'bp < 0 + กำไร ' + (posRet*100).toFixed(1) + '% → ' + best.fund,
+                 targetMenu: best.fund, targetAlloc: best.alloc, ...info };
+      }
+      return { action: 'VEL_REVERSAL_DEF', level: 'ACTION',
+               reason: 'Velocity reversal: slow vel < 0 → defensive (lock profit ' + (posRet*100).toFixed(1) + '%)',
+               targetMenu: 'B_100', targetAlloc: { B: 1.0 }, ...info };
+    }
+
+    // HOLD states
+    if (posRet >= ACCEL_TP_THRESHOLD && curAllocAccel !== null && curAllocAccel >= ACCEL_EXIT_LEVEL) {
+      return { action: 'HOLD_ACCEL_WATCH', reason: 'กำไร ' + (posRet*100).toFixed(1) + '% — sensor ON: accel=' + (curAllocAccel*10000).toFixed(1) + 'bp',
+               targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
+    }
+    if (curAllocVelFast !== null && curAllocVelFast > 0 && curAllocVelSlow !== null && curAllocVelSlow < 0) {
+      return { action: 'HOLD_SLOW_CAUTION', reason: 'กำไร ' + (posRet*100).toFixed(1) + '% — fast vel+ / slow vel- (caution)',
+               targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
+    }
+    return { action: 'HOLD_BUILDING', reason: 'กำไร ' + (posRet*100).toFixed(1) + '% — ปล่อยวิ่ง',
              targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
   }
 
-  // === DEFENSIVE: ENTRY LOGIC ===
+  // OFFENSIVE/MODERATE no position data
+  if ((isOffensive || isModerate) && posRet === null) {
+    return { action: 'HOLD_NO_SIGNAL', reason: 'ถือ ' + (curKey||curType) + ' [' + regime + '] — กรอก Position Tracking',
+             targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
+  }
+
+  // =============================================
+  // DEFENSIVE: ENTRY LOGIC
+  // =============================================
   if (isDefensive) {
+    // BEAR gate
     if (regime === 'BEAR') {
-      return { action: 'HOLD_BEAR_GATE', reason: 'Regime = BEAR → ห้ามเข้า equity (BEAR gate)',
+      return { action: 'HOLD_BEAR_GATE', reason: 'Regime = BEAR → ห้ามเข้า equity',
                targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
     }
 
-    const best = pickBestAccel(null);
-    if (best.fund) {
-      const targetAlloc = ALLOCATIONS[best.fund];
-      return { action: 'ENTER', level: 'ACTION',
-               reason: 'Enter: ' + best.fund + ' (accel=' + (best.accel*10000).toFixed(1) + 'bp, vel>0) [' + regime + '] — V22B fund filter passed',
-               targetMenu: best.fund, targetAlloc, ...info };
+    // Min-hold check
+    if (!minHoldMet) {
+      return { action: 'HOLD_MIN_HOLD', reason: 'Min-hold: ' + bdSince + '/' + MIN_HOLD_DAYS + ' วัน',
+               daysLeft: MIN_HOLD_DAYS - bdSince,
+               targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
     }
 
-    return { action: 'HOLD_NO_ACCEL', reason: 'ไม่มี fund ที่ accel>0 + vel>0 (V22B filter) → รอ [' + regime + ']',
+    // Quota preservation
+    if (!canNonCritical) {
+      return { action: 'HOLD_QUOTA_PRESERVE', reason: 'Quota preservation: เหลือ ' + quotaLeft + ' สำรอง emergency',
+               targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
+    }
+
+    // Monthly cap
+    if (!monthlyCapMet) {
+      return { action: 'HOLD_MONTHLY_CAP', reason: 'Monthly cap: เปลี่ยนแผนแล้ว ' + monthSwitchCount + '/' + MONTHLY_CAP + ' ครั้งเดือนนี้',
+               targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
+    }
+
+    // V26: Full entry (dual velocity confirmed)
+    const bestOff = pickBestV26(null, 'OFFENSIVE');
+    if (bestOff) {
+      return { action: 'ENTER', level: 'ACTION',
+               reason: 'Enter: ' + bestOff.fund + ' (accel=' + (bestOff.accel*10000).toFixed(1) + 'bp) [' + regime + '] — optimizer rank #1',
+               targetMenu: bestOff.fund, targetAlloc: bestOff.alloc, ...info };
+    }
+
+    // V26: Partial entry — uncertain regime, moderate allocation
+    if (regimeStrength > -0.3) {
+      const bestMod = pickBestV26(null, 'MODERATE');
+      if (bestMod) {
+        return { action: 'ENTER_MODERATE', level: 'ACTION',
+                 reason: 'Partial entry: ' + bestMod.fund + ' (moderate, regime=' + regime + ' str=' + regimeStrength.toFixed(2) + ')',
+                 targetMenu: bestMod.fund, targetAlloc: bestMod.alloc, ...info };
+      }
+    }
+
+    return { action: 'HOLD_NO_ACCEL', reason: 'ไม่มี fund accel>0 + dual vel>0 → รอ [' + regime + ']',
              targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
   }
 
-  // Fallback — unknown state
+  // Fallback
   return { action: 'HOLD_UNKNOWN', reason: 'ไม่สามารถจำแนก allocation ปัจจุบันได้',
            targetMenu: currentMenu, targetAlloc: currentAlloc, ...info };
 }
@@ -2319,7 +2535,11 @@ async function runSignal(){
 
     // Compute v21 signal: live=0 delay, history=T_DELAY
     const signalDelay = (isHistory||isSim) ? T_DELAY : 0;
-    const{scores, momReturns, signalDate, latestNavDate, velocity, acceleration, regime, allocVel, allocAccel, ALLOCATIONS: ALLOC_MAP}=computeSignalV21(navMatrix,dates,plans,signalDelay);
+    const sigResult = computeSignalV26(navMatrix,dates,plans,signalDelay);
+    const{scores, momReturns, signalDate, latestNavDate, velocity, acceleration, regime, allocVel, allocAccel, ALLOCATIONS: ALLOC_MAP,
+          velFast, velSlow, regimeStrength, topOffensive, topModerate, topDefensive, menuRanked,
+          classifyAlloc: sigClassify, passV22BFilter: sigFilter, getAdaptiveTrailPct: sigTrail,
+          allocVelFast, allocVelSlow, allocVol} = sigResult;
 
     // Get current menu/alloc from grid (works for both auto and manual)
     const gridAlloc = getAllocFromGrid();
@@ -2596,12 +2816,12 @@ async function runSignal(){
       if (sb) {
         const simRefDate2 = new Date(histDateVal); simRefDate2.setHours(0,0,0,0);
         const cdBd = bdays(simEntryDate, simRefDate2);
-        const cdActive = cdBd < COOLDOWN_DAYS;
+        const cdActive = cdBd < MIN_HOLD_DAYS;
         sb.style.display = 'block';
         sb.innerHTML = '<b>🔬 Simulation</b> — ถ้าถือ <b>' + simAllocName + '</b> ตั้งแต่ ' + simEntryStr + ' ถึง ' + histDateVal
           + (histNavReturn !== null ? ' → return <b>' + (histNavReturn >= 0 ? '+' : '') + (histNavReturn*100).toFixed(2) + '%</b>' : '')
           + (depositMid > 0 ? ' · เงินเพิ่ม ฿' + depositMid.toLocaleString('th-TH',{maximumFractionDigits:0}) : '')
-          + (cdActive ? ' · <span style="color:var(--gold)">CD: ' + cdBd + '/' + COOLDOWN_DAYS + 'd</span>' : '');
+          + (cdActive ? ' · <span style="color:var(--gold)">MH: ' + cdBd + '/' + MIN_HOLD_DAYS + 'd</span>' : '');
       }
     } else {
       const sb = el('sim-banner'); if(sb) sb.style.display='none';
@@ -2622,6 +2842,10 @@ async function runSignal(){
       currentPortValue: posCurVal,
       positionPeakValue: posPeakVal,
       positionNavReturn: histNavReturn,
+      // V26 new fields
+      velFast, velSlow, regimeStrength, topOffensive, topModerate, topDefensive,
+      menuRanked, classifyAlloc: sigClassify, passV22BFilter: sigFilter, getAdaptiveTrailPct: sigTrail,
+      allocVelFast, allocVelSlow, allocVol,
     });
 
     // Render
@@ -2645,19 +2869,32 @@ const ACTION_MAP={
   'SWITCH':{cls:'action',label:'✅ SWITCH — เปลี่ยนแผน'},
   'ACCEL_TP_ROTATE':{cls:'action',label:'🎯 ACCEL TP — Lock กำไร + Rotate'},
   'ACCEL_TP_DEF':{cls:'action',label:'🎯 ACCEL TP — Lock กำไร → Defensive'},
-  'TRAIL_DEF':{cls:'critical',label:'🛡 TRAILING STOP — ลงจาก Peak'},
+  'TRAIL_ROTATE':{cls:'critical',label:'🛡 TRAILING STOP — Rotate'},
+  'TRAIL_DEF':{cls:'critical',label:'🛡 TRAILING STOP — Defensive'},
   'DD_DEF':{cls:'critical',label:'🔴 DD PROTECTION — BEAR + DD'},
-  'ENTER':{cls:'action',label:'🚀 ENTER — เข้า Equity'},
-  'HOLD_COOLDOWN':{cls:'info',label:'⏳ HOLD — Cooldown'},
+  'ENTER':{cls:'action',label:'🚀 ENTER — เข้า Offensive'},
+  'ENTER_MODERATE':{cls:'action',label:'⚡ ENTER — Partial (Moderate)'},
+  // V26 new exits
+  'TIME_DECAY_ROTATE':{cls:'action',label:'⏰ TIME DECAY — ถือนานไม่กำไร → Rotate'},
+  'TIME_DECAY_DEF':{cls:'action',label:'⏰ TIME DECAY — ถือนานไม่กำไร → Defensive'},
+  'VEL_REVERSAL_ROTATE':{cls:'action',label:'↩ VEL REVERSAL — Trend กลับ + Rotate'},
+  'VEL_REVERSAL_DEF':{cls:'action',label:'↩ VEL REVERSAL — Trend กลับ → Defensive'},
+  // V26 holds
+  'HOLD_MIN_HOLD':{cls:'info',label:'⏳ HOLD — Min-hold'},
+  'HOLD_MONTHLY_CAP':{cls:'info',label:'📅 HOLD — Monthly Cap'},
+  'HOLD_QUOTA_PRESERVE':{cls:'info',label:'🔒 HOLD — Quota Preservation'},
   'HOLD_QUOTA':{cls:'info',label:'🔒 HOLD — Quota หมด'},
   'HOLD_SAME':{cls:'info',label:'✓ HOLD — แผนดีอยู่แล้ว'},
   'HOLD_SMALL_CHANGE':{cls:'info',label:'⏸ HOLD — เปลี่ยนน้อย'},
   'HOLD_NO_SIGNAL':{cls:'info',label:'⏸ HOLD — ไม่มี signal'},
   'HOLD_ACCEL_WATCH':{cls:'info',label:'👁 HOLD — Accel Sensor ON'},
-  'HOLD_BUILDING':{cls:'info',label:'📈 HOLD — กำไรยังไม่ถึง'},
+  'HOLD_BUILDING':{cls:'info',label:'📈 HOLD — ปล่อยวิ่ง'},
+  'HOLD_SLOW_CAUTION':{cls:'info',label:'⚠ HOLD — Slow Trend Caution'},
   'HOLD_BEAR_GATE':{cls:'info',label:'🔴 HOLD — BEAR Gate'},
   'HOLD_NO_ACCEL':{cls:'info',label:'⏸ HOLD — ไม่มี fund เร่งตัว'},
   'HOLD_UNKNOWN':{cls:'info',label:'❓ HOLD — ไม่รู้จัก allocation'},
+  // Legacy compat
+  'HOLD_COOLDOWN':{cls:'info',label:'⏳ HOLD — Min-hold'},
 };
 
 function renderResults(data){
@@ -2728,10 +2965,11 @@ function renderRegimeBar(d){
   badge.className = 'regime-badge ' + r.toLowerCase();
   // Meta info
   const parts=[];
+  if(d.regimeStrength !== undefined && d.regimeStrength !== null) parts.push('Strength: '+(d.regimeStrength>=0?'+':'')+d.regimeStrength.toFixed(2));
   if(d.quotaUsed != null) parts.push('Quota: '+(d.quotaUsed)+'/12');
   if(d.allocRanking && d.allocRanking.length>0){
     const top=d.allocRanking[0];
-    parts.push('Top accel: '+top.name+' ('+(top.accel*10000).toFixed(1)+'bp)');
+    parts.push('Top: '+top.name+' ('+(top.accel*10000).toFixed(1)+'bp)');
   }
   meta.textContent = parts.join('  ·  ');
 }
@@ -2743,13 +2981,18 @@ function renderDecision(d){
   el('banner-pill').textContent=info.label;
   el('banner-reason').textContent=d.reason||'';
   let meta='';
-  if(d.daysLeft) meta+='อีก '+d.daysLeft+' วันทำการ  ·  ';
+  if(d.daysLeft) meta+='อีก '+d.daysLeft+' วัน  ·  ';
   meta+='Quota: '+(d.quotaUsed??'—')+'/12';
+  if(d.quotaUrgency==='CRITICAL') meta+=' (CRITICAL)';
+  else if(d.quotaUrgency==='LOW') meta+=' (LOW)';
+  if(d.bdSince!==undefined && d.bdSince<999) meta+='  ·  Hold: '+d.bdSince+'d';
+  if(d.adaptiveTrailPct) meta+='  ·  Trail: '+(d.adaptiveTrailPct*100).toFixed(1)+'%';
+  if(d.monthSwitchCount!==undefined) meta+='  ·  Mo: '+d.monthSwitchCount+'/'+MONTHLY_CAP;
   el('banner-meta').textContent=meta;
 
   const row=el('target-row');row.innerHTML='';
   if(d.targetAlloc&&Object.keys(d.targetAlloc).length){
-    const isAct=['SWITCH','ACCEL_TP_ROTATE','ACCEL_TP_DEF','ENTER','TRAIL_DEF','DD_DEF'].includes(d.action);
+    const isAct=['SWITCH','ACCEL_TP_ROTATE','ACCEL_TP_DEF','ENTER','ENTER_MODERATE','TRAIL_DEF','TRAIL_ROTATE','DD_DEF','TIME_DECAY_ROTATE','TIME_DECAY_DEF','VEL_REVERSAL_ROTATE','VEL_REVERSAL_DEF'].includes(d.action);
     const lbl=document.createElement('span');lbl.className='target-label';
     lbl.textContent=isAct?'⟶ เปลี่ยนเป็น: '+d.targetMenu:'ปัจจุบัน: '+(d.targetMenu||'—');
     row.appendChild(lbl);
@@ -2815,7 +3058,7 @@ function renderPositionCard(d, entryOverride, curOverride, peakOverride, navDDOv
 
   // DD from peak (trailing stop)
   if(ddPct !== null){
-    const ddCls = ddPct <= -TRAIL_PCT*100 ? 'red' : ddPct <= -1.5 ? 'amber' : 'green';
+    const ddCls = ddPct <= -TRAIL_MIN*100 ? 'red' : ddPct <= -1.5 ? 'amber' : 'green';
     html += '<div class="pos-stat">';
     html += '<div class="pos-stat-label">DD from Peak</div>';
     html += '<div class="pos-stat-val" style="color:var(--'+ddCls+')">'+ddPct.toFixed(2)+'%</div>';
@@ -2841,23 +3084,20 @@ function renderAccelTable(d, allocVel, allocAccel){
   const tbody=el('accel-body');
   if(!tbody) return;
   tbody.innerHTML='';
-  const OFFENSIVE = ['F100','TH100','F75_G25','TH75_G25','F50_TH25_G25'];
-  const DEFENSIVE = ['B100','MM'];
-  const allKeys = [...OFFENSIVE, ...DEFENSIVE];
 
-  // Determine current holding key from decision
+  // V26: Show top optimizer candidates from 217 menus
+  const ranked = d.allocRanking || [];
   const curMenu = d.targetMenu || '';
 
-  // Find best accel for highlighting
-  let bestKey = null, bestAccel = -Infinity;
-  OFFENSIVE.forEach(k => {
-    const v = allocVel?.[k], a = allocAccel?.[k];
-    if(v!==null && a!==null && v>0 && a>0 && a>bestAccel){ bestAccel=a; bestKey=k; }
-  });
+  // Show top 10 + any defensive
+  const toShow = ranked.slice(0, 12);
 
-  allKeys.forEach(k => {
-    const vel = allocVel?.[k];
-    const acc = allocAccel?.[k];
+  toShow.forEach((item, idx) => {
+    const k = item.name;
+    const vel = item.vel;
+    const acc = item.accel;
+    const velS = item.velSlow;
+    const type = item.type || '';
     const velBp = vel!==null && vel!==undefined ? (vel*10000).toFixed(1) : '—';
     const accBp = acc!==null && acc!==undefined ? (acc*10000).toFixed(1) : '—';
 
@@ -2872,8 +3112,10 @@ function renderAccelTable(d, allocVel, allocAccel){
 
     // Signal column
     let signal = '';
-    if(OFFENSIVE.includes(k)){
-      if(vel>0 && acc>0) signal = '<span style="color:var(--green)">✓ Entry</span>';
+    const v22bOk = item.v22bPass !== false;
+    if(type === 'OFFENSIVE' || type === 'MODERATE'){
+      if(vel>0 && acc>0 && v22bOk) signal = '<span style="color:var(--green)">✓ Entry</span>';
+      else if(!v22bOk) signal = '<span style="color:var(--red)">✕ V22B</span>';
       else if(acc!==null && acc < ACCEL_EXIT_LEVEL) signal = '<span style="color:var(--red)">✕ Exit</span>';
       else signal = '<span style="color:var(--t3)">—</span>';
     } else {
@@ -2881,23 +3123,30 @@ function renderAccelTable(d, allocVel, allocAccel){
     }
 
     const isCur = (k === curMenu);
-    const isBest = (k === bestKey);
+    const isBest = (idx === 0 && vel > 0 && acc > 0);
     const rowCls = isCur ? ' class="cur-row"' : (isBest ? ' class="best-row"' : '');
     const nameStyle = isCur ? 'color:var(--acc);font-weight:700' : (isBest ? 'color:var(--green);font-weight:700' : 'color:#e8f4ff;font-weight:600');
     const nameSuffix = isCur ? ' ◀' : (isBest ? ' ★' : '');
+    const typeBadge = type === 'OFFENSIVE' ? '<span style="color:var(--green);font-size:9px"> OFF</span>'
+                    : type === 'MODERATE' ? '<span style="color:var(--amber);font-size:9px"> MOD</span>'
+                    : '<span style="color:var(--t3);font-size:9px"> DEF</span>';
 
     const velClr = vel>0 ? 'color:var(--green)' : vel<0 ? 'color:var(--red)' : 'color:var(--t2)';
     const accClr = acc>0 ? 'color:var(--green)' : acc<0 ? 'color:var(--red)' : 'color:var(--t2)';
 
     tbody.insertAdjacentHTML('beforeend',
       '<tr'+rowCls+'>'
-      +'<td><span style="font-family:var(--mono);'+nameStyle+'">'+k+nameSuffix+'</span></td>'
+      +'<td><span style="font-family:var(--mono);'+nameStyle+'">'+k+nameSuffix+'</span>'+typeBadge+'</td>'
       +'<td style="'+velClr+'">'+velBp+'</td>'
       +'<td style="'+accClr+'">'+accBp+'</td>'
       +'<td><span class="accel-tag '+tagCls+'">'+tag+'</span></td>'
       +'<td>'+signal+'</td>'
       +'</tr>');
   });
+
+  // Show menu count
+  const statMenus = el('stat-menus');
+  if(statMenus) statMenus.textContent = ranked.length + ' scored';
 }
 
 // Auto-update peak tracking
@@ -2916,7 +3165,7 @@ function autoUpdatePeak(){
 
 function renderAppInstr(d){
   const box=el('app-instr-box');
-  const isActionable = ['SWITCH','ACCEL_TP_ROTATE','ACCEL_TP_DEF','ENTER','TRAIL_DEF','DD_DEF'].includes(d.action);
+  const isActionable = ['SWITCH','ACCEL_TP_ROTATE','ACCEL_TP_DEF','ENTER','ENTER_MODERATE','TRAIL_DEF','TRAIL_ROTATE','DD_DEF','TIME_DECAY_ROTATE','TIME_DECAY_DEF','VEL_REVERSAL_ROTATE','VEL_REVERSAL_DEF'].includes(d.action);
   if(!isActionable){box.style.display='none';return;}
   box.style.display='block';
   const alloc=d.targetAlloc;
