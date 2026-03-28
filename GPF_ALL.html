@@ -353,6 +353,8 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 .field-note { font-size: 10px; color: var(--t2); margin-top: 3px; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.row2 > div { min-width: 0; overflow: hidden; }
+.row2 input[type="date"] { min-width: 0; }
 .btn-test-sig {
   width: 100%;
   padding: 10px;
