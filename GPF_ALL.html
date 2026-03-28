@@ -791,18 +791,15 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   .logo-sub  { font-size: 9px; }
   .hdr-right { font-size: 9px; }
 
-  /* TAB NAV — full width, scroll horizontal */
+  /* TAB NAV — 50/50 split on mobile */
   .tab-nav {
     width: 100%;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    gap: 2px;
+    display: flex;
+    gap: 4px;
     padding: 3px;
     order: 3;
   }
-  .tab-nav::-webkit-scrollbar { display: none; }
-  .tab-btn { padding: 5px 12px; font-size: 11px; flex-shrink: 0; }
+  .tab-btn { padding: 5px 0; font-size: 11px; flex: 1; text-align: center; }
 
   /* PAGE WRAP */
   .page-wrap { padding: 0 10px 40px; }
@@ -819,6 +816,9 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   .cfg-actions { flex-direction: column; align-items: stretch; }
   .btn-primary { justify-content: center; font-size: 12px; padding: 10px 16px; }
   .howto { font-size: 10px; line-height: 1.7; }
+
+  /* ROW2: stack on mobile */
+  .row2 { grid-template-columns: 1fr !important; }
 
   /* SIGNAL TAB */
   .sig-wrap { max-width: 100%; padding-top: 10px; gap: 8px; }
@@ -4835,8 +4835,8 @@ function calcAnalytics(hold,nav,tx){
   for(const t of tx)if(t.type==='เงินนำส่ง'&&t.total!=null)cost+=t.total;
   const pnl=tot-cost,pp=cost>0?(pnl/cost)*100:0;
   const dc=prev>0?tot-prev:0,dp=prev>0?(dc/prev)*100:0;
-  let peak=0,peakValue=0,maxDD=0,ddEnd=null;
-  for(const p of portSeries){if(p.val>peak){peak=p.val;peakValue=p.val;}const dd=peak>0?(p.val-peak)/peak*100:0;if(dd<maxDD){maxDD=dd;ddEnd=p.date;}}
+  let peak=0,peakValue=0,peakDate=null,maxDD=0,ddEnd=null;
+  for(const p of portSeries){if(p.val>peak){peak=p.val;peakValue=p.val;peakDate=p.date;}const dd=peak>0?(p.val-peak)/peak*100:0;if(dd<maxDD){maxDD=dd;ddEnd=p.date;}}
   const firstTx=tx.find(t=>t.type==='เงินนำส่ง');
   const startDate=firstTx?.date;
   const daysHeld=startDate?Math.round((ln.date-startDate)/864e5):0;
@@ -4857,7 +4857,7 @@ function calcAnalytics(hold,nav,tx){
   const txDeposits=tx.filter(t=>t.type==='เงินนำส่ง');
   const avgMonthly=txDeposits.length>0?cost/txDeposits.length:0;
   const lastTx=[...tx].reverse().find(t=>t.plan);
-  return{tot,prev,cost,pnl,pp,dc,dp,navDt:ln?.date?fDt(ln.date):'-',maxDD,ddEnd,peakValue,cagr,yearsHeld,daysHeld,annVol,sharpe,winRate,winDays,totalDays:rets.length,bestDay,worstDay,avgMonthly,txCount:txDeposits.length,currentPlan:lastTx?.plan||'-',startDate,portSeries};
+  return{tot,prev,cost,pnl,pp,dc,dp,navDt:ln?.date?fDt(ln.date):'-',maxDD,ddEnd,peakValue,peakDate,cagr,yearsHeld,daysHeld,annVol,sharpe,winRate,winDays,totalDays:rets.length,bestDay,worstDay,avgMonthly,txCount:txDeposits.length,currentPlan:lastTx?.plan||'-',startDate,portSeries};
 }
 
 function renderPortAll(){
@@ -4973,7 +4973,8 @@ function renderPortCards(hold,a){
     {l:'แผนลงทุนปัจจุบัน',v:esc(a.currentPlan),s:'Transaction ล่าสุด',c:'cb',clr:'var(--blue)'},
   ];
   const row2=[
-    {l:'Peak Value',v:'฿'+fmt(a.peakValue,2),s:'มูลค่าสูงสุดตลอด',c:'ca',clr:'var(--amber)'},
+    {l:'Peak Value',v:'฿'+fmt(a.peakValue,2),s:'ณ '+fDt(a.peakDate),c:'ca',clr:'var(--amber)'},
+    {l:'Peak Profit',v:a.peakValue&&a.cost?fmtS(a.peakValue-a.cost)+' ฿':'-',s:(a.peakValue&&a.cost?fmtS(((a.peakValue-a.cost)/a.cost)*100)+'% จากต้นทุน · ':'')+fDt(a.peakDate),c:a.peakValue-a.cost>=0?'cG':'cr',clr:a.peakValue-a.cost>=0?'var(--green)':'var(--red)'},
     {l:'Max Drawdown',v:fmt(a.maxDD,2)+'%',s:'ต่ำสุด ณ '+fDt(a.ddEnd),c:'cr',clr:a.maxDD<0?'var(--red)':'var(--t2)'},
     {l:'Annualized Return',v:a.cagr!=null?fmtS(a.cagr)+'%':'-',s:'CAGR/ปี',c:a.cagr>=0?'cG':'cr',clr:a.cagr!=null?co(a.cagr):'var(--t2)'},
     {l:'Volatility (ปี)',v:a.annVol>0?fmt(a.annVol,2)+'%':'-',s:'ความผันผวน Annualized',c:'cp',clr:'var(--purple)'},
