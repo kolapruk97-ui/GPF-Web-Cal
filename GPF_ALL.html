@@ -566,6 +566,8 @@ select.alloc-grid-input option { background:var(--bg-2);color:var(--t1); }
 .port-manual .alloc-key-span { color: #f472b6 !important; }
 .port-manual .alloc-grid-input { border-color: rgba(244,114,182,.3) !important; color: #f472b6 !important; }
 .port-manual input[type="number"], .port-manual input[type="date"], .port-manual select#quota-used { color: #f472b6 !important; border-color: rgba(244,114,182,.3) !important; background: var(--bg-3) !important; }
+.quota-select { width:100%;background:var(--bg-2);border:1px solid var(--b2);color:var(--acc);padding:8px 10px;border-radius:6px;font-family:var(--mono);font-size:13px;font-weight:500;outline:none;transition:border-color .15s; }
+.quota-select option { background:var(--bg-2);color:var(--t1); }
 input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { pointer-events:none;user-select:none;opacity:0.8;cursor:default; }
 /* V21: Position tracking input card */
 .pos-input-card { background: var(--bg-1); border: 1px solid var(--b2); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
@@ -817,8 +819,8 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   .btn-primary { justify-content: center; font-size: 12px; padding: 10px 16px; }
   .howto { font-size: 10px; line-height: 1.7; }
 
-  /* ROW2: keep same row, proportional widths */
-  .row2 { grid-template-columns: 3fr 2fr !important; gap: 6px !important; }
+  /* ROW2: stack vertically on small screens */
+  .row2 { grid-template-columns: 1fr !important; gap: 6px !important; }
 
   /* SIGNAL TAB */
   .sig-wrap { max-width: 100%; padding-top: 10px; gap: 8px; }
@@ -1045,7 +1047,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     </div>
     <div>
       <label>Quota ที่ใช้แล้วปีนี้</label>
-      <select id="quota-used" style="background:var(--bg-3);color:var(--t1);border:1px solid var(--b2);border-radius:6px;padding:8px 10px;font-size:13px;font-family:var(--mono);font-weight:500;width:100%;outline:none;transition:border-color .15s"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select>
+      <select id="quota-used" class="quota-select"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select>
       <div class="field-note">จาก 12 ครั้ง/ปี</div>
     </div>
   </div>
@@ -3329,7 +3331,11 @@ function setPortMode(mode){
     if(syncNote) syncNote.style.display='';
     // Reset all inputs in port card to default
     const portWrap=el('port-card-wrap');
-    if(portWrap) portWrap.querySelectorAll('input[type="number"],input[type="date"],select#quota-used').forEach(inp=>{inp.style.color='';inp.style.borderColor='';});
+    if(portWrap){
+      portWrap.querySelectorAll('input[type="number"],input[type="date"]').forEach(inp=>{inp.style.color='';inp.style.borderColor='';});
+      const qSel=el('quota-used');if(qSel){qSel.style.color='var(--green)';qSel.style.borderColor='rgba(0,230,118,.3)';}
+      const lrEl=el('last-rebal');if(lrEl){lrEl.style.color='var(--green)';lrEl.style.borderColor='rgba(0,230,118,.3)';}
+    }
     // Re-apply auto sync if data loaded
     if(NAV_PORT.length>0){
       const hold=calcHold(TX_PORT);
