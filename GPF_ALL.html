@@ -1371,8 +1371,8 @@ let TRAIL_MIN     = 0.045;  // was 0.03 — wider trailing stop
 const TRAIL_MAX     = 0.08;   // was 0.06
 const TRAIL_VOL_MULT= 2.0;
 // Regime
-const BULL_TH       = 0.03;
-const BEAR_TH       = -0.03;
+const BULL_TH       = 0.05;
+const BEAR_TH       = -0.05;
 // V26: New exit params
 const MAX_HOLD_DAYS      = 60;   // time-decay exit: held too long without profit
 const STALE_PROFIT_TH    = 0.01; // profit below 1% after MAX_HOLD → exit
@@ -2096,8 +2096,7 @@ let LEARNED = {
     avgReturnByExitType: {}, // {ACCEL_TP: 0.04, TRAIL: -0.02, ...}
     totalTrades: 0
   },
-  lastLearnDate: null,
-  learnCount: 0
+  lastLearnDate: null
 };
 
 // Load learned state from localStorage
@@ -2577,7 +2576,6 @@ function runOnlineLearning(navMatrix, navKeys, txData) {
   }
 
   LEARNED.lastLearnDate = navKeys[navKeys.length - 1];
-  LEARNED.learnCount++;
   saveLearned();
 
   console.timeEnd('Online Learning');
@@ -2602,8 +2600,7 @@ function renderLearningDashboard(results) {
 
   // Learning count and last date
   html += '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px">';
-  html += '<div class="pos-stat"><div class="pos-stat-label">\u0e40\u0e23\u0e35\u0e22\u0e19\u0e23\u0e39\u0e49\u0e04\u0e23\u0e31\u0e49\u0e07\u0e17\u0e35\u0e48</div><div class="pos-stat-val acc">'+LEARNED.learnCount+'</div></div>';
-  html += '<div class="pos-stat"><div class="pos-stat-label">Data \u0e16\u0e36\u0e07</div><div class="pos-stat-val" style="color:var(--text);font-size:13px">'+(LEARNED.lastLearnDate || '-')+'</div></div>';
+  html += '<div class="pos-stat"><div class="pos-stat-label">DATA \u0e16\u0e36\u0e07</div><div class="pos-stat-val" style="color:var(--text);font-size:13px">'+(LEARNED.lastLearnDate || '-')+'</div></div>';
 
   // MDP data points
   if (results?.mdp?.regimeCount) {
@@ -3770,7 +3767,7 @@ function parseMenuAlloc(menuName){
 function findMenuByAlloc(alloc){
   if(!alloc || Object.keys(alloc).length === 0) return '';
   const MENU = getMenuCached();
-  // Normalize input: round to nearest 5%, filter zeros
+  // Normalize input: round to nearest 1%, filter zeros
   const norm = {};
   Object.entries(alloc).forEach(([k,v]) => {
     const pct = Math.round(v * 100);
@@ -5525,7 +5522,7 @@ window.addEventListener('DOMContentLoaded',function(){
     const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
     setPortMode(s['port-mode']||'auto');
   }catch(e){setPortMode('auto');}
-  console.log('GPF LiveTrade '+ALGO_VERSION+' loaded | Menu options: '+Object.keys(getMenuCached()).length+' | Online Learning + MDP+Veto enabled | Learn count: '+LEARNED.learnCount);
+  console.log('GPF LiveTrade '+ALGO_VERSION+' loaded | Menu options: '+Object.keys(getMenuCached()).length+' | Online Learning + MDP+Veto enabled');
 });
 </script>
 </body>
