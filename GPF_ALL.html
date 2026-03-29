@@ -346,15 +346,9 @@ input[type="text"], input[type="url"], input[type="date"], input[type="number"] 
 }
 input:focus { border-color: var(--acc); }
 input[type="number"] { text-align: right; }
-input[type="date"] { color-scheme: dark; cursor: pointer; max-width: 100% !important; min-width: 0 !important; }
-input[type="date"]::-webkit-calendar-picker-indicator {
-  filter: invert(.7) sepia(1) saturate(3) hue-rotate(170deg);
-  cursor: pointer; opacity: .85;
-}
+.quota-select { width:100%;background:var(--bg-2);border:1px solid var(--b2);color:var(--acc);padding:8px 10px;border-radius:6px;font-family:var(--mono);font-size:13px;font-weight:500;outline:none;transition:border-color .15s; }
+.quota-select option { background:var(--bg-2);color:var(--t1); }
 .field-note { font-size: 10px; color: var(--t2); margin-top: 3px; }
-.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.row2 > div { min-width: 0; overflow: hidden; }
-@media(max-width:480px) { .row2 { grid-template-columns: 1fr !important; } }
 .btn-test-sig {
   width: 100%;
   padding: 10px;
@@ -567,10 +561,8 @@ select.alloc-grid-input { padding:4px 6px;border-radius:6px;font-size:12px;font-
 select.alloc-grid-input option { background:var(--bg-2);color:var(--t1); }
 .port-manual .alloc-key-span { color: #f472b6 !important; }
 .port-manual .alloc-grid-input { border-color: rgba(244,114,182,.3) !important; color: #f472b6 !important; }
-.port-manual input[type="number"], .port-manual input[type="date"], .port-manual select#quota-used { color: #f472b6 !important; border-color: rgba(244,114,182,.3) !important; background: var(--bg-3) !important; }
-.quota-select { width:100%;background:var(--bg-2);border:1px solid var(--b2);color:var(--acc);padding:8px 10px;border-radius:6px;font-family:var(--mono);font-size:13px;font-weight:500;outline:none;transition:border-color .15s; }
-.quota-select option { background:var(--bg-2);color:var(--t1); }
-input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { pointer-events:none;user-select:none;opacity:0.8;cursor:default; }
+.port-manual input[type="number"], .port-manual #last-rebal, .port-manual select#quota-used { color: #f472b6 !important; border-color: rgba(244,114,182,.3) !important; background: var(--bg-3) !important; }
+input.auto-readonly, #last-rebal.auto-readonly, select.auto-readonly { pointer-events:none;user-select:none;opacity:0.8;cursor:default; }
 /* V21: Position tracking input card */
 .pos-input-card { background: var(--bg-1); border: 1px solid var(--b2); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
 .pos-input-title { font-size: 10px; font-weight: 700; letter-spacing: .10em; text-transform: uppercase; color: var(--purple); font-family: var(--mono); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
@@ -1038,13 +1030,13 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div style="margin-top:6px;font-size:10px;color:var(--t3)">ค่าจะ auto-sync ทุกครั้งที่โหลดข้อมูลใหม่</div>
   </div>
 
-  <div class="row2" style="margin-bottom:10px">
-    <div>
+  <div style="display:flex;gap:10px;margin-bottom:10px">
+    <div style="flex:1;min-width:0">
       <label>วันที่เปลี่ยนแผนล่าสุด</label>
-      <input type="date" id="last-rebal">
-      <div class="field-note">cooldown 30 วันทำการ (บล็อคทั้ง exit+entry)</div>
+      <input type="text" id="last-rebal" placeholder="yyyy-mm-dd">
+      <div class="field-note">cooldown 30 วันทำการ</div>
     </div>
-    <div>
+    <div style="flex:1;min-width:0">
       <label>Quota ที่ใช้แล้วปีนี้</label>
       <select id="quota-used" class="quota-select"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select>
       <div class="field-note">จาก 12 ครั้ง/ปี</div>
@@ -3331,7 +3323,7 @@ function setPortMode(mode){
     // Reset all inputs in port card to default
     const portWrap=el('port-card-wrap');
     if(portWrap){
-      portWrap.querySelectorAll('input[type="number"],input[type="date"]').forEach(inp=>{inp.style.color='';inp.style.borderColor='';});
+      portWrap.querySelectorAll('input[type="number"],input[type="text"]#last-rebal').forEach(inp=>{inp.style.color='';inp.style.borderColor='';});
       const qSel=el('quota-used');if(qSel){qSel.style.color='var(--green)';qSel.style.borderColor='rgba(0,230,118,.3)';}
       const lrEl=el('last-rebal');if(lrEl){lrEl.style.color='var(--green)';lrEl.style.borderColor='rgba(0,230,118,.3)';}
     }
@@ -3353,7 +3345,7 @@ function setPortMode(mode){
     // Style ALL inputs + labels in port card to amber
     const portWrap2=el('port-card-wrap');
     if(portWrap2){
-      portWrap2.querySelectorAll('input[type="number"],input[type="date"]').forEach(inp=>{inp.style.color='var(--amber)';inp.style.borderColor='rgba(255,170,0,.3)';});
+      portWrap2.querySelectorAll('input[type="number"],input[type="text"]#last-rebal').forEach(inp=>{inp.style.color='var(--amber)';inp.style.borderColor='rgba(255,170,0,.3)';});
       portWrap2.querySelectorAll('#manual-alloc-section label span').forEach(sp=>{sp.style.color='var(--amber)';});
     }
     if(syncBox) syncBox.classList.remove('show');
