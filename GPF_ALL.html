@@ -346,14 +346,14 @@ input[type="text"], input[type="url"], input[type="date"], input[type="number"] 
 }
 input:focus { border-color: var(--acc); }
 input[type="number"] { text-align: right; }
-input[type="date"] { color-scheme: dark; cursor: pointer; }
+input[type="date"] { color-scheme: dark; cursor: pointer; max-width: 100% !important; min-width: 0 !important; }
 input[type="date"]::-webkit-calendar-picker-indicator {
   filter: invert(.7) sepia(1) saturate(3) hue-rotate(170deg);
   cursor: pointer; opacity: .85;
 }
 .field-note { font-size: 10px; color: var(--t2); margin-top: 3px; }
 .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.row2 > div { min-width: 0; }
+.row2 > div { min-width: 0; overflow: hidden; }
 @media(max-width:480px) { .row2 { grid-template-columns: 1fr !important; } }
 .btn-test-sig {
   width: 100%;
