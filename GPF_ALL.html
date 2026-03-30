@@ -1311,6 +1311,12 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     </div>
 
     <div class="sec">📋 รายละเอียด</div>
+    <!-- Performance Attribution -->
+    <div id="perf-attrib-section" style="display:none;margin-bottom:14px">
+      <div class="card-head gold">Performance Attribution — กำไร/ขาดทุน แต่ละกองทุน</div>
+      <div id="perf-attrib-body"></div>
+    </div>
+
     <div class="tcrd">
       <div class="ttabs">
         <button class="ttbtn active" onclick="portTab(this,'ptab-hold')">กองทุนที่ถือ</button>
@@ -1381,7 +1387,6 @@ const STALE_VEL_DAYS     = 20;   // consecutive negative vel days → stale
 let MONTHLY_CAP        = 2;    // was 1 — allow 2 switches per month (adaptive)
 const CRITICAL_RESERVE   = 2;    // keep 2 quota for emergency exits
 const MIN_HOLD_DAYS      = 30;   // was 10 — longer min hold
-// V28 FIX W2: Dead code removed
 // const REENTRY_GUARD = 5;
 // V27: MDP Quota Planner
 const MDP_REGIME_LOOKBACK = 60;  // days for regime detection
@@ -1854,7 +1859,6 @@ function computeSignalV26(navMatrix, dates, plans, delay) {
   };
 }
 // Backward-compat alias
-const computeSignalV21 = computeSignalV26;
 
 // ================================================================
 //  MENU GENERATOR — 217 options
@@ -2752,8 +2756,7 @@ function makeDecisionV22({scores, velocity, acceleration, regime, allocVel, allo
   }
 
   // --- V26: Quota strategy (replaces cooldown) ---
-  // V28 FIX W2: Dead code removed
-  // const monthsLeft = Math.max(1, 12 - today.getMonth());
+    // const monthsLeft = Math.max(1, 12 - today.getMonth());
   const quotaUrgency = quotaLeft <= CRITICAL_RESERVE ? 'CRITICAL' : quotaLeft <= 4 ? 'LOW' : 'NORMAL';
   const canNonCritical = quotaLeft > CRITICAL_RESERVE; // also checked with monthlyCapMet below
   const canCritical = quotaLeft > 0;
@@ -4447,7 +4450,6 @@ function renderResults(data){
   renderVetoBadge(decision);
 
   // Legacy fund scores
-  /* renderFundScores removed */
 
   // Menu ranking
   renderMenuRanking(decision.topMenus||[]);
@@ -4748,7 +4750,6 @@ function renderAppInstr(d){
   box.innerHTML=html;
 }
 
-/* renderFundScores removed in V28 — legacy momentum scores no longer used */
 
 function renderMenuRanking(topMenus){
   const tbody=el('menu-body');tbody.innerHTML='';
@@ -4830,7 +4831,20 @@ function calcAnalytics(hold,nav,tx){
   const pnl=tot-cost,pp=cost>0?(pnl/cost)*100:0;
   const dc=prev>0?tot-prev:0,dp=prev>0?(dc/prev)*100:0;
   let peak=0,peakValue=0,peakDate=null,maxDD=0,ddEnd=null;
-  for(const p of portSeries){if(p.val>peak){peak=p.val;peakValue=p.val;peakDate=p.date;}const dd=peak>0?(p.val-peak)/peak*100:0;if(dd<maxDD){maxDD=dd;ddEnd=p.date;}}
+  let peakProfit=-Infinity,peakProfitDate=null,peakProfitValue=0,peakProfitCost=0;
+  let runCost=0,prevCost=0,txIdx2=0;
+  for(const p of portSeries){
+    prevCost=runCost;
+    while(txIdx2<txSorted.length&&txSorted[txIdx2].date<=p.date){if(txSorted[txIdx2].type==='เงินนำส่ง'&&txSorted[txIdx2].total!=null)runCost+=txSorted[txIdx2].total;txIdx2++;}
+    const deposit=runCost-prevCost;
+    // Adjust peak by deposit so DD isn't distorted
+    if(deposit>0)peak+=deposit;
+    if(p.val>peak){peak=p.val;peakValue=p.val;peakDate=p.date;}
+    const profit=p.val-runCost;
+    if(profit>peakProfit){peakProfit=profit;peakProfitDate=p.date;peakProfitValue=p.val;peakProfitCost=runCost;}
+    const dd=peak>0?(p.val-peak)/peak*100:0;
+    if(dd<maxDD){maxDD=dd;ddEnd=p.date;}
+  }
   const firstTx=tx.find(t=>t.type==='เงินนำส่ง');
   const startDate=firstTx?.date;
   const daysHeld=startDate?Math.round((ln.date-startDate)/864e5):0;
@@ -4851,13 +4865,13 @@ function calcAnalytics(hold,nav,tx){
   const txDeposits=tx.filter(t=>t.type==='เงินนำส่ง');
   const avgMonthly=txDeposits.length>0?cost/txDeposits.length:0;
   const lastTx=[...tx].reverse().find(t=>t.plan);
-  return{tot,prev,cost,pnl,pp,dc,dp,navDt:ln?.date?fDt(ln.date):'-',maxDD,ddEnd,peakValue,peakDate,cagr,yearsHeld,daysHeld,annVol,sharpe,winRate,winDays,totalDays:rets.length,bestDay,worstDay,avgMonthly,txCount:txDeposits.length,currentPlan:lastTx?.plan||'-',startDate,portSeries};
+  return{tot,prev,cost,pnl,pp,dc,dp,navDt:ln?.date?fDt(ln.date):'-',maxDD,ddEnd,peakValue,peakDate,peakProfit,peakProfitDate,peakProfitValue,peakProfitCost,cagr,yearsHeld,daysHeld,annVol,sharpe,winRate,winDays,totalDays:rets.length,bestDay,worstDay,avgMonthly,txCount:txDeposits.length,currentPlan:lastTx?.plan||'-',startDate,portSeries};
 }
 
 function renderPortAll(){
   const hold=calcHold(TX_PORT);
   const analytics=calcAnalytics(hold,NAV_PORT,TX_PORT);
-  renderPortCards(hold,analytics);renderHold(hold,NAV_PORT);renderNavTbl(NAV_PORT,hold);
+  renderPortCards(hold,analytics);renderHold(hold,NAV_PORT);renderPerfAttrib(hold,NAV_PORT,TX_PORT);renderNavTbl(NAV_PORT,hold);
   renderDaily(NAV_PORT,TX_PORT);renderTxTbl(TX_PORT);renderMon(TX_PORT);
   showPortDash();
   requestAnimationFrame(()=>{requestAnimationFrame(()=>{
@@ -4968,7 +4982,7 @@ function renderPortCards(hold,a){
   ];
   const row2=[
     {l:'Peak Value',v:'฿'+fmt(a.peakValue,2),s:'ณ '+fDt(a.peakDate),c:'ca',clr:'var(--amber)'},
-    {l:'Peak Profit',v:a.peakValue&&a.cost?fmtS(a.peakValue-a.cost)+' ฿':'-',s:(a.peakValue&&a.cost?fmtS(((a.peakValue-a.cost)/a.cost)*100)+'% จากต้นทุน · ':'')+fDt(a.peakDate),c:a.peakValue-a.cost>=0?'cG':'cr',clr:a.peakValue-a.cost>=0?'var(--green)':'var(--red)'},
+    {l:'Peak Profit',v:a.peakProfit!=null?fmtS(a.peakProfit)+' ฿':'-',s:(a.peakProfitCost>0?fmtS((a.peakProfit/a.peakProfitCost)*100)+'% จากต้นทุน · ':'')+fDt(a.peakProfitDate),c:a.peakProfit>=0?'cG':'cr',clr:a.peakProfit>=0?'var(--green)':'var(--red)'},
     {l:'Max Drawdown',v:fmt(a.maxDD,2)+'%',s:'ต่ำสุด ณ '+fDt(a.ddEnd),c:'cr',clr:a.maxDD<0?'var(--red)':'var(--t2)'},
     {l:'Annualized Return',v:a.cagr!=null?fmtS(a.cagr)+'%':'-',s:'CAGR/ปี',c:a.cagr>=0?'cG':'cr',clr:a.cagr!=null?co(a.cagr):'var(--t2)'},
     {l:'Volatility (ปี)',v:a.annVol>0?fmt(a.annVol,2)+'%':'-',s:'ความผันผวน Annualized',c:'cp',clr:'var(--purple)'},
@@ -4996,6 +5010,79 @@ function renderHold(hold,nav){
   }).join('');
   const gcC=grandChg>=0?'ppos':'pneg';
   el('t-hold').innerHTML='<thead><tr><th>กองทุน</th><th>หน่วย</th><th>NAV</th><th>มูลค่า (฿)</th><th>สัดส่วน</th><th>฿ เปลี่ยน 1 วัน</th><th>% เปลี่ยน 1 วัน</th></tr></thead><tbody>'+tRows+'<tr style="border-top:1px solid var(--b2)"><td colspan="3" style="font-weight:700;color:var(--t2)">รวม</td><td style="font-weight:700;color:var(--gold)">฿'+fmt(grand,2)+'</td><td></td><td class="'+gcC+'" style="font-weight:700">'+fmtS(grandChg)+' ฿</td><td></td></tr></tbody>';
+}
+function renderPerfAttrib(hold,nav,tx){
+  const sec=el('perf-attrib-section'),body=el('perf-attrib-body');if(!sec||!body)return;
+  const ln=nav[nav.length-1];if(!ln)return;
+  // Compute cost basis per fund: track (units × NAV at purchase) for each buy
+  const costBasis={}, totalUnits={};
+  for(const t of tx){
+    for(const[f,a]of Object.entries(t.amounts)){
+      if(!totalUnits[f]) totalUnits[f]=0;
+      if(!costBasis[f]) costBasis[f]=0;
+      if(a.u>0 && a.n>0){
+        // Buying: add cost = units × NAV at purchase
+        costBasis[f]+=a.u*a.n;
+        totalUnits[f]+=a.u;
+      } else if(a.u<0 && totalUnits[f]>0){
+        // Selling: remove proportional cost
+        const avgCost=costBasis[f]/totalUnits[f];
+        costBasis[f]+=a.u*avgCost; // a.u is negative
+        totalUnits[f]+=a.u;
+      }
+    }
+  }
+  // Compute P&L per fund
+  const rows=[];
+  let totalPnl=0,totalCost=0,totalVal=0;
+  for(const[f,u]of Object.entries(hold)){
+    const nv=ln.funds[f];if(!nv||Math.abs(u)<0.0001)continue;
+    const val=u*nv;
+    const basis=costBasis[f]||0;
+    const pnl=val-basis;
+    const pnlPct=basis>0?(pnl/basis)*100:0;
+    const m=FM[f]||{l:f,c:'#888'};
+    totalPnl+=pnl;totalCost+=basis;totalVal+=val;
+    rows.push({f,name:m.l,color:m.c,val,basis,pnl,pnlPct});
+  }
+  if(rows.length===0){sec.style.display='none';return;}
+  rows.sort((a,b)=>b.pnl-a.pnl);
+  // Contribution %
+  const maxAbs=Math.max(...rows.map(r=>Math.abs(r.pnl)),1);
+  let html='<table style="width:100%;font-size:12px;font-family:var(--mono)"><thead><tr>'
+    +'<th style="text-align:left;padding:6px">กองทุน</th>'
+    +'<th style="text-align:right;padding:6px">ต้นทุน</th>'
+    +'<th style="text-align:right;padding:6px">มูลค่าปัจจุบัน</th>'
+    +'<th style="text-align:right;padding:6px">กำไร/ขาดทุน</th>'
+    +'<th style="text-align:right;padding:6px">%</th>'
+    +'<th style="padding:6px;min-width:120px">Contribution</th>'
+    +'</tr></thead><tbody>';
+  for(const r of rows){
+    const cc=r.pnl>=0?'var(--green)':'var(--red)';
+    const barW=Math.abs(r.pnl)/maxAbs*100;
+    const barColor=r.pnl>=0?'rgba(0,230,118,.3)':'rgba(255,61,90,.3)';
+    const barBorder=r.pnl>=0?'rgba(0,230,118,.6)':'rgba(255,61,90,.6)';
+    html+='<tr style="border-bottom:1px solid var(--b1)">'
+      +'<td style="padding:6px"><span class="fdot" style="background:'+r.color+';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px"></span>'+r.name+'</td>'
+      +'<td style="text-align:right;padding:6px">'+fmt(r.basis,2)+'</td>'
+      +'<td style="text-align:right;padding:6px">'+fmt(r.val,2)+'</td>'
+      +'<td style="text-align:right;padding:6px;color:'+cc+';font-weight:600">'+fmtS(r.pnl)+' ฿</td>'
+      +'<td style="text-align:right;padding:6px;color:'+cc+'">'+fmtS(r.pnlPct)+'%</td>'
+      +'<td style="padding:6px"><div style="height:14px;width:'+barW+'%;background:'+barColor+';border:1px solid '+barBorder+';border-radius:3px;'+(r.pnl>=0?'margin-left:0':'margin-left:auto')+'"></div></td>'
+      +'</tr>';
+  }
+  const totalPnlPct=totalCost>0?(totalPnl/totalCost)*100:0;
+  const tcc=totalPnl>=0?'var(--green)':'var(--red)';
+  html+='<tr style="border-top:2px solid var(--b2);font-weight:700">'
+    +'<td style="padding:6px;color:var(--gold)">รวม</td>'
+    +'<td style="text-align:right;padding:6px">'+fmt(totalCost,2)+'</td>'
+    +'<td style="text-align:right;padding:6px">'+fmt(totalVal,2)+'</td>'
+    +'<td style="text-align:right;padding:6px;color:'+tcc+'">'+fmtS(totalPnl)+' ฿</td>'
+    +'<td style="text-align:right;padding:6px;color:'+tcc+'">'+fmtS(totalPnlPct)+'%</td>'
+    +'<td></td></tr>';
+  html+='</tbody></table>';
+  body.innerHTML=html;
+  sec.style.display='block';
 }
 function renderNavTbl(nav,hold){
   const active=Object.keys(hold).filter(f=>FM[f]&&nav.some(n=>n.funds[f]));
@@ -5106,9 +5193,9 @@ function renderPortChart(days){
   const rebalDates=new Set(rebalTx.map(t=>t.date.toDateString()));
   const rebalData=l.map((d,i)=>rebalDates.has(d.toDateString())?v[i]:null);
   const labels=l.map(fmtDateChart);
-  // Compute DD data first (for combined tooltip)
+  // Compute DD data — adjust peak by deposits so DD isn't inflated by DCA
   let peak=0;
-  const ddData=v.map(val=>{if(val>peak)peak=val;return peak>0?(val-peak)/peak*100:0;});
+  const ddData=v.map((val,i)=>{const dep=i>0?iv[i]-iv[i-1]:iv[0];if(dep>0)peak+=dep;if(val>peak)peak=val;return peak>0?(val-peak)/peak*100:0;});
   const datasets=[
     {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,
       backgroundColor:c=>{const a=c.chart.chartArea;if(!a)return'rgba(255,193,32,.15)';const g=c.chart.ctx.createLinearGradient(0,a.top,0,a.bottom);g.addColorStop(0,'rgba(255,193,32,.2)');g.addColorStop(1,'rgba(255,193,32,0)');return g;}},
@@ -5164,7 +5251,7 @@ function renderAlloc(hold,nav){
   portCharts.alloc=new Chart(ctx,{type:'doughnut',data:{labels:ls,datasets:[{data,backgroundColor:cs,borderColor:'#0d1526',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#7888a8',font:{family:'Sarabun',size:11},padding:8}},tooltip:{callbacks:{label:c=>{const total=data.reduce((a,b)=>a+b,0);return' '+c.label+': ฿'+c.parsed.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+((c.parsed/total)*100).toFixed(1)+'%)';}}}}}}); }
 function renderFund(nav, days){
   if(days===undefined)days=fundPeriod;
-  const fs=['F','G','A65','A75','Money_Market','B','TH'];
+  const fs=ALL_PLANS.filter(f=>FM[f]);
   const av=fs.filter(f=>nav.some(n=>n.funds[f]!=null));
   let rc;if(days===0){rc=[...nav];}else{const cut=new Date(Date.now()-days*864e5);rc=nav.filter(n=>n.date>=cut);}
   // For ALL: start from the date where all displayed funds have data
@@ -5188,7 +5275,6 @@ function setPeriod(btn,days){document.querySelectorAll('.pbtn').forEach(b=>b.cla
 function setFundPeriod(btn,days){document.querySelectorAll('.fpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');fundPeriod=days;if(NAV_PORT.length>0){destroyChart('fund');renderFund(NAV_PORT,days);}}
 
 // ================================================================
-/* renderCorrMatrix removed in V28 — correlation matrix not used by algo */
 
 // ================================================================
 //  YEARLY PERFORMANCE SUMMARY
@@ -5396,9 +5482,9 @@ function renderFsChart(chartKey){
     const rebalDates=new Set(rebalTx.map(t=>t.date.toDateString()));
     const rebalData=l.map((d,i)=>rebalDates.has(d.toDateString())?v[i]:null);
     const labels=l.map(fmtDateChart);
-    // Compute DD data first (for combined tooltip)
+    // Compute DD data — adjust peak by deposits so DD isn't inflated by DCA
     let peak=0;
-    const ddData=v.map(val=>{if(val>peak)peak=val;return peak>0?(val-peak)/peak*100:0;});
+    const ddData=v.map((val,i)=>{const dep=i>0?iv[i]-iv[i-1]:iv[0];if(dep>0)peak+=dep;if(val>peak)peak=val;return peak>0?(val-peak)/peak*100:0;});
     const datasets=[
       {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,backgroundColor:'rgba(255,193,32,.12)'},
       {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3}
@@ -5444,7 +5530,7 @@ function renderFsChart(chartKey){
       }});
   } else if(chartKey === 'fund'){
     const days = fsPeriod;
-    const fs2=['F','G','A65','A75','Money_Market','B','TH'];
+    const fs2=ALL_PLANS.filter(f=>FM[f]);
     const av=fs2.filter(f=>NAV_PORT.some(n=>n.funds[f]!=null));
     let rc;if(days===0){rc=[...NAV_PORT];}else{const cut=new Date(Date.now()-days*864e5);rc=NAV_PORT.filter(n=>n.date>=cut);}
     if(days===0&&av.length>1){let ci=0;av.forEach(f=>{const i=rc.findIndex(n=>n.funds[f]!=null);if(i>ci)ci=i;});if(ci>0)rc=rc.slice(ci);}
