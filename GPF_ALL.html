@@ -346,6 +346,8 @@ input[type="text"], input[type="url"], input[type="date"], input[type="number"] 
 }
 input:focus { border-color: var(--acc); }
 input[type="number"] { text-align: right; }
+input[type="date"] { color-scheme: dark; cursor: pointer; }
+input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7) sepia(1) saturate(3) hue-rotate(170deg); cursor: pointer; opacity: .85; }
 .quota-select { width:100%;background:var(--bg-2);border:1px solid var(--b2);color:var(--acc);padding:8px 10px;border-radius:6px;font-family:var(--mono);font-size:13px;font-weight:500;outline:none;transition:border-color .15s; }
 .quota-select option { background:var(--bg-2);color:var(--t1); }
 .field-note { font-size: 10px; color: var(--t2); margin-top: 3px; }
@@ -561,8 +563,8 @@ select.alloc-grid-input { padding:4px 6px;border-radius:6px;font-size:12px;font-
 select.alloc-grid-input option { background:var(--bg-2);color:var(--t1); }
 .port-manual .alloc-key-span { color: #f472b6 !important; }
 .port-manual .alloc-grid-input { border-color: rgba(244,114,182,.3) !important; color: #f472b6 !important; }
-.port-manual input[type="number"], .port-manual #last-rebal, .port-manual select#quota-used { color: #f472b6 !important; border-color: rgba(244,114,182,.3) !important; background: var(--bg-3) !important; }
-input.auto-readonly, #last-rebal.auto-readonly, select.auto-readonly { pointer-events:none;user-select:none;opacity:0.8;cursor:default; }
+.port-manual input[type="number"], .port-manual input[type="date"], .port-manual select#quota-used { color: #f472b6 !important; border-color: rgba(244,114,182,.3) !important; background: var(--bg-3) !important; }
+input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { pointer-events:none;user-select:none;opacity:0.8;cursor:default; }
 /* V21: Position tracking input card */
 .pos-input-card { background: var(--bg-1); border: 1px solid var(--b2); border-radius: 10px; padding: 14px 16px; margin-bottom: 10px; }
 .pos-input-title { font-size: 10px; font-weight: 700; letter-spacing: .10em; text-transform: uppercase; color: var(--purple); font-family: var(--mono); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
@@ -1033,7 +1035,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <div style="display:flex;gap:10px;margin-bottom:10px">
     <div style="flex:1;min-width:0">
       <label>วันที่เปลี่ยนแผนล่าสุด</label>
-      <input type="text" id="last-rebal" placeholder="yyyy-mm-dd">
+      <input type="date" id="last-rebal" lang="en">
       <div class="field-note">cooldown 30 วันทำการ</div>
     </div>
     <div style="flex:1;min-width:0">
@@ -1120,7 +1122,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <button class="date-nav-btn"        id="mode-sim"     onclick="setViewMode('sim')">🔬 จำลอง</button>
   <div id="hist-date-wrap">
     <span class="date-step" id="step-prev">‹</span>
-    <input type="date" id="hist-date" style="flex:1" onchange="snapToWeekday(this);clearSignalResults()">
+    <input type="date" id="hist-date" lang="en" style="flex:1" onchange="snapToWeekday(this);clearSignalResults()">
     <span class="date-step" id="step-next">›</span>
   </div>
 </div>
@@ -1130,28 +1132,27 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <div class="sim-title">🔬 Simulation — จำลองถ้าถือแผนอื่น</div>
   <div style="font-size:11px;color:var(--t2);margin-bottom:10px">เลือกแผนที่ต้องการจำลอง + วันที่เข้า/ออก · ใช้เงินจาก TX จริง</div>
   <div style="font-size:10px;color:var(--t3);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px">แผนจำลอง</div>
-  <div class="sim-alloc-grid" id="sim-alloc-grid"></div>
-  <div id="sim-custom-wrap" style="display:none;margin-bottom:12px">
-    <div style="font-size:10px;color:var(--t3);margin-bottom:6px">กรอก % ทีละ 5% (รวม=100%)</div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px">
-      <div><label style="font-size:10px">F</label><input type="number" id="sim_F" value="0" min="0" max="100" step="5" style="width:100%"></div>
-      <div><label style="font-size:10px">TH</label><input type="number" id="sim_TH" value="0" min="0" max="100" step="5" style="width:100%"></div>
-      <div><label style="font-size:10px">G (max25)</label><input type="number" id="sim_G" value="0" min="0" max="25" step="5" style="width:100%"></div>
-      <div><label style="font-size:10px">B</label><input type="number" id="sim_B" value="0" min="0" max="100" step="5" style="width:100%"></div>
-      <div><label style="font-size:10px">PR</label><input type="number" id="sim_PR" value="0" min="0" max="100" step="5" style="width:100%"></div>
-      <div><label style="font-size:10px">GB</label><input type="number" id="sim_Global_Bond" value="0" min="0" max="100" step="5" style="width:100%"></div>
-      <div><label style="font-size:10px">MM</label><input type="number" id="sim_Money_Market" value="0" min="0" max="100" step="5" style="width:100%"></div>
+  <div style="border:1px solid rgba(139,92,246,.15);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+    <div style="font-size:10px;color:var(--purple);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Mixed Plans — เลือก 1 แผน (100%)</div>
+    <div style="display:flex;flex-direction:column;align-items:flex-start;gap:6px" id="sim-grid-mix"></div>
+  </div>
+  <div style="border:1px solid rgba(139,92,246,.15);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+    <div style="font-size:10px;color:var(--purple);font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">DIY Plans — กรอกสัดส่วนเอง (รวม 100%)</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px" id="sim-grid-diy"></div>
+    <div style="margin-top:8px;display:flex;align-items:center;gap:8px">
+      <span style="font-size:11px;color:var(--t2)">ผลรวม:</span>
+      <span id="sim-alloc-sum" style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--t2)">0%</span>
     </div>
   </div>
   <div class="sim-row2">
     <div>
       <label>วันที่เข้าแผน (Entry)</label>
-      <input type="date" id="sim-entry-date" onchange="snapToWeekday(this);clearSignalResults()">
+      <input type="date" id="sim-entry-date" lang="en" onchange="snapToWeekday(this);clearSignalResults()">
       <div class="field-note">จำลองว่า switch เข้าวันนี้</div>
     </div>
     <div>
       <label>วันที่เปิดดู</label>
-      <input type="date" id="sim-signal-date" onchange="snapToWeekday(this);clearSignalResults()">
+      <input type="date" id="sim-signal-date" lang="en" onchange="snapToWeekday(this);clearSignalResults()">
       <div class="field-note">เสมือนเปิด app วันนี้ (T-2)</div>
     </div>
   </div>
@@ -3323,7 +3324,7 @@ function setPortMode(mode){
     // Reset all inputs in port card to default
     const portWrap=el('port-card-wrap');
     if(portWrap){
-      portWrap.querySelectorAll('input[type="number"],input[type="text"]#last-rebal').forEach(inp=>{inp.style.color='';inp.style.borderColor='';});
+      portWrap.querySelectorAll('input[type="number"],input[type="date"]#last-rebal').forEach(inp=>{inp.style.color='';inp.style.borderColor='';});
       const qSel=el('quota-used');if(qSel){qSel.style.color='var(--green)';qSel.style.borderColor='rgba(0,230,118,.3)';}
       const lrEl=el('last-rebal');if(lrEl){lrEl.style.color='var(--green)';lrEl.style.borderColor='rgba(0,230,118,.3)';}
     }
@@ -3345,7 +3346,7 @@ function setPortMode(mode){
     // Style ALL inputs + labels in port card to amber
     const portWrap2=el('port-card-wrap');
     if(portWrap2){
-      portWrap2.querySelectorAll('input[type="number"],input[type="text"]#last-rebal').forEach(inp=>{inp.style.color='var(--amber)';inp.style.borderColor='rgba(255,170,0,.3)';});
+      portWrap2.querySelectorAll('input[type="number"],input[type="date"]#last-rebal').forEach(inp=>{inp.style.color='var(--amber)';inp.style.borderColor='rgba(255,170,0,.3)';});
       portWrap2.querySelectorAll('#manual-alloc-section label span').forEach(sp=>{sp.style.color='var(--amber)';});
     }
     if(syncBox) syncBox.classList.remove('show');
@@ -3704,54 +3705,81 @@ const SIM_ALLOCS = {
 let simSelectedAlloc = 'F75:G25';
 let simCustomMode = false;
 
+let _simFromMix=false;
 function buildSimAllocGrid(){
-  const grid=el('sim-alloc-grid');if(!grid)return;
-  grid.innerHTML='';
-  // Preset buttons
-  Object.keys(SIM_ALLOCS).forEach(name=>{
-    const btn=document.createElement('button');
-    btn.className='sim-alloc-btn'+(name===simSelectedAlloc&&!simCustomMode?' active':'');
-    btn.textContent=name;
-    btn.onclick=()=>{
-      simCustomMode=false;
-      grid.querySelectorAll('.sim-alloc-btn').forEach(b=>b.classList.remove('active'));
-      btn.classList.add('active');
-      simSelectedAlloc=name;
-      el('sim-custom-wrap').style.display='none';
-    };
-    grid.appendChild(btn);
-  });
-  // Custom button
-  const cbtn=document.createElement('button');
-  cbtn.className='sim-alloc-btn'+(simCustomMode?' active':'');
-  cbtn.textContent='✎ Custom';
-  cbtn.style.borderColor='var(--purple)';cbtn.style.color='var(--purple)';
-  cbtn.onclick=()=>{
-    simCustomMode=true;
-    grid.querySelectorAll('.sim-alloc-btn').forEach(b=>b.classList.remove('active'));
-    cbtn.classList.add('active');
-    el('sim-custom-wrap').style.display='block';
-  };
-  grid.appendChild(cbtn);
-}
-
-function getSimAlloc(){
-  if(simCustomMode){
-    const alloc={};
-    CUSTOM_FUNDS.forEach(f=>{
-      const inp=el('sim_'+f);
-      if(inp){const v=parseInt(inp.value)||0;if(v>0)alloc[f]=v/100;}
+  // Mixed Plans buttons
+  const mixGrid=el('sim-grid-mix');if(mixGrid){
+    mixGrid.innerHTML='';
+    MIX_BUTTONS.forEach(p=>{
+      const btn=document.createElement('button');
+      btn.type='button';btn.id='sim_mix_'+p.key;
+      btn.className='mix-plan-btn';
+      btn.textContent=p.name+' ('+p.key+')';
+      btn.onclick=function(){selectSimMixPlan(p.key);};
+      mixGrid.appendChild(btn);
     });
-    return Object.keys(alloc).length>0?alloc:null;
   }
-  return SIM_ALLOCS[simSelectedAlloc]||null;
+  // DIY Plans selects
+  const diyGrid=el('sim-grid-diy');if(diyGrid){
+    diyGrid.innerHTML='';
+    DIY.forEach(p=>{
+      const maxVal=p.cap||100;
+      let opts='<option value="">—</option>';
+      for(let i=0;i<=maxVal;i++) opts+='<option value="'+i+'">'+i+'%</option>';
+      const div=document.createElement('div');
+      div.style.cssText='display:flex;flex-direction:column;gap:3px';
+      div.innerHTML='<label style="font-size:11px;color:var(--t2)">'+p.name+' <span style="font-family:var(--mono);color:var(--purple)">('+p.key+')</span></label>'
+        +'<select id="sim_a_'+p.key+'" style="background:var(--bg-3);border:1px solid rgba(139,92,246,.3);color:var(--purple);padding:4px 6px;border-radius:6px;font-size:12px;font-family:var(--mono);width:100%;outline:none" onchange="onSimAllocChange()">'+opts+'</select>';
+      diyGrid.appendChild(div);
+    });
+  }
+}
+function selectSimMixPlan(key){
+  _simFromMix=true;
+  // Clear DIY
+  DIY.forEach(p=>{const inp=el('sim_a_'+p.key);if(inp)inp.value='';});
+  // Deselect all mix buttons
+  document.querySelectorAll('#sim-grid-mix .mix-plan-btn').forEach(b=>b.classList.remove('active'));
+  const btn=el('sim_mix_'+key);
+  if(btn){
+    if(btn.classList.contains('active')){btn.classList.remove('active');_simFromMix=false;onSimAllocChange();return;}
+    btn.classList.add('active');
+  }
+  // Set value in DIY if key is a DIY fund
+  const diyInp=el('sim_a_'+key);
+  if(diyInp) diyInp.value='100';
+  simSelectedAlloc=key;simCustomMode=false;
+  onSimAllocChange();
+  _simFromMix=false;
+}
+function onSimAllocChange(){
+  const total=DIY.reduce((s,p)=>{const v=parseFloat(el('sim_a_'+p.key)?.value||'0');return s+(isNaN(v)?0:v);},0);
+  // Check MIX_ONLY hidden values
+  const mixTotal=MIX_ONLY.reduce((s,p)=>{return s+(simSelectedAlloc===p.key&&!simCustomMode?100:0);},0);
+  const grand=total+mixTotal;
+  const lbl=el('sim-alloc-sum');
+  if(lbl){lbl.textContent=grand.toFixed(0)+'%';lbl.style.color=Math.abs(grand-100)<0.01?'var(--green)':grand>100?'var(--red)':'var(--t2)';}
+  // If DIY changed, deselect mix
+  if(!_simFromMix&&total>0){
+    document.querySelectorAll('#sim-grid-mix .mix-plan-btn').forEach(b=>b.classList.remove('active'));
+    simSelectedAlloc='';simCustomMode=true;
+  }
+}
+function getSimAlloc(){
+  // Check mix plan first
+  if(!simCustomMode&&simSelectedAlloc){
+    const mixPlan=MIX_BUTTONS.find(p=>p.key===simSelectedAlloc);
+    if(mixPlan) return{[simSelectedAlloc]:1.0};
+  }
+  // DIY
+  const alloc={};
+  DIY.forEach(p=>{const v=parseFloat(el('sim_a_'+p.key)?.value||'0');if(v>0)alloc[p.key]=v/100;});
+  return Object.keys(alloc).length>0?alloc:null;
 }
 function getSimAllocName(){
-  if(simCustomMode){
-    const a=getSimAlloc();if(!a)return'Custom';
-    return Object.entries(a).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+(v*100).toFixed(0)).join(':');
-  }
-  return simSelectedAlloc;
+  if(!simCustomMode&&simSelectedAlloc) return simSelectedAlloc+'_100';
+  const a=getSimAlloc();if(!a)return'Custom';
+  return Object.entries(a).sort((a,b)=>b[1]-a[1]).map(([k,v])=>k+(v*100).toFixed(0)).join(':');
 }
 
 // ================================================================
