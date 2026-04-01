@@ -5014,36 +5014,41 @@ function renderHold(hold,nav){
 function renderPerfAttrib(hold,nav,tx){
   const sec=el('perf-attrib-section'),body=el('perf-attrib-body');if(!sec||!body)return;
   const ln=nav[nav.length-1];if(!ln)return;
-  // Compute cost basis per fund: track (units × NAV at purchase) for each buy
-  const costBasis={}, totalUnits={};
+  // Net baht flow per fund from TX (a.b = actual baht amount per transaction)
+  const netBaht={};
+  let totalDeposits=0;
   for(const t of tx){
+    if(t.type==='เงินนำส่ง'&&t.total!=null) totalDeposits+=t.total;
     for(const[f,a]of Object.entries(t.amounts)){
-      if(!totalUnits[f]) totalUnits[f]=0;
-      if(!costBasis[f]) costBasis[f]=0;
-      if(a.u>0 && a.n>0){
-        // Buying: add cost = units × NAV at purchase
-        costBasis[f]+=a.u*a.n;
-        totalUnits[f]+=a.u;
-      } else if(a.u<0 && totalUnits[f]>0){
-        // Selling: remove proportional cost
-        const avgCost=costBasis[f]/totalUnits[f];
-        costBasis[f]+=a.u*avgCost; // a.u is negative
-        totalUnits[f]+=a.u;
-      }
+      netBaht[f]=(netBaht[f]||0)+(a.b||0);
     }
   }
-  // Compute P&L per fund
-  const rows=[];
-  let totalPnl=0,totalCost=0,totalVal=0;
+  // Current value per fund
+  let grandVal=0;
+  const fundVals={};
   for(const[f,u]of Object.entries(hold)){
     const nv=ln.funds[f];if(!nv||Math.abs(u)<0.0001)continue;
-    const val=u*nv;
-    const basis=costBasis[f]||0;
+    fundVals[f]=u*nv;grandVal+=u*nv;
+  }
+  // Currently held funds (unrealized)
+  const rows=[];
+  let totalPnl=0,totalCost=0,totalVal=0;
+  for(const[f,val]of Object.entries(fundVals)){
+    const basis=netBaht[f]||0;
     const pnl=val-basis;
     const pnlPct=basis>0?(pnl/basis)*100:0;
     const m=FM[f]||{l:f,c:'#888'};
     totalPnl+=pnl;totalCost+=basis;totalVal+=val;
-    rows.push({f,name:m.l,color:m.c,val,basis,pnl,pnlPct});
+    rows.push({f,name:m.l,color:m.c,val,basis,pnl,pnlPct,held:true});
+  }
+  // Previously held funds (realized — net outflow = realized gain)
+  for(const[f,net]of Object.entries(netBaht)){
+    if(fundVals[f])continue; // skip currently held
+    if(Math.abs(net)<1)continue; // skip negligible
+    const m=FM[f]||{l:f,c:'#888'};
+    const realized=-net; // negative net = money came OUT = realized gain
+    totalPnl+=realized;
+    rows.push({f,name:m.l,color:m.c,val:0,basis:0,pnl:realized,pnlPct:0,held:false});
   }
   if(rows.length===0){sec.style.display='none';return;}
   rows.sort((a,b)=>b.pnl-a.pnl);
@@ -5057,28 +5062,52 @@ function renderPerfAttrib(hold,nav,tx){
     +'<th style="text-align:right;padding:6px">%</th>'
     +'<th style="padding:6px;min-width:120px">Contribution</th>'
     +'</tr></thead><tbody>';
-  for(const r of rows){
-    const cc=r.pnl>=0?'var(--green)':'var(--red)';
-    const barW=Math.abs(r.pnl)/maxAbs*100;
-    const barColor=r.pnl>=0?'rgba(0,230,118,.3)':'rgba(255,61,90,.3)';
-    const barBorder=r.pnl>=0?'rgba(0,230,118,.6)':'rgba(255,61,90,.6)';
-    html+='<tr style="border-bottom:1px solid var(--b1)">'
-      +'<td style="padding:6px"><span class="fdot" style="background:'+r.color+';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px"></span>'+r.name+'</td>'
-      +'<td style="text-align:right;padding:6px">'+fmt(r.basis,2)+'</td>'
-      +'<td style="text-align:right;padding:6px">'+fmt(r.val,2)+'</td>'
-      +'<td style="text-align:right;padding:6px;color:'+cc+';font-weight:600">'+fmtS(r.pnl)+' ฿</td>'
-      +'<td style="text-align:right;padding:6px;color:'+cc+'">'+fmtS(r.pnlPct)+'%</td>'
-      +'<td style="padding:6px"><div style="height:14px;width:'+barW+'%;background:'+barColor+';border:1px solid '+barBorder+';border-radius:3px;'+(r.pnl>=0?'margin-left:0':'margin-left:auto')+'"></div></td>'
-      +'</tr>';
+  const heldRows=rows.filter(r=>r.held), realizedRows=rows.filter(r=>!r.held);
+  // Currently held
+  if(heldRows.length>0){
+    html+='<tr><td colspan="6" style="padding:6px 6px 2px;font-size:10px;color:var(--t2);letter-spacing:.08em;text-transform:uppercase">ถือปัจจุบัน (unrealized)</td></tr>';
+    for(const r of heldRows){
+      const cc=r.pnl>=0?'var(--green)':'var(--red)';
+      const barW=Math.abs(r.pnl)/maxAbs*100;
+      const barColor=r.pnl>=0?'rgba(0,230,118,.3)':'rgba(255,61,90,.3)';
+      const barBorder=r.pnl>=0?'rgba(0,230,118,.6)':'rgba(255,61,90,.6)';
+      html+='<tr style="border-bottom:1px solid var(--b1)">'
+        +'<td style="padding:6px"><span class="fdot" style="background:'+r.color+';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px"></span>'+r.name+'</td>'
+        +'<td style="text-align:right;padding:6px">'+fmt(r.basis,2)+'</td>'
+        +'<td style="text-align:right;padding:6px">'+fmt(r.val,2)+'</td>'
+        +'<td style="text-align:right;padding:6px;color:'+cc+';font-weight:600">'+fmtS(r.pnl)+' ฿</td>'
+        +'<td style="text-align:right;padding:6px;color:'+cc+'">'+fmtS(r.pnlPct)+'%</td>'
+        +'<td style="padding:6px"><div style="height:14px;width:'+barW+'%;background:'+barColor+';border:1px solid '+barBorder+';border-radius:3px"></div></td>'
+        +'</tr>';
+    }
   }
-  const totalPnlPct=totalCost>0?(totalPnl/totalCost)*100:0;
-  const tcc=totalPnl>=0?'var(--green)':'var(--red)';
+  // Previously held (realized)
+  if(realizedRows.length>0){
+    html+='<tr><td colspan="6" style="padding:8px 6px 2px;font-size:10px;color:var(--t2);letter-spacing:.08em;text-transform:uppercase">ขายแล้ว (realized)</td></tr>';
+    for(const r of realizedRows){
+      const cc=r.pnl>=0?'var(--green)':'var(--red)';
+      const barW=Math.abs(r.pnl)/maxAbs*100;
+      const barColor=r.pnl>=0?'rgba(0,230,118,.3)':'rgba(255,61,90,.3)';
+      const barBorder=r.pnl>=0?'rgba(0,230,118,.6)':'rgba(255,61,90,.6)';
+      html+='<tr style="border-bottom:1px solid var(--b1);opacity:0.7">'
+        +'<td style="padding:6px"><span class="fdot" style="background:'+r.color+';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px"></span>'+r.name+'</td>'
+        +'<td style="text-align:right;padding:6px;color:var(--t3)">—</td>'
+        +'<td style="text-align:right;padding:6px;color:var(--t3)">ขายแล้ว</td>'
+        +'<td style="text-align:right;padding:6px;color:'+cc+';font-weight:600">'+fmtS(r.pnl)+' ฿</td>'
+        +'<td style="text-align:right;padding:6px;color:var(--t3)">—</td>'
+        +'<td style="padding:6px"><div style="height:14px;width:'+barW+'%;background:'+barColor+';border:1px solid '+barBorder+';border-radius:3px"></div></td>'
+        +'</tr>';
+    }
+  }
+  const realPnl=totalVal-totalDeposits;
+  const tcc=realPnl>=0?'var(--green)':'var(--red)';
+  const realPnlPct=totalDeposits>0?(realPnl/totalDeposits)*100:0;
   html+='<tr style="border-top:2px solid var(--b2);font-weight:700">'
-    +'<td style="padding:6px;color:var(--gold)">รวม</td>'
-    +'<td style="text-align:right;padding:6px">'+fmt(totalCost,2)+'</td>'
+    +'<td style="padding:6px;color:var(--gold)">รวมทั้งหมด</td>'
+    +'<td style="text-align:right;padding:6px">'+fmt(totalDeposits,2)+'</td>'
     +'<td style="text-align:right;padding:6px">'+fmt(totalVal,2)+'</td>'
-    +'<td style="text-align:right;padding:6px;color:'+tcc+'">'+fmtS(totalPnl)+' ฿</td>'
-    +'<td style="text-align:right;padding:6px;color:'+tcc+'">'+fmtS(totalPnlPct)+'%</td>'
+    +'<td style="text-align:right;padding:6px;color:'+tcc+'">'+fmtS(realPnl)+' ฿</td>'
+    +'<td style="text-align:right;padding:6px;color:'+tcc+'">'+fmtS(realPnlPct)+'%</td>'
     +'<td></td></tr>';
   html+='</tbody></table>';
   body.innerHTML=html;
