@@ -126,6 +126,23 @@ body::before {
 }
 .tab-btn.active.signal-tab  { color: var(--acc);  border: 1px solid rgba(0,200,240,.25); }
 .tab-btn.active.port-tab    { color: var(--gold); border: 1px solid rgba(255,193,32,.25); }
+.tab-btn.active.nav-tab     { color: var(--purple); border: 1px solid rgba(139,92,246,.25); }
+
+/* NAV Analysis tab */
+.nav-section { margin-bottom: 18px; }
+.nav-sec-head { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:700; color:var(--text); margin-bottom:10px; letter-spacing:.02em; }
+.nav-sec-head::before { content:''; display:block; width:3px; height:13px; background:var(--purple); border-radius:2px; }
+.nav-fund-toggles { display:flex; flex-wrap:wrap; gap:4px; margin-bottom:10px; }
+.nav-fund-tog { padding:3px 10px; border-radius:6px; border:1px solid var(--b2); background:none; color:var(--t2); font-size:11px; font-family:var(--mono); cursor:pointer; transition:all .15s; }
+.nav-fund-tog.on { background:var(--b2); color:var(--text); border-color:var(--purple); }
+.nav-stats-tbl { width:100%; border-collapse:collapse; font-size:11px; font-family:var(--mono); }
+.nav-stats-tbl th { padding:6px 8px; text-align:right; color:var(--t2); font-weight:600; cursor:pointer; user-select:none; border-bottom:1px solid var(--b1); position:sticky; top:0; background:var(--bg-1); }
+.nav-stats-tbl th:first-child { text-align:left; }
+.nav-stats-tbl th:hover { color:var(--text); }
+.nav-stats-tbl th .sort-arrow { font-size:9px; margin-left:2px; }
+.nav-stats-tbl td { padding:5px 8px; text-align:right; border-bottom:1px solid rgba(26,32,48,.3); }
+.nav-stats-tbl td:first-child { text-align:left; color:var(--text); font-weight:600; }
+.nav-stats-tbl tr:hover { background:rgba(139,92,246,.06); }
 .hdr-right {
   display: flex;
   align-items: center;
@@ -667,6 +684,8 @@ input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { po
 .pbtn.active, .pbtn:hover { background: var(--gold-glow); border-color: rgba(255,193,32,.4); color: var(--gold); }
 .fpbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 7px; font-size: 10px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
 .fpbtn.active, .fpbtn:hover { background: rgba(0,200,240,.1); border-color: rgba(0,200,240,.4); color: var(--acc); }
+.navpbtn, .scatpbtn, .ddpbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 7px; font-size: 10px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
+.navpbtn.active, .navpbtn:hover, .scatpbtn.active, .scatpbtn:hover, .ddpbtn.active, .ddpbtn:hover { background: rgba(139,92,246,.1); border-color: rgba(139,92,246,.4); color: var(--purple); }
 .tcrd { background: var(--bg-1); border: 1px solid var(--b1); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
 .ttabs { display: flex; border-bottom: 1px solid var(--b1); padding: 0 4px; }
 .ttbtn {
@@ -749,7 +768,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 .fs-close:hover { border-color: var(--red); color: var(--red); }
 #fs-period-btns { display: none; gap: 4px; align-items: center; }
 #fs-period-btns.show { display: flex; }
-#fs-period-btns .pbtn, #fs-period-btns .fpbtn { font-size: 12px; padding: 4px 12px; }
+#fs-period-btns .pbtn, #fs-period-btns .fpbtn, #fs-period-btns .navpbtn { font-size: 12px; padding: 4px 12px; }
 .fs-chart-wrap { flex: 1; position: relative; min-height: 0; }
 .fs-chart-wrap canvas { position: absolute; inset: 0; }
 /* Expand button on chart cards */
@@ -936,6 +955,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div class="tab-nav">
       <button class="tab-btn signal-tab active" onclick="switchTab('signal',this)">📡 Signal</button>
       <button class="tab-btn port-tab"          onclick="switchTab('portfolio',this)">💼 Portfolio</button>
+      <button class="tab-btn nav-tab"           onclick="switchTab('nav',this)">📊 NAV Analysis</button>
     </div>
     <div class="hdr-right">
       <div class="sync-badge" id="sync-badge">🔗 synced</div>
@@ -1278,30 +1298,6 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
         <div class="chart-box h220"><canvas id="alloc-chart"></canvas></div>
       </div>
     </div>
-    <div class="cgrid">
-      <div class="ccrd">
-        <div class="ctitle">NAV Performance — Normalized
-          <div style="display:flex;align-items:center">
-            <div class="pbtns">
-              <button class="fpbtn" onclick="setFundPeriod(this,30)">1M</button>
-              <button class="fpbtn"        onclick="setFundPeriod(this,90)">3M</button>
-              <button class="fpbtn"        onclick="setFundPeriod(this,180)">6M</button>
-              <button class="fpbtn active" onclick="setFundPeriod(this,365)" id="fpbtn-1y">1Y</button>
-              <button class="fpbtn"        onclick="setFundPeriod(this,0)">All</button>
-            </div>
-            <button class="expand-btn" onclick="openFullscreen('fund','NAV Performance')" title="ขยายเต็มจอ">⛶</button>
-          </div>
-        </div>
-        <div class="chart-box h200"><canvas id="fund-chart"></canvas></div>
-      </div>
-      <div class="ccrd">
-        <div class="ctitle">NAV ปัจจุบัน (90 วัน) — Normalized
-          <button class="expand-btn" onclick="openFullscreen('navchart','NAV 90 วัน')" title="ขยายเต็มจอ">⛶</button>
-        </div>
-        <div class="chart-box h200"><canvas id="nav-chart"></canvas></div>
-      </div>
-    </div>
-
     <!-- Yearly Summary -->
     <div class="sec">📅 สรุปรายปี</div>
     <div class="ccrd" style="overflow-x:auto">
@@ -1338,6 +1334,75 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 </div>
 </div>
 
+<!-- ================================================================
+     NAV ANALYSIS TAB
+     ================================================================ -->
+<div class="tab-panel" id="tab-nav">
+<div class="port-wrap">
+  <div class="port-loading" id="nav-loading">
+    <div class="pspinner"></div>
+    <div style="font-size:12px;color:var(--t3);font-family:var(--mono)" id="nav-load-msg">กำลังโหลดข้อมูล NAV...</div>
+  </div>
+  <div id="nav-dash" style="display:none">
+
+    <!-- S1: NAV Performance -->
+    <div class="nav-section">
+      <div class="nav-sec-head">NAV Performance — Normalized</div>
+      <div class="ccrd">
+        <div class="ctitle">
+          เปรียบเทียบผลตอบแทนกองทุน กบข
+          <div style="display:flex;align-items:center">
+            <div class="pbtns">
+              <button class="navpbtn" onclick="setNavPeriod(this,30)">1M</button>
+              <button class="navpbtn" onclick="setNavPeriod(this,90)">3M</button>
+              <button class="navpbtn" onclick="setNavPeriod(this,180)">6M</button>
+              <button class="navpbtn active" onclick="setNavPeriod(this,365)">1Y</button>
+              <button class="navpbtn" onclick="setNavPeriod(this,0)">All</button>
+            </div>
+            <button class="expand-btn" onclick="openFullscreen('navperf','NAV Performance & Drawdown')" title="ขยายเต็มจอ">⛶</button>
+          </div>
+        </div>
+        <div class="nav-fund-toggles" id="nav-perf-toggles"></div>
+        <div class="chart-box" style="height:220px"><canvas id="nav-perf-chart"></canvas></div>
+        <div class="chart-box" style="height:120px"><canvas id="nav-dd-chart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- S5: Risk/Return Scatter -->
+    <div class="nav-section">
+      <div class="nav-sec-head">Risk / Return (1Y)</div>
+      <div class="ccrd">
+        <div class="ctitle">Annualized Return vs Volatility
+          <div class="pbtns">
+            <button class="scatpbtn" onclick="setScatPeriod(this,90)">3M</button>
+            <button class="scatpbtn" onclick="setScatPeriod(this,180)">6M</button>
+            <button class="scatpbtn active" onclick="setScatPeriod(this,365)">1Y</button>
+            <button class="scatpbtn" onclick="setScatPeriod(this,0)">All</button>
+          </div>
+        </div>
+        <div class="chart-box" style="height:260px"><canvas id="nav-scatter-chart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- S7: Fund Stats Table (sortable, year selector) -->
+    <div class="nav-section">
+      <div class="nav-sec-head">Fund Statistics</div>
+      <div class="ccrd">
+        <div class="ctitle">สถิติกองทุน กบข
+          <div class="nav-fund-toggles" id="nav-stats-years" style="margin-bottom:0"></div>
+        </div>
+        <div style="overflow-x:auto"><div id="nav-stats-tbl"></div></div>
+      </div>
+    </div>
+
+  </div>
+  <div class="port-footer">
+    NAV Analysis · ข้อมูลจาก Google Sheets · ไม่ผ่าน server<br>
+    <span id="nav-last-update"></span>
+  </div>
+</div>
+</div>
+
 </div><!-- /page-wrap -->
 
 <!-- Fullscreen chart overlay (outside page-wrap for proper fixed positioning) -->
@@ -1349,6 +1414,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
       <button class="fs-close" onclick="closeFullscreen()">✕ ปิด (Esc)</button>
     </div>
   </div>
+  <div class="nav-fund-toggles" id="fs-fund-toggles" style="display:none;padding:0 16px 4px"></div>
   <div class="fs-chart-wrap" style="flex:1;display:flex;flex-direction:column">
     <div style="flex:3;position:relative"><canvas id="fs-canvas"></canvas></div>
     <div id="fs-dd-wrap" style="flex:1;display:none;position:relative"><canvas id="fs-dd-canvas"></canvas></div>
@@ -5188,6 +5254,23 @@ Chart.Tooltip.positioners.smartFlip = function(elements, eventPosition) {
 Chart.Tooltip.positioners.topLeft = function() {
   return { x: this.chart.chartArea.left + 8, y: this.chart.chartArea.top + 8 };
 };
+// For DD chart: show tooltip at NAV chart's position (above DD chart) so it doesn't clip
+// For DD chart: render tooltip in NAV chart's canvas area (above DD)
+Chart.Tooltip.positioners.navArea = function(elements, eventPosition) {
+  const ddCanvas = this.chart.canvas;
+  const navChart = (typeof fsChart !== 'undefined' && fsChart) ? fsChart : (typeof portCharts !== 'undefined' && portCharts.navperf) ? portCharts.navperf : null;
+  if (!navChart || !navChart.canvas) {
+    const area = this.chart.chartArea;
+    const midX = (area.left + area.right) / 2;
+    return { x: eventPosition.x < midX ? area.right - 8 : area.left + 8, y: area.top + 8 };
+  }
+  const navRect = navChart.canvas.getBoundingClientRect();
+  const ddRect = ddCanvas.getBoundingClientRect();
+  const offsetY = navRect.top - ddRect.top; // negative value = above DD
+  const navArea = navChart.chartArea;
+  const midX = (navArea.left + navArea.right) / 2;
+  return { x: eventPosition.x < midX ? navArea.right - 8 : navArea.left + 8, y: offsetY + navArea.top + 8 };
+};
 // Sort tooltip items by value descending
 const ttSortDesc = (a,b) => (b.parsed?.y ?? b.parsed ?? 0) - (a.parsed?.y ?? a.parsed ?? 0);
 const fmtDateChart=d=>d.toLocaleDateString('th-TH-u-ca-gregory',{month:'short',day:'numeric'});
@@ -5196,7 +5279,8 @@ function destroyChart(key){if(portCharts[key]){try{portCharts[key].destroy();}ca
 
 // Sync hover between paired port+DD charts
 let _portSyncAC=null, _fsSyncAC=null;
-function setupPairSync(canvas1,getChart1,canvas2,getChart2){
+let _navTTSource='NAV'; // 'NAV' or 'DD' — tells NAV tooltip which label to show
+function setupPairSync(canvas1,getChart1,canvas2,getChart2,ddToNavTooltip){
   const ac=new AbortController();const opt={signal:ac.signal};
   function getIdxFromEvent(chart,e){
     if(!chart||!chart.scales?.x||!chart.chartArea)return-1;
@@ -5209,13 +5293,13 @@ function setupPairSync(canvas1,getChart1,canvas2,getChart2){
     const maxIdx=chart.data.labels.length-1;
     return Math.max(0,Math.min(idx,maxIdx));
   }
-  function showOnChart(chart,idx){
+  function showOnChart(chart,idx,skipTooltip){
     if(!chart||idx<0||!chart.scales?.x)return;
     try{
       const els=chart.data.datasets.map((_,di)=>({datasetIndex:di,index:idx}));
       const xPx=chart.scales.x.getPixelForValue(idx);
       const yPx=chart.chartArea?(chart.chartArea.top+chart.chartArea.bottom)/2:0;
-      chart.tooltip.setActiveElements(els,{x:xPx,y:yPx});
+      if(!skipTooltip)chart.tooltip.setActiveElements(els,{x:xPx,y:yPx});
       chart.setActiveElements(els);
       chart.update('none');
     }catch(ex){}
@@ -5224,18 +5308,32 @@ function setupPairSync(canvas1,getChart1,canvas2,getChart2){
     if(!chart)return;
     try{chart.tooltip.setActiveElements([],{x:0,y:0});chart.setActiveElements([]);chart.update('none');}catch(ex){}
   }
+  // canvas1 = NAV chart, canvas2 = DD chart
   canvas1.addEventListener('mousemove',e=>{
+    _navTTSource='NAV';
     const s=getChart1(),t=getChart2();
     const idx=getIdxFromEvent(s,e);
-    if(idx>=0)showOnChart(t,idx);
+    if(idx>=0)showOnChart(t,idx,true); // always skip DD tooltip
   },opt);
   canvas1.addEventListener('mouseleave',()=>clear(getChart2()),opt);
   canvas2.addEventListener('mousemove',e=>{
     const s=getChart2(),t=getChart1();
     const idx=getIdxFromEvent(s,e);
-    if(idx>=0)showOnChart(t,idx);
+    if(ddToNavTooltip && idx>=0){
+      // Show DD data on NAV chart's tooltip
+      _navTTSource='DD';
+      const navChart=getChart1();
+      if(navChart){
+        // Swap NAV chart datasets temporarily to DD data, or use the DD tooltip on NAV position
+        // Simpler: just show NAV tooltip (which reads _navTTSource for title)
+        showOnChart(navChart,idx,false);
+      }
+      showOnChart(s,idx,true); // highlight on DD but no tooltip
+    } else if(idx>=0){
+      showOnChart(t,idx,false);
+    }
   },opt);
-  canvas2.addEventListener('mouseleave',()=>clear(getChart1()),opt);
+  canvas2.addEventListener('mouseleave',()=>{_navTTSource='NAV';clear(getChart1());clear(getChart2());},opt);
   return ac;
 }
 
@@ -5328,6 +5426,217 @@ function renderNavCh(nav,hold){
 }
 function setPeriod(btn,days){document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');curPeriod=days;destroyChart('port');renderPortChart(days);}
 function setFundPeriod(btn,days){document.querySelectorAll('.fpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');fundPeriod=days;if(NAV_PORT.length>0){destroyChart('fund');renderFund(NAV_PORT,days);}}
+
+// ================================================================
+//  NAV ANALYSIS TAB — All 7 sections
+// ================================================================
+let navPerfPeriod=365, navScatPeriod=365, navPerfFunds=null;
+let _navDdDs=null, _navPerfSyncAC=null; // shared DD datasets + pair sync for small screen
+let navStatsSortCol=0, navStatsSortAsc=false;
+
+function renderNavTab(){
+  const ld=el('nav-loading'),dash=el('nav-dash');
+  if(!NAV_PORT||NAV_PORT.length<2){if(ld)ld.style.display='flex';if(dash)dash.style.display='none';return;}
+  if(ld)ld.style.display='none';if(dash)dash.style.display='block';
+  // init comp funds to all available
+  const allF=ALL_PLANS.filter(f=>FM[f]&&NAV_PORT.some(n=>n.funds[f]!=null));
+  if(!navPerfFunds)navPerfFunds=new Set(allF);
+  renderNavPerfToggles(allF);
+  renderNavPerf(NAV_PORT,navPerfPeriod);
+  renderNavScatter(NAV_PORT,navScatPeriod);
+  renderNavDrawdown(NAV_PORT,navPerfPeriod);
+  renderNavStats(NAV_PORT);
+  const last=NAV_PORT[NAV_PORT.length-1];
+  const upd=el('nav-last-update');
+  if(upd&&last)upd.textContent='ข้อมูลล่าสุด: '+fmtDateTooltip(last.date);
+}
+
+// --- helpers ---
+function navSlice(nav,days){
+  if(days===0)return[...nav];
+  const cut=new Date(Date.now()-days*864e5);
+  return nav.filter(n=>n.date>=cut);
+}
+function navDailyRet(nav,fund){
+  const ret=[];
+  for(let i=1;i<nav.length;i++){
+    const p=nav[i-1].funds[fund],c=nav[i].funds[fund];
+    ret.push(p!=null&&c!=null&&p>0?(c-p)/p:null);
+  }
+  return ret;
+}
+function navAnnReturn(rets){const valid=rets.filter(r=>r!=null);if(valid.length<10)return null;const cum=valid.reduce((a,r)=>a*(1+r),1);return(Math.pow(cum,252/valid.length)-1)*100;}
+function navAnnVol(rets){const valid=rets.filter(r=>r!=null);if(valid.length<10)return null;const avg=valid.reduce((a,r)=>a+r,0)/valid.length;const var_=valid.reduce((a,r)=>a+(r-avg)**2,0)/(valid.length-1);return Math.sqrt(var_*252)*100;}
+function navMaxDD(nav,fund){
+  let peak=0,mdd=0;
+  for(const n of nav){const v=n.funds[fund];if(v==null)continue;if(v>peak)peak=v;if(peak>0){const dd=(v-peak)/peak*100;if(dd<mdd)mdd=dd;}}
+  return mdd;
+}
+function navSharpe(rets,rf){const ar=navAnnReturn(rets);const av=navAnnVol(rets);if(ar==null||av==null||av===0)return null;return(ar-(rf||1.5))/av;}
+
+// --- S1: NAV Performance (toggle funds, normalized %) + Drawdown ---
+function navPerfRefresh(){destroyChart('navperf');renderNavPerf(NAV_PORT,navPerfPeriod);destroyChart('navdd');renderNavDrawdown(NAV_PORT,navPerfPeriod);if(fsCurrentKey==='navperf'&&el('fs-overlay').classList.contains('show'))renderFsChart('navperf');}
+function renderNavPerfToggles(allF){
+  const box=el('nav-perf-toggles');if(!box)return;
+  box.innerHTML='';
+  const allOn=allF.every(f=>navPerfFunds.has(f));
+  const ab=document.createElement('button');
+  ab.className='nav-fund-tog'+(allOn?' on':'');
+  ab.textContent='All';
+  ab.style.borderColor=allOn?'var(--purple)':'';
+  ab.onclick=()=>{if(allOn)allF.forEach(f=>navPerfFunds.delete(f));else allF.forEach(f=>navPerfFunds.add(f));renderNavPerfToggles(allF);navPerfRefresh();};
+  box.appendChild(ab);
+  allF.forEach(f=>{
+    const m=FM[f]||{s:f,c:'#888'};
+    const b=document.createElement('button');
+    b.className='nav-fund-tog'+(navPerfFunds.has(f)?' on':'');
+    b.textContent=m.s;
+    b.style.borderColor=navPerfFunds.has(f)?m.c:'';
+    b.onclick=()=>{if(navPerfFunds.has(f))navPerfFunds.delete(f);else navPerfFunds.add(f);renderNavPerfToggles(allF);navPerfRefresh();};
+    box.appendChild(b);
+  });
+}
+function renderNavPerf(nav,days){
+  const rc=navSlice(nav,days);if(rc.length<2)return;
+  const fs=[...navPerfFunds].filter(f=>FM[f]&&rc.some(n=>n.funds[f]!=null));
+  if(fs.length===0){destroyChart('navperf');return;}
+  // start from where all shown funds have data
+  if(days===0&&fs.length>1){let ci=0;fs.forEach(f=>{const i=rc.findIndex(n=>n.funds[f]!=null);if(i>ci)ci=i;});if(ci>0)rc.splice(0,ci);}
+  const lbls=rc.map(n=>fmtDateChart(n.date));
+  const ds=fs.map(f=>{
+    const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;
+    const data=rc.map(n=>n.funds[f]!=null?((n.funds[f]-fv)/fv)*100:null);
+    const m=FM[f]||{l:f,c:'#888'};
+    return{label:m.l,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};
+  }).filter(Boolean);
+  const ctx=el('nav-perf-chart').getContext('2d');destroyChart('navperf');
+  portCharts.navperf=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:{...CD,interaction:{mode:'index',intersect:false},plugins:{...CD.plugins,tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{
+    title:items=>{const i=items[0]?.dataIndex;if(i==null)return'';const d=rc[i]?fmtDateTooltip(rc[i].date):(items[0]?.label||'');return d+(_navTTSource==='DD'?' (DD)':' (NAV)');},
+    label:c=>{const i=c.dataIndex;if(_navTTSource==='DD'&&_navDdDs){const dd=_navDdDs[c.datasetIndex];if(!dd||dd.data[i]==null)return null;return' '+dd.label+': '+dd.data[i].toFixed(2)+'%';}if(c.parsed.y==null)return null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%';}
+  },filter:c=>{if(_navTTSource==='DD'&&_navDdDs){const dd=_navDdDs[c.datasetIndex];return dd&&dd.data[c.dataIndex]!=null;}return c.parsed.y!=null;}}},scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v.toFixed(1)+'%'}}}}});
+}
+function setNavPeriod(btn,days){document.querySelectorAll('.navpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');navPerfPeriod=days;if(NAV_PORT.length>0){destroyChart('navperf');renderNavPerf(NAV_PORT,days);destroyChart('navdd');renderNavDrawdown(NAV_PORT,days);}}
+
+// --- S5: Risk/Return Scatter ---
+function renderNavScatter(nav,days){
+  const rc=navSlice(nav,days);if(rc.length<20)return;
+  const fs=ALL_PLANS.filter(f=>FM[f]&&rc.some(n=>n.funds[f]!=null));
+  const points=[];
+  fs.forEach(f=>{
+    const rets=navDailyRet(rc,f);
+    const ar=navAnnReturn(rets),av=navAnnVol(rets);
+    if(ar==null||av==null)return;
+    const m=FM[f]||{s:f,c:'#888',l:f};
+    points.push({x:av,y:ar,label:m.s,color:m.c,fullLabel:m.l});
+  });
+  if(points.length===0)return;
+  const ds=[{data:points.map(p=>({x:p.x,y:p.y})),backgroundColor:points.map(p=>p.color),borderColor:points.map(p=>p.color),pointRadius:7,pointHoverRadius:10}];
+  const ctx=el('nav-scatter-chart').getContext('2d');destroyChart('navscat');
+  const labelPlugin={id:'scatLabels',afterDatasetsDraw(chart){const meta=chart.getDatasetMeta(0);if(!meta)return;const ctx2=chart.ctx;ctx2.save();ctx2.font='10px IBM Plex Mono';ctx2.fillStyle='#c8d6f0';ctx2.textAlign='center';meta.data.forEach((pt,i)=>{if(points[i])ctx2.fillText(points[i].label,pt.x,pt.y-12);});ctx2.restore();}};
+  portCharts.navscat=new Chart(ctx,{type:'scatter',data:{datasets:ds},plugins:[labelPlugin],options:{...CD,plugins:{...CD.plugins,legend:{display:false},tooltip:{callbacks:{label:c=>{const p=points[c.dataIndex];return p?p.fullLabel+' — Return: '+p.y.toFixed(1)+'%, Vol: '+p.x.toFixed(1)+'%':'';}}}},scales:{x:{...CD.scales.x,title:{display:true,text:'Annualized Volatility (%)',color:'#7888a8',font:{size:11}}},y:{...CD.scales.y,title:{display:true,text:'Annualized Return (%)',color:'#7888a8',font:{size:11}}}}}});
+}
+function setScatPeriod(btn,days){document.querySelectorAll('.scatpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');navScatPeriod=days;if(NAV_PORT.length>0){destroyChart('navscat');renderNavScatter(NAV_PORT,days);}}
+
+// --- S7: Fund Stats Table (sortable, year selector) ---
+let navStatsYear=null;
+function renderNavStats(nav){
+  const box=el('nav-stats-tbl');if(!box)return;
+  const fs=ALL_PLANS.filter(f=>FM[f]&&nav.some(n=>n.funds[f]!=null));
+  // detect available years + "All"
+  const yrs=[...new Set(nav.map(n=>n.date.getFullYear()))].sort();
+  if(!navStatsYear)navStatsYear=String(yrs[yrs.length-1]||new Date().getFullYear());
+  // render year buttons
+  const yrBox=el('nav-stats-years');
+  if(yrBox){
+    yrBox.innerHTML='';
+    ['All',...yrs.map(String)].forEach(yr=>{
+      const b=document.createElement('button');
+      b.className='nav-fund-tog'+(yr===navStatsYear?' on':'');
+      b.textContent=yr;
+      if(yr===navStatsYear)b.style.borderColor='var(--purple)';
+      b.onclick=()=>{navStatsYear=yr;renderNavStats(NAV_PORT);};
+      yrBox.appendChild(b);
+    });
+  }
+  // filter nav by year
+  const fNav=navStatsYear==='All'?nav:nav.filter(n=>String(n.date.getFullYear())===navStatsYear);
+  if(fNav.length<2){box.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px">ข้อมูลไม่พอ</div>';return;}
+  const rows=[];
+  fs.forEach(f=>{
+    const m=FM[f]||{l:f,s:f};
+    const rets=navDailyRet(fNav,f);
+    const last=fNav.slice().reverse().find(n=>n.funds[f]!=null);
+    const first=fNav.find(n=>n.funds[f]!=null);
+    const lastNav=last?last.funds[f]:null;
+    const firstNav=first?first.funds[f]:null;
+    const totalRet=firstNav&&lastNav?((lastNav-firstNav)/firstNav)*100:null;
+    const annRet=navAnnReturn(rets);
+    const vol=navAnnVol(rets);
+    const mdd=navMaxDD(fNav,f);
+    const sharpe=navSharpe(rets,1.5);
+    // quarterly returns for this year
+    const qRets=[];
+    for(let q=1;q<=4;q++){
+      const qNav=fNav.filter(n=>Math.floor(n.date.getMonth()/3)+1===q);
+      if(qNav.length<2){qRets.push(null);continue;}
+      const qf=qNav.find(n=>n.funds[f]!=null)?.funds[f];
+      const ql=qNav.slice().reverse().find(n=>n.funds[f]!=null)?.funds[f];
+      qRets.push(qf&&ql?((ql-qf)/qf)*100:null);
+    }
+    rows.push({name:m.l,short:m.s,nav:lastNav,totalRet,annRet,vol,mdd,sharpe,q1:qRets[0],q2:qRets[1],q3:qRets[2],q4:qRets[3],color:m.c});
+  });
+  // sort
+  const cols=['name','nav','totalRet','q1','q2','q3','q4','annRet','vol','mdd','sharpe'];
+  const sk=cols[navStatsSortCol]||'totalRet';
+  rows.sort((a,b)=>{const av=a[sk],bv=b[sk];if(av==null&&bv==null)return 0;if(av==null)return 1;if(bv==null)return-1;if(typeof av==='string')return navStatsSortAsc?av.localeCompare(bv):bv.localeCompare(av);return navStatsSortAsc?av-bv:bv-av;});
+  const isAll=navStatsYear==='All';
+  const headers=isAll?['Fund','NAV','Return%','Ann%','Vol%','MaxDD%','Sharpe']:['Fund','NAV','Return%','Q1','Q2','Q3','Q4','Ann%','Vol%','MaxDD%','Sharpe'];
+  let html='<table class="nav-stats-tbl"><thead><tr>';
+  headers.forEach((h,i)=>{
+    const arrow=i===navStatsSortCol?(navStatsSortAsc?'▲':'▼'):'';
+    html+='<th onclick="navStatsSort('+i+')">'+h+'<span class="sort-arrow">'+arrow+'</span></th>';
+  });
+  html+='</tr></thead><tbody>';
+  const fc=(v,d)=>v!=null?(v>=0?'<td class="hm-pos">+'+v.toFixed(d)+'</td>':'<td class="hm-neg">'+v.toFixed(d)+'</td>'):'<td style="color:var(--t3)">—</td>';
+  rows.forEach(r=>{
+    html+='<tr><td style="color:'+r.color+'">'+r.short+' <span style="color:var(--t2);font-weight:400">'+r.name+'</span></td>';
+    html+='<td>'+(r.nav!=null?r.nav.toFixed(4):'—')+'</td>';
+    html+=fc(r.totalRet,2);
+    if(!isAll){html+=fc(r.q1,2)+fc(r.q2,2)+fc(r.q3,2)+fc(r.q4,2);}
+    html+=fc(r.annRet,1);
+    html+='<td>'+(r.vol!=null?r.vol.toFixed(1):'—')+'</td>';
+    html+=fc(r.mdd,1);
+    html+='<td>'+(r.sharpe!=null?r.sharpe.toFixed(2):'—')+'</td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table>';
+  box.innerHTML=html;
+}
+function navStatsSort(col){if(navStatsSortCol===col)navStatsSortAsc=!navStatsSortAsc;else{navStatsSortCol=col;navStatsSortAsc=false;}renderNavStats(NAV_PORT);}
+
+// --- S6: Drawdown Analysis ---
+function renderNavDrawdown(nav,days){
+  if(_navPerfSyncAC){_navPerfSyncAC.abort();_navPerfSyncAC=null;}
+  const rc=navSlice(nav,days);if(rc.length<2)return;
+  const fs=(navPerfFunds?[...navPerfFunds]:ALL_PLANS).filter(f=>FM[f]&&rc.some(n=>n.funds[f]!=null));
+  if(fs.length===0){destroyChart('navdd');_navDdDs=null;return;}
+  const lbls=rc.map(n=>fmtDateChart(n.date));
+  const ds=fs.map(f=>{
+    let peak=0;
+    const data=rc.map(n=>{
+      const v=n.funds[f];if(v==null)return null;
+      if(v>peak)peak=v;
+      return peak>0?(v-peak)/peak*100:0;
+    });
+    const m=FM[f]||{l:f,c:'#888'};
+    return{label:m.l,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.3,pointRadius:0,tension:.3,fill:false,spanGaps:true};
+  });
+  _navDdDs=ds; // store for NAV tooltip cross-reference
+  const ctx=el('nav-dd-chart').getContext('2d');destroyChart('navdd');
+  portCharts.navdd=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:{...CD,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:{enabled:false}},scales:{...CD.scales,y:{...CD.scales.y,max:0,ticks:{...CD.scales.y.ticks,callback:v=>v.toFixed(0)+'%'}}}}});
+  // Pair sync: hover DD → show DD data on NAV tooltip
+  _navPerfSyncAC=setupPairSync(el('nav-perf-chart'),()=>portCharts.navperf,el('nav-dd-chart'),()=>portCharts.navdd,true);
+}
 
 // ================================================================
 
@@ -5448,6 +5757,9 @@ function switchTab(id, btn) {
       renderYearlySummary(NAV_PORT,TX_PORT);
     });
   }
+  if(id==='nav'&&NAV_PORT.length>0){
+    requestAnimationFrame(()=>renderNavTab());
+  }
 }
 function portTab(btn,id){
   document.querySelectorAll('.ttbtn').forEach(b=>b.classList.remove('active'));
@@ -5472,7 +5784,7 @@ const fsTooltipPos = {
 function fsTTOpts(extra){
   return{
     mode:'index',intersect:false,
-    position:'topLeft',
+    position:'smartFlip',
     itemSort:ttSortDesc,
     backgroundColor:'rgba(9,17,31,.97)',
     borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:14,
@@ -5515,6 +5827,21 @@ function buildFsPeriodBtns(type){
         b.classList.add('active');
         fsPeriod=p.d;
         renderFsChart('fund');
+      };
+      wrap.appendChild(b);
+    });
+    wrap.classList.add('show');
+  } else if(type==='navperf'){
+    const periods=[{l:'1M',d:30},{l:'3M',d:90},{l:'6M',d:180},{l:'1Y',d:365},{l:'All',d:0}];
+    periods.forEach(p=>{
+      const b=document.createElement('button');
+      b.className='navpbtn'+(p.d===navPerfPeriod?' active':'');
+      b.textContent=p.l;
+      b.onclick=()=>{
+        wrap.querySelectorAll('.navpbtn').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        fsPeriod=p.d;
+        renderFsChart('navperf');
       };
       wrap.appendChild(b);
     });
@@ -5600,6 +5927,75 @@ function renderFsChart(chartKey){
         },
         scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v.toFixed(1)+'%'}}}
       }});
+  } else if(chartKey === 'navperf'){
+    if(_fsSyncAC){_fsSyncAC.abort();_fsSyncAC=null;}
+    // Build fund toggles in fullscreen
+    const fsToggles=el('fs-fund-toggles');
+    const allFs=ALL_PLANS.filter(f=>FM[f]&&NAV_PORT.some(n=>n.funds[f]!=null));
+    if(fsToggles){
+      fsToggles.style.display='flex';fsToggles.innerHTML='';
+      const allOn=allFs.every(f=>navPerfFunds.has(f));
+      const ab=document.createElement('button');
+      ab.className='nav-fund-tog'+(allOn?' on':'');ab.textContent='All';ab.style.borderColor=allOn?'var(--purple)':'';
+      ab.onclick=()=>{if(allOn)allFs.forEach(f=>navPerfFunds.delete(f));else allFs.forEach(f=>navPerfFunds.add(f));renderNavPerfToggles(allFs);navPerfRefresh();};
+      fsToggles.appendChild(ab);
+      allFs.forEach(f=>{
+        const m=FM[f]||{s:f,c:'#888'};
+        const b=document.createElement('button');
+        b.className='nav-fund-tog'+(navPerfFunds.has(f)?' on':'');
+        b.textContent=m.s;
+        b.style.borderColor=navPerfFunds.has(f)?m.c:'';
+        b.onclick=()=>{if(navPerfFunds.has(f))navPerfFunds.delete(f);else navPerfFunds.add(f);renderNavPerfToggles(allFs);navPerfRefresh();};
+        fsToggles.appendChild(b);
+      });
+    }
+    const days = fsPeriod;
+    const av=(navPerfFunds?[...navPerfFunds]:ALL_PLANS).filter(f=>FM[f]&&NAV_PORT.some(n=>n.funds[f]!=null));
+    let rc;if(days===0){rc=[...NAV_PORT];}else{const cut=new Date(Date.now()-days*864e5);rc=NAV_PORT.filter(n=>n.date>=cut);}
+    if(days===0&&av.length>1){let ci=0;av.forEach(f=>{const i=rc.findIndex(n=>n.funds[f]!=null);if(i>ci)ci=i;});if(ci>0)rc=rc.slice(ci);}
+    if(rc.length<2)return;
+    const lbls=rc.map(n=>fmtDateChart(n.date));
+    const validFunds=av.filter(f=>{const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];return fv!=null&&fv>0;});
+    const ds=validFunds.map(f=>{
+      const fv=rc.find(n=>n.funds[f]!=null).funds[f];
+      const data=rc.map(n=>n.funds[f]!=null?((n.funds[f]-fv)/fv)*100:null);
+      const m=FM[f]||{l:f,c:'#888'};
+      return{label:m.l,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};
+    });
+    const ddDs=validFunds.map(f=>{
+      let peak=0;
+      const data=rc.map(n=>{const v=n.funds[f];if(v==null)return null;if(v>peak)peak=v;return peak>0?(v-peak)/peak*100:0;});
+      const m=FM[f]||{l:f,c:'#888'};
+      return{label:m.l,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.2,pointRadius:0,tension:.3,fill:false,spanGaps:true};
+    });
+    _navDdDs=ddDs; // store for NAV tooltip cross-reference
+    const FS_Y_W=62, FS_X_PAD_R=25;
+    fsChart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},
+      options:{responsive:true,maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        scales:{x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'transparent',maxTicksLimit:12,font:{size:10,family:'IBM Plex Mono'}},afterFit(axis){axis.paddingRight=FS_X_PAD_R;axis.paddingLeft=0;}},y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:11,family:'IBM Plex Mono'},callback:v=>v.toFixed(1)+'%'},afterFit(axis){axis.width=FS_Y_W;}}},
+        plugins:{
+          legend:{display:false},
+          tooltip:{...fsTTOpts({
+            title:items=>{const i=items[0]?.dataIndex;if(i==null)return'';const d=rc[i]?fmtDateTooltip(rc[i].date):(items[0]?.label||'');return d+(_navTTSource==='DD'?' (DD)':' (NAV)');},
+            label:c=>{const i=c.dataIndex;if(_navTTSource==='DD'&&_navDdDs){const dd=_navDdDs[c.datasetIndex];if(!dd||dd.data[i]==null)return null;return' '+dd.label+': '+dd.data[i].toFixed(2)+'%';}if(c.parsed.y==null)return null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%';}
+          }),filter:c=>{if(_navTTSource==='DD'&&_navDdDs){const dd=_navDdDs[c.datasetIndex];return dd&&dd.data[c.dataIndex]!=null;}return c.parsed.y!=null;}}
+        }
+      }});
+    // DD chart below — tooltip disabled, data shown on NAV tooltip via pair sync
+    const ddWrap=el('fs-dd-wrap');ddWrap.style.display='flex';
+    const ddCtx=el('fs-dd-canvas');
+    fsDDChart=new Chart(ddCtx.getContext('2d'),{type:'line',
+      data:{labels:lbls,datasets:ddDs},
+      options:{responsive:true,maintainAspectRatio:false,
+        interaction:{mode:'index',intersect:false},
+        plugins:{title:{display:true,text:'Drawdown (%)',color:'rgba(255,61,90,.5)',font:{size:11,family:'IBM Plex Mono',weight:'normal'},align:'end',padding:{bottom:2}},legend:{display:false},
+          tooltip:{enabled:false}},
+        scales:{x:{grid:{color:'rgba(26,32,48,.3)'},ticks:{color:'#4e6a8a',maxTicksLimit:12,font:{size:10,family:'IBM Plex Mono'}},afterFit(axis){axis.paddingRight=FS_X_PAD_R;axis.paddingLeft=0;}},
+          y:{max:0,grid:{color:'rgba(255,61,90,.06)'},ticks:{color:'rgba(255,61,90,.4)',font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'},afterFit(axis){axis.width=FS_Y_W;}}}
+      }
+    });
+    _fsSyncAC=setupPairSync(el('fs-canvas'),()=>fsChart,ddCtx,()=>fsDDChart,true);
   } else if(chartKey === 'navchart'){
     const hold=calcHold(TX_PORT);
     const active=Object.keys(hold).filter(f=>FM[f]&&NAV_PORT.some(n=>n.funds[f]));
@@ -5627,6 +6023,7 @@ function openFullscreen(chartKey, title){
   // Set initial period for fs buttons
   if(chartKey==='port') fsPeriod = curPeriod;
   else if(chartKey==='fund') fsPeriod = fundPeriod;
+  else if(chartKey==='navperf') fsPeriod = navPerfPeriod;
   // Build period buttons
   buildFsPeriodBtns(chartKey);
   // Render chart after layout
@@ -5639,6 +6036,7 @@ function closeFullscreen(){
   if(fsChart){ try{fsChart.destroy();}catch(e){} fsChart=null; }
   if(fsDDChart){ try{fsDDChart.destroy();}catch(e){} fsDDChart=null; }
   const ddWrap=el('fs-dd-wrap');if(ddWrap)ddWrap.style.display='none';
+  const fsTog=el('fs-fund-toggles');if(fsTog){fsTog.style.display='none';fsTog.innerHTML='';}
   const wrap = el('fs-period-btns');
   if(wrap){ wrap.classList.remove('show'); wrap.innerHTML=''; }
 }
