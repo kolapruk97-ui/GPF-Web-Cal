@@ -1052,15 +1052,17 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div style="margin-top:6px;font-size:10px;color:var(--t3)">ค่าจะ auto-sync ทุกครั้งที่โหลดข้อมูลใหม่</div>
   </div>
 
-  <div style="margin-bottom:10px">
-    <label>วันที่เปลี่ยนแผนล่าสุด</label>
-    <input type="date" id="last-rebal" lang="en">
-    <div class="field-note">cooldown 30 วันทำการ</div>
-  </div>
-  <div style="margin-bottom:10px">
-    <label>Quota ที่ใช้แล้วปีนี้</label>
-    <select id="quota-used" class="quota-select"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select>
-    <div class="field-note">จาก 12 ครั้ง/ปี</div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+    <div>
+      <label>วันที่เปลี่ยนแผนล่าสุด</label>
+      <input type="date" id="last-rebal" lang="en" style="box-sizing:border-box">
+      <div class="field-note">cooldown 30 วันทำการ</div>
+    </div>
+    <div>
+      <label>Quota ที่ใช้แล้วปีนี้</label>
+      <select id="quota-used" class="quota-select"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select>
+      <div class="field-note">จาก 12 ครั้ง/ปี</div>
+    </div>
   </div>
 
   <!-- Hidden: menu name (used internally for auto-sync) -->
@@ -1370,16 +1372,20 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 
     <!-- S5: Risk/Return Scatter -->
     <div class="nav-section">
-      <div class="nav-sec-head">Risk / Return (1Y)</div>
+      <div class="nav-sec-head">Risk / Return</div>
       <div class="ccrd">
         <div class="ctitle">Annualized Return vs Volatility
-          <div class="pbtns">
-            <button class="scatpbtn" onclick="setScatPeriod(this,90)">3M</button>
-            <button class="scatpbtn" onclick="setScatPeriod(this,180)">6M</button>
-            <button class="scatpbtn active" onclick="setScatPeriod(this,365)">1Y</button>
-            <button class="scatpbtn" onclick="setScatPeriod(this,0)">All</button>
+          <div style="display:flex;align-items:center">
+            <div class="pbtns">
+              <button class="scatpbtn" onclick="setScatPeriod(this,90)">3M</button>
+              <button class="scatpbtn" onclick="setScatPeriod(this,180)">6M</button>
+              <button class="scatpbtn active" onclick="setScatPeriod(this,365)">1Y</button>
+              <button class="scatpbtn" onclick="setScatPeriod(this,0)">All</button>
+            </div>
+            <button class="expand-btn" onclick="openFullscreen('navscat','Risk / Return')" title="ขยายเต็มจอ">⛶</button>
           </div>
         </div>
+        <div class="nav-fund-toggles" id="nav-scat-toggles"></div>
         <div class="chart-box" style="height:260px"><canvas id="nav-scatter-chart"></canvas></div>
       </div>
     </div>
@@ -3530,7 +3536,7 @@ async function loadAll(forceRefresh){
         setBadgeCfg('tx','ok','โหลดสำเร็จ ('+(TX_PORT.length)+' รายการ)');
       }catch(e){TX_PORT=[];setBadgeCfg('tx','err','โหลดไม่ได้: '+e.message.substring(0,30));}
     }
-    if(NAV_PORT.length>0){renderPortAll();}else{showPortErr('ไม่พบข้อมูล NAV ใน Database sheet');}
+    if(NAV_PORT.length>0){renderPortAll();if(el('tab-nav').classList.contains('active'))renderNavTab();}else{showPortErr('ไม่พบข้อมูล NAV ใน Database sheet');}
     // V28: Run Online Learning
     if (NAV_SIGNAL && NAV_SIGNAL.navMatrix && NAV_SIGNAL.dates) {
       // V28 FIX C3: Calculate actual returns from transaction pairs
@@ -3615,7 +3621,7 @@ async function handleFiles(e){
     NAV_PORT=parseNav(dbCsv);
     if(txFile){TX_PORT=parseTx(await txFile.text());}
     el('run-btn').disabled=false;el('date-nav').style.display='flex';
-    if(NAV_PORT.length>0)renderPortAll();else showPortErr('ไม่พบข้อมูล NAV');
+    if(NAV_PORT.length>0){renderPortAll();if(el('tab-nav').classList.contains('active'))renderNavTab();}else showPortErr('ไม่พบข้อมูล NAV');
     // V28: Run Online Learning after CSV load
     if (NAV_SIGNAL && NAV_SIGNAL.navMatrix && NAV_SIGNAL.dates) {
       try {
@@ -5107,12 +5113,16 @@ function renderPerfAttrib(hold,nav,tx){
   const sec=el('perf-attrib-section'),body=el('perf-attrib-body');if(!sec||!body)return;
   const ln=nav[nav.length-1];if(!ln)return;
   // Net baht flow per fund from TX (a.b = actual baht amount per transaction)
+  // Also track buy cost & sell proceeds for realized P&L %
   const netBaht={};
+  const buyBaht={}, buyUnits={}, sellBaht={}, sellUnits={};
   let totalDeposits=0;
   for(const t of tx){
     if(t.type==='เงินนำส่ง'&&t.total!=null) totalDeposits+=t.total;
     for(const[f,a]of Object.entries(t.amounts)){
       netBaht[f]=(netBaht[f]||0)+(a.b||0);
+      if(a.u>0){buyBaht[f]=(buyBaht[f]||0)+(a.b||0);buyUnits[f]=(buyUnits[f]||0)+a.u;}
+      else if(a.u<0){sellBaht[f]=(sellBaht[f]||0)+Math.abs(a.b||0);sellUnits[f]=(sellUnits[f]||0)+Math.abs(a.u);}
     }
   }
   // Current value per fund
@@ -5133,14 +5143,19 @@ function renderPerfAttrib(hold,nav,tx){
     totalPnl+=pnl;totalCost+=basis;totalVal+=val;
     rows.push({f,name:m.l,color:m.c,val,basis,pnl,pnlPct,held:true});
   }
-  // Previously held funds (realized — net outflow = realized gain)
+  // Previously held funds (realized — compare avg buy cost vs sell proceeds)
   for(const[f,net]of Object.entries(netBaht)){
     if(fundVals[f])continue; // skip currently held
     if(Math.abs(net)<1)continue; // skip negligible
     const m=FM[f]||{l:f,c:'#888'};
     const realized=-net; // negative net = money came OUT = realized gain
+    // Compute realized %: avg buy cost per unit vs avg sell price per unit
+    const bU=buyUnits[f]||0, sU=sellUnits[f]||0, bB=buyBaht[f]||0, sB=sellBaht[f]||0;
+    const avgBuy=bU>0?bB/bU:0;
+    const avgSell=sU>0?sB/sU:0;
+    const realPct=bB>0?(realized/bB)*100:0;
     totalPnl+=realized;
-    rows.push({f,name:m.l,color:m.c,val:0,basis:0,pnl:realized,pnlPct:0,held:false});
+    rows.push({f,name:m.l,color:m.c,val:0,basis:bB,pnl:realized,pnlPct:realPct,held:false,avgBuy,avgSell,sellBaht:sB});
   }
   if(rows.length===0){sec.style.display='none';return;}
   rows.sort((a,b)=>b.pnl-a.pnl);
@@ -5183,10 +5198,10 @@ function renderPerfAttrib(hold,nav,tx){
       const barBorder=r.pnl>=0?'rgba(0,230,118,.6)':'rgba(255,61,90,.6)';
       html+='<tr style="border-bottom:1px solid var(--b1);opacity:0.7">'
         +'<td style="padding:6px"><span class="fdot" style="background:'+r.color+';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px"></span>'+r.name+'</td>'
-        +'<td style="text-align:right;padding:6px;color:var(--t3)">—</td>'
-        +'<td style="text-align:right;padding:6px;color:var(--t3)">ขายแล้ว</td>'
+        +'<td style="text-align:right;padding:6px">'+fmt(r.basis,2)+'</td>'
+        +'<td style="text-align:right;padding:6px">'+(r.sellBaht?fmt(r.sellBaht,2):'—')+'</td>'
         +'<td style="text-align:right;padding:6px;color:'+cc+';font-weight:600">'+fmtS(r.pnl)+' ฿</td>'
-        +'<td style="text-align:right;padding:6px;color:var(--t3)">—</td>'
+        +'<td style="text-align:right;padding:6px;color:'+cc+'">'+fmtS(r.pnlPct)+'%</td>'
         +'<td style="padding:6px"><div style="height:14px;width:'+barW+'%;background:'+barColor+';border:1px solid '+barBorder+';border-radius:3px"></div></td>'
         +'</tr>';
     }
@@ -5309,31 +5324,39 @@ function setupPairSync(canvas1,getChart1,canvas2,getChart2,ddToNavTooltip){
     try{chart.tooltip.setActiveElements([],{x:0,y:0});chart.setActiveElements([]);chart.update('none');}catch(ex){}
   }
   // canvas1 = NAV chart, canvas2 = DD chart
-  canvas1.addEventListener('mousemove',e=>{
+  function onNav(e){
+    const pt=e.touches?e.touches[0]:e;
     _navTTSource='NAV';
     const s=getChart1(),t=getChart2();
-    const idx=getIdxFromEvent(s,e);
-    if(idx>=0)showOnChart(t,idx,true); // always skip DD tooltip
-  },opt);
-  canvas1.addEventListener('mouseleave',()=>clear(getChart2()),opt);
-  canvas2.addEventListener('mousemove',e=>{
+    const idx=getIdxFromEvent(s,{clientX:pt.clientX});
+    if(idx>=0)showOnChart(t,idx,true);
+  }
+  function onDD(e){
+    const pt=e.touches?e.touches[0]:e;
     const s=getChart2(),t=getChart1();
-    const idx=getIdxFromEvent(s,e);
+    const idx=getIdxFromEvent(s,{clientX:pt.clientX});
     if(ddToNavTooltip && idx>=0){
-      // Show DD data on NAV chart's tooltip
       _navTTSource='DD';
       const navChart=getChart1();
-      if(navChart){
-        // Swap NAV chart datasets temporarily to DD data, or use the DD tooltip on NAV position
-        // Simpler: just show NAV tooltip (which reads _navTTSource for title)
-        showOnChart(navChart,idx,false);
-      }
-      showOnChart(s,idx,true); // highlight on DD but no tooltip
+      if(navChart)showOnChart(navChart,idx,false);
+      showOnChart(s,idx,true);
     } else if(idx>=0){
       showOnChart(t,idx,false);
     }
-  },opt);
-  canvas2.addEventListener('mouseleave',()=>{_navTTSource='NAV';clear(getChart1());clear(getChart2());},opt);
+  }
+  function leaveNav(){clear(getChart2());}
+  function leaveDD(){_navTTSource='NAV';clear(getChart1());clear(getChart2());}
+  canvas1.addEventListener('mousemove',onNav,opt);
+  canvas1.addEventListener('mouseleave',leaveNav,opt);
+  canvas2.addEventListener('mousemove',onDD,opt);
+  canvas2.addEventListener('mouseleave',leaveDD,opt);
+  // Touch support for mobile
+  canvas1.addEventListener('touchstart',onNav,{...opt,passive:true});
+  canvas1.addEventListener('touchmove',onNav,{...opt,passive:true});
+  canvas1.addEventListener('touchend',leaveNav,opt);
+  canvas2.addEventListener('touchstart',onDD,{...opt,passive:true});
+  canvas2.addEventListener('touchmove',onDD,{...opt,passive:true});
+  canvas2.addEventListener('touchend',leaveDD,opt);
   return ac;
 }
 
@@ -5518,9 +5541,35 @@ function renderNavPerf(nav,days){
 function setNavPeriod(btn,days){document.querySelectorAll('.navpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');navPerfPeriod=days;if(NAV_PORT.length>0){destroyChart('navperf');renderNavPerf(NAV_PORT,days);destroyChart('navdd');renderNavDrawdown(NAV_PORT,days);}}
 
 // --- S5: Risk/Return Scatter ---
+let _scatPoints=null; // shared for fullscreen
+function scatRefresh(){destroyChart('navscat');renderNavScatter(NAV_PORT,navScatPeriod);if(fsCurrentKey==='navscat'&&el('fs-overlay').classList.contains('show'))renderFsChart('navscat');}
+function renderScatToggles(targetId){
+  const box=el(targetId);if(!box)return;
+  const allF=ALL_PLANS.filter(f=>FM[f]&&NAV_PORT.some(n=>n.funds[f]!=null));
+  box.innerHTML='';
+  const allOn=allF.every(f=>navPerfFunds.has(f));
+  const ab=document.createElement('button');
+  ab.className='nav-fund-tog'+(allOn?' on':'');ab.textContent='All';ab.style.borderColor=allOn?'var(--purple)':'';
+  ab.onclick=()=>{if(allOn)allF.forEach(f=>navPerfFunds.delete(f));else allF.forEach(f=>navPerfFunds.add(f));renderNavPerfToggles(allF);renderScatToggles(targetId);scatRefresh();};
+  box.appendChild(ab);
+  allF.forEach(f=>{
+    const m=FM[f]||{s:f,c:'#888'};
+    const b=document.createElement('button');
+    b.className='nav-fund-tog'+(navPerfFunds.has(f)?' on':'');
+    b.textContent=m.s;
+    b.style.borderColor=navPerfFunds.has(f)?m.c:'';
+    b.onclick=()=>{if(navPerfFunds.has(f))navPerfFunds.delete(f);else navPerfFunds.add(f);renderNavPerfToggles(allF);renderScatToggles(targetId);scatRefresh();};
+    box.appendChild(b);
+  });
+}
+function buildScatChart(canvasCtx,pts,chartKey){
+  const ds=[{data:pts.map(p=>({x:p.x,y:p.y})),backgroundColor:pts.map(p=>p.color),borderColor:pts.map(p=>p.color),pointRadius:7,pointHoverRadius:10}];
+  const labelPlugin={id:'scatLabels_'+chartKey,afterDatasetsDraw(chart){const meta=chart.getDatasetMeta(0);if(!meta)return;const c=chart.ctx;c.save();c.font='10px IBM Plex Mono';c.fillStyle='#c8d6f0';c.textAlign='center';meta.data.forEach((pt,i)=>{if(pts[i])c.fillText(pts[i].label,pt.x,pt.y-12);});c.restore();}};
+  return new Chart(canvasCtx,{type:'scatter',data:{datasets:ds},plugins:[labelPlugin],options:{...CD,responsive:true,maintainAspectRatio:false,plugins:{...CD.plugins,legend:{display:false},tooltip:{callbacks:{label:c=>{const p=pts[c.dataIndex];return p?p.fullLabel+' — Return: '+p.y.toFixed(1)+'%, Vol: '+p.x.toFixed(1)+'%':'';}}}},scales:{x:{...CD.scales.x,title:{display:true,text:'Annualized Volatility (%)',color:'#7888a8',font:{size:11}}},y:{...CD.scales.y,title:{display:true,text:'Annualized Return (%)',color:'#7888a8',font:{size:11}}}}}});
+}
 function renderNavScatter(nav,days){
   const rc=navSlice(nav,days);if(rc.length<20)return;
-  const fs=ALL_PLANS.filter(f=>FM[f]&&rc.some(n=>n.funds[f]!=null));
+  const fs=(navPerfFunds?[...navPerfFunds]:ALL_PLANS).filter(f=>FM[f]&&rc.some(n=>n.funds[f]!=null));
   const points=[];
   fs.forEach(f=>{
     const rets=navDailyRet(rc,f);
@@ -5529,13 +5578,13 @@ function renderNavScatter(nav,days){
     const m=FM[f]||{s:f,c:'#888',l:f};
     points.push({x:av,y:ar,label:m.s,color:m.c,fullLabel:m.l});
   });
-  if(points.length===0)return;
-  const ds=[{data:points.map(p=>({x:p.x,y:p.y})),backgroundColor:points.map(p=>p.color),borderColor:points.map(p=>p.color),pointRadius:7,pointHoverRadius:10}];
+  _scatPoints=points;
+  if(points.length===0){destroyChart('navscat');return;}
   const ctx=el('nav-scatter-chart').getContext('2d');destroyChart('navscat');
-  const labelPlugin={id:'scatLabels',afterDatasetsDraw(chart){const meta=chart.getDatasetMeta(0);if(!meta)return;const ctx2=chart.ctx;ctx2.save();ctx2.font='10px IBM Plex Mono';ctx2.fillStyle='#c8d6f0';ctx2.textAlign='center';meta.data.forEach((pt,i)=>{if(points[i])ctx2.fillText(points[i].label,pt.x,pt.y-12);});ctx2.restore();}};
-  portCharts.navscat=new Chart(ctx,{type:'scatter',data:{datasets:ds},plugins:[labelPlugin],options:{...CD,plugins:{...CD.plugins,legend:{display:false},tooltip:{callbacks:{label:c=>{const p=points[c.dataIndex];return p?p.fullLabel+' — Return: '+p.y.toFixed(1)+'%, Vol: '+p.x.toFixed(1)+'%':'';}}}},scales:{x:{...CD.scales.x,title:{display:true,text:'Annualized Volatility (%)',color:'#7888a8',font:{size:11}}},y:{...CD.scales.y,title:{display:true,text:'Annualized Return (%)',color:'#7888a8',font:{size:11}}}}}});
+  portCharts.navscat=buildScatChart(ctx,points,'navscat');
+  renderScatToggles('nav-scat-toggles');
 }
-function setScatPeriod(btn,days){document.querySelectorAll('.scatpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');navScatPeriod=days;if(NAV_PORT.length>0){destroyChart('navscat');renderNavScatter(NAV_PORT,days);}}
+function setScatPeriod(btn,days){document.querySelectorAll('.scatpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');navScatPeriod=days;if(NAV_PORT.length>0)scatRefresh();}
 
 // --- S7: Fund Stats Table (sortable, year selector) ---
 let navStatsYear=null;
@@ -5846,6 +5895,21 @@ function buildFsPeriodBtns(type){
       wrap.appendChild(b);
     });
     wrap.classList.add('show');
+  } else if(type==='navscat'){
+    const periods=[{l:'3M',d:90},{l:'6M',d:180},{l:'1Y',d:365},{l:'All',d:0}];
+    periods.forEach(p=>{
+      const b=document.createElement('button');
+      b.className='scatpbtn'+(p.d===navScatPeriod?' active':'');
+      b.textContent=p.l;
+      b.onclick=()=>{
+        wrap.querySelectorAll('.scatpbtn').forEach(x=>x.classList.remove('active'));
+        b.classList.add('active');
+        fsPeriod=p.d;navScatPeriod=p.d;
+        renderFsChart('navscat');
+      };
+      wrap.appendChild(b);
+    });
+    wrap.classList.add('show');
   }
 }
 
@@ -5996,6 +6060,24 @@ function renderFsChart(chartKey){
       }
     });
     _fsSyncAC=setupPairSync(el('fs-canvas'),()=>fsChart,ddCtx,()=>fsDDChart,true);
+  } else if(chartKey === 'navscat'){
+    // Fund toggles in fullscreen
+    const fsToggles=el('fs-fund-toggles');
+    if(fsToggles){fsToggles.style.display='flex';renderScatToggles('fs-fund-toggles');}
+    const days=fsPeriod;
+    const rc=navSlice(NAV_PORT,days);
+    const av=(navPerfFunds?[...navPerfFunds]:ALL_PLANS).filter(f=>FM[f]&&rc.some(n=>n.funds[f]!=null));
+    const points=[];
+    av.forEach(f=>{
+      const rets=navDailyRet(rc,f);
+      const ar=navAnnReturn(rets),av2=navAnnVol(rets);
+      if(ar==null||av2==null)return;
+      const m=FM[f]||{s:f,c:'#888',l:f};
+      points.push({x:av2,y:ar,label:m.s,color:m.c,fullLabel:m.l});
+    });
+    _scatPoints=points;
+    if(points.length===0)return;
+    fsChart=buildScatChart(ctx,points,'fsscat');
   } else if(chartKey === 'navchart'){
     const hold=calcHold(TX_PORT);
     const active=Object.keys(hold).filter(f=>FM[f]&&NAV_PORT.some(n=>n.funds[f]));
@@ -6024,6 +6106,7 @@ function openFullscreen(chartKey, title){
   if(chartKey==='port') fsPeriod = curPeriod;
   else if(chartKey==='fund') fsPeriod = fundPeriod;
   else if(chartKey==='navperf') fsPeriod = navPerfPeriod;
+  else if(chartKey==='navscat') fsPeriod = navScatPeriod;
   // Build period buttons
   buildFsPeriodBtns(chartKey);
   // Render chart after layout
