@@ -350,6 +350,7 @@ body::before {
 label { display: block; font-size: 11px; color: var(--t2); margin-bottom: 4px; }
 input[type="text"], input[type="url"], input[type="date"], input[type="number"] {
   width: 100%;
+  box-sizing: border-box;
   background: var(--bg-2);
   border: 1px solid var(--b2);
   color: var(--acc);
@@ -365,7 +366,7 @@ input:focus { border-color: var(--acc); }
 input[type="number"] { text-align: right; }
 input[type="date"] { color-scheme: dark; cursor: pointer; }
 input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7) sepia(1) saturate(3) hue-rotate(170deg); cursor: pointer; opacity: .85; }
-.quota-select { width:100%;background:var(--bg-2);border:1px solid var(--b2);color:var(--acc);padding:8px 10px;border-radius:6px;font-family:var(--mono);font-size:13px;font-weight:500;outline:none;transition:border-color .15s; }
+.quota-select { width:100%;box-sizing:border-box;background:var(--bg-2);border:1px solid var(--b2);color:var(--acc);padding:8px 10px;border-radius:6px;font-family:var(--mono);font-size:13px;font-weight:500;outline:none;transition:border-color .15s; }
 .quota-select option { background:var(--bg-2);color:var(--t1); }
 .field-note { font-size: 10px; color: var(--t2); margin-top: 3px; }
 .btn-test-sig {
@@ -1055,7 +1056,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
     <div>
       <label>วันที่เปลี่ยนแผนล่าสุด</label>
-      <input type="date" id="last-rebal" lang="en" style="box-sizing:border-box">
+      <input type="date" id="last-rebal" lang="en">
       <div class="field-note">cooldown 30 วันทำการ</div>
     </div>
     <div>
