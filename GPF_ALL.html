@@ -369,6 +369,9 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7) sepia
 .quota-select { width:100%;box-sizing:border-box;background:var(--bg-2);border:1px solid var(--b2);color:var(--acc);padding:8px 10px;border-radius:6px;font-family:var(--mono);font-size:13px;font-weight:500;outline:none;transition:border-color .15s; }
 .quota-select option { background:var(--bg-2);color:var(--t1); }
 .field-note { font-size: 10px; color: var(--t2); margin-top: 3px; }
+.rebal-quota-row { display:flex; gap:10px; margin-bottom:10px; }
+.rebal-quota-row > div { flex:1; min-width:0; }
+.rebal-quota-row input[type="date"], .rebal-quota-row .quota-select { width:100%; box-sizing:border-box; }
 .btn-test-sig {
   width: 100%;
   padding: 10px;
@@ -835,6 +838,9 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   .btn-primary { justify-content: center; font-size: 12px; padding: 10px 16px; }
   .howto { font-size: 10px; line-height: 1.7; }
 
+  /* Rebal + Quota row — stack on mobile */
+  .rebal-quota-row { flex-direction: column; gap: 6px; }
+
   /* SIGNAL TAB */
   .sig-wrap { max-width: 100%; padding-top: 10px; gap: 8px; }
   .card { padding: 10px 12px; border-radius: 10px; }
@@ -1053,13 +1059,13 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div style="margin-top:6px;font-size:10px;color:var(--t3)">ค่าจะ auto-sync ทุกครั้งที่โหลดข้อมูลใหม่</div>
   </div>
 
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
-    <div style="min-width:0">
+  <div class="rebal-quota-row">
+    <div>
       <label>วันที่เปลี่ยนแผนล่าสุด</label>
-      <input type="date" id="last-rebal" lang="en" style="max-width:100%">
+      <input type="date" id="last-rebal" lang="en">
       <div class="field-note">cooldown 30 วันทำการ</div>
     </div>
-    <div style="min-width:0">
+    <div>
       <label>Quota ที่ใช้แล้วปีนี้</label>
       <select id="quota-used" class="quota-select"><option value="">—</option><option>0</option><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option><option>9</option><option>10</option><option>11</option><option>12</option></select>
       <div class="field-note">จาก 12 ครั้ง/ปี</div>
