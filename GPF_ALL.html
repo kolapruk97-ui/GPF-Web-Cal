@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://api.allorigins.win https://corsproxy.io https://api.codetabs.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
-<title>GPF Live Trade v28</title>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://api.stlouisfed.org https://fred.stlouisfed.org https://api.allorigins.win https://corsproxy.io https://api.codetabs.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
+<title>GPF Live Trade v29</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -470,7 +470,7 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7) sepia
 .tpill.new { background: rgba(0,230,118,.12); color: var(--green); border-color: rgba(0,230,118,.3); }
 /* Stats row */
 .stats-row { display: flex; border: 1px solid var(--b2); border-radius: 8px; background: var(--bg-2); overflow: hidden; }
-.stat-cell { flex: 1; padding: 10px; border-right: 1px solid var(--b2); }
+.stat-cell { flex: 1; padding: 10px; border-right: 1px solid var(--b2); text-align: center; }
 .stat-cell:last-child { border-right: none; }
 .stat-label { font-size: 9px; color: var(--t2); text-transform: uppercase; letter-spacing: .08em; }
 .stat-val { font-family: var(--mono); font-size: 13px; font-weight: 600; color: #e8f4ff; margin-top: 2px; }
@@ -944,6 +944,84 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   .cgrid { grid-template-columns: 1fr; }
   .chart-box.h220 { height: 200px; }
 }
+/* ================================================================
+   V29: FRED Dashboard + Regime Flow CSS
+   ================================================================ */
+.fred-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 8px;
+  margin: 10px 0;
+}
+.fred-card {
+  background: var(--bg-3);
+  border: 1px solid var(--b2);
+  border-radius: 8px;
+  padding: 8px 10px;
+  font-family: var(--mono);
+  cursor: pointer;
+  transition: border-color .15s;
+}
+.fred-card:hover { border-color: var(--acc); }
+.fred-card .fred-detail {
+  display: none;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid var(--b2);
+  font-size: 10px;
+  color: var(--t2);
+  line-height: 1.5;
+}
+.fred-card.expanded .fred-detail { display: block; }
+.fred-card .fred-detail .fd-row { margin-bottom: 3px; }
+.fred-card .fred-detail .fd-label { color: var(--t3); }
+.fred-card .fred-detail .fd-impact { color: var(--acc); font-weight: 600; }
+.fred-card .fc-label { font-size: 9px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.5px; }
+.fred-card .fc-value { font-size: 16px; font-weight: 600; color: var(--t1); margin: 2px 0; }
+.fred-card .fc-unit  { font-size: 9px; color: var(--t3); }
+.role-badge {
+  display: inline-block;
+  font-size: 8px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  margin-bottom: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.role-bond     { background: rgba(59,130,246,.2); color: #60a5fa; }
+.role-credit   { background: rgba(249,115,22,.2);  color: #fb923c; }
+.role-real,
+.role-infl     { background: rgba(16,185,129,.2);  color: #34d399; }
+.role-dollar   { background: rgba(250,204,21,.2);  color: #fde047; }
+.role-liquidity{ background: rgba(139,92,246,.2);  color: #a78bfa; }
+.role-risk     { background: rgba(239,68,68,.2);   color: #f87171; }
+.role-vol      { background: rgba(236,72,153,.2);  color: #f472b6; }
+.role-commod   { background: rgba(132,204,22,.2);  color: #a3e635; }
+.role-curve    { background: rgba(45,212,191,.2);  color: #2dd4bf; }
+.regime-flow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 10px 12px;
+  background: var(--bg-3);
+  border: 1px solid var(--b2);
+  border-radius: 8px;
+  margin: 8px 0;
+  font-family: var(--mono);
+  font-size: 11px;
+}
+.regime-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  min-width: 90px;
+}
+.regime-step .rs-label { font-size: 9px; color: var(--t3); text-transform: uppercase; }
+.regime-step .rs-value { font-size: 12px; font-weight: 600; color: var(--t1); }
+.regime-step .rs-sub   { font-size: 9px; color: var(--t3); }
+.regime-arrow { color: var(--t3); font-size: 16px; }
 </style>
 </head>
 <body>
@@ -955,8 +1033,8 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div class="logo-box">
       <div class="logo-icon">กบข</div>
       <div>
-        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v28</span></div>
-        <div class="logo-sub">Online Learning · Bayesian + MDP + Crash Shield · v6.28</div>
+        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v29</span></div>
+        <div class="logo-sub">Hierarchical Regime · FRED 12 Factors · v7.29</div>
       </div>
     </div>
     <div class="tab-nav">
@@ -1021,12 +1099,6 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
      ================================================================ -->
 <div class="tab-panel active" id="tab-signal">
 <div class="sig-wrap">
-
-<!-- V28: Learning Dashboard (standalone, top of page) -->
-<div class="card" id="learning-card" style="display:none; border-color:rgba(139,92,246,.3); margin-bottom:10px">
-  <div class="card-head" style="color:var(--purple)">Online Learning Dashboard</div>
-  <div id="learning-status"></div>
-</div>
 
 <!-- Auto-sync status -->
 <div class="autosync-box" id="autosync-box">
@@ -1108,16 +1180,10 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <span><span class="ql-pip" style="background:var(--amber)"></span>Buffer (≤2 เหลือ)</span>
   </div>
 
-  <!-- V27: MDP Quota Planner Card -->
-  <div class="card" id="mdp-card" style="display:none;margin-top:8px">
-    <div class="card-head" style="color:var(--teal)">MDP Quota Planner</div>
-    <div id="mdp-status"></div>
-  </div>
-
   <!-- V21: Position Tracking -->
   <hr class="divider">
   <div class="pos-input-card" id="pos-input-card" style="background:transparent;border:none;padding:0">
-    <div class="pos-input-title" id="pos-input-title">V28 Position Tracking</div>
+    <div class="pos-input-title" id="pos-input-title">V29 Position Tracking</div>
     <div class="pos-row3">
       <div>
         <label>มูลค่าตอน Switch เข้า (บาท)</label>
@@ -1129,14 +1195,12 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
         <input type="number" id="current-port-value" step="1">
         <div class="field-note">NAV วันนี้</div>
       </div>
-      <div>
-        <label>Peak มูลค่า (บาท)</label>
+      <div style="display:none">
         <input type="number" id="position-peak-value" step="1">
-        <div class="field-note">สำหรับ trailing stop 4.5%</div>
       </div>
     </div>
     <div style="margin-top:8px;font-size:10px;color:var(--t3);line-height:1.7">
-      💡 ถ้าเชื่อม Portfolio Tab แล้ว ค่าจะ auto-fill · Peak จะ auto-update เมื่อ current > peak
+      💡 ถ้าเชื่อม Portfolio Tab แล้ว ค่าจะ auto-fill
     </div>
     <input type="hidden" id="position-entry-date" value="">
   </div>
@@ -1208,19 +1272,24 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div class="regime-meta" id="regime-meta"></div>
   </div>
 
+  <!-- V29: FRED Dashboard -->
+  <div id="fred-card" style="display:none; margin-bottom:10px"></div>
+
+  <!-- V29: Signal Summary -->
   <div class="stats-row">
     <div class="stat-cell"><div class="stat-label">NAV ล่าสุด</div><div class="stat-val" id="stat-nav-date">—</div></div>
     <div class="stat-cell"><div class="stat-label">Signal Date (T-2)</div><div class="stat-val" id="stat-date">—</div></div>
-    <div class="stat-cell"><div class="stat-label">เมนูทั้งหมด</div><div class="stat-val" id="stat-menus">—</div></div>
     <div class="stat-cell"><div class="stat-label">Quota</div><div class="stat-val" id="stat-quota">—</div></div>
-    <div class="stat-cell"><div class="stat-label">NAV Rows</div><div class="stat-val" id="stat-rows">—</div></div>
+    <div class="stat-cell" style="display:none"><div class="stat-val" id="stat-menus">—</div></div>
+    <div class="stat-cell" style="display:none"><div class="stat-val" id="stat-rows">—</div></div>
   </div>
 
-  <!-- V21: Position Status Card -->
-  <div class="pos-card" id="pos-card" style="display:none"></div>
-
+  <!-- V29: Decision + Position (merged) -->
   <div id="decision-banner">
-    <div class="banner-pill"   id="banner-pill">—</div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:8px">
+      <div class="banner-pill" id="banner-pill">—</div>
+      <div class="pos-card" id="pos-card" style="display:none;border:none;background:none;padding:0;margin:0"></div>
+    </div>
     <div class="banner-reason" id="banner-reason"></div>
     <div class="banner-meta"   id="banner-meta"></div>
     <div class="target-row"    id="target-row"></div>
@@ -1228,33 +1297,18 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <!-- App กบข. instruction box -->
   <div id="app-instr-box" class="app-instr" style="display:none"></div>
 
-  <!-- V21: Acceleration Table -->
-  <div class="card" style="padding:12px 14px; overflow-x:auto; -webkit-overflow-scrolling:touch">
-    <div class="card-head" style="color:var(--purple)">⚡ แผนแนะนำ (Optimizer) <span id="veto-badge" style="margin-left:auto;font-size:9px;padding:2px 8px;border-radius:4px;background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2);color:var(--green)">\ud83d\udee1 Crash Shield: STANDBY</span></div>
-    <table class="accel-tbl">
-      <thead><tr><th>Allocation</th><th>Velocity</th><th>Accel (bp)</th><th>สถานะ</th><th>Signal</th></tr></thead>
-      <tbody id="accel-body"></tbody>
-    </table>
+  <!-- V29: 12M Momentum Details -->
+  <div id="v29-score-card" class="card" style="padding:12px 14px; display:none">
+    <div class="card-head" style="color:var(--acc)">📊 12-Month Momentum Fund Selection</div>
+    <div id="v29-score-body" style="font-family:var(--mono); font-size:12px"></div>
   </div>
-
-  <!-- Menu ranking (collapsed) -->
-  <details>
-    <summary>🏆 Menu Ranking — Top 15 (ขยายดู)</summary>
-    <div class="card" style="padding:12px 14px;margin-top:6px; overflow-x:auto; -webkit-overflow-scrolling:touch">
-      <div class="card-head gold">Menu Ranking (Top 15)</div>
-      <table class="menu-tbl">
-        <thead><tr><th>#</th><th>เมนู</th><th>สัดส่วน</th><th>Score</th></tr></thead>
-        <tbody id="menu-body"></tbody>
-      </table>
-    </div>
-  </details>
 </div>
 
 <div id="run-time"></div>
 <div class="sig-footer">
-  v6.28 \u00b7 Online Learning + Bayesian + MDP Quota + Crash Shield \u00b7 params auto-adapt monthly<br>
-  vel_fast=3(adaptive) \u00b7 vel_slow=10 \u00b7 accel_span=5 \u00b7 trail=4.5-8%(adaptive) \u00b7 MDP re-solve on every load<br>
-  <span class="calib-badge">\u2699 Base: +116.8% (13yr) \u00b7 CAGR 6.14% \u00b7 MDP blocks 73% low-quality switches \u00b7 Learns from NAV + Transactions</span>
+  v7.29 · FRED Hierarchical Regime + 12M Momentum (Jegadeesh 1993)<br>
+  DGS10(bond) → HY OAS(credit) → DXY+WALCL+DFII10(confirm) · Vol targeting · 1 best fund<br>
+  <span class="calib-badge">⚙ RISK_OFF=5% · MILD_OFF=8% · NEUTRAL=10% · MILD_ON=12% · RISK_ON=15% · G≤25%</span>
 </div>
 
 </div><!-- /sig-wrap -->
@@ -1306,32 +1360,23 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
         </div>
         <div class="chart-box h220"><canvas id="alloc-chart"></canvas></div>
       </div>
+      <!-- เปรียบเทียบกองทุน + NAV ย้ายไป NAV Analysis tab แล้ว -->
     </div>
-    <!-- Yearly Summary -->
-    <div class="sec">📅 สรุปรายปี</div>
-    <div class="ccrd" style="overflow-x:auto">
-      <div class="ctitle">ผลการลงทุนรายปี</div>
-      <div id="yearly-summary"></div>
-    </div>
-
-    <div class="sec">📋 รายละเอียด</div>
-    <!-- Performance Attribution -->
-    <div id="perf-attrib-section" style="display:none;margin-bottom:14px">
-      <div class="card-head gold">Performance Attribution — กำไร/ขาดทุน แต่ละกองทุน</div>
-      <div id="perf-attrib-body"></div>
-    </div>
-
     <div class="tcrd">
       <div class="ttabs">
         <button class="ttbtn active" onclick="portTab(this,'ptab-hold')">กองทุนที่ถือ</button>
         <button class="ttbtn"        onclick="portTab(this,'ptab-tx')">Transaction</button>
         <button class="ttbtn"        onclick="portTab(this,'ptab-monthly')">เงินนำส่งรายเดือน</button>
-        <button class="ttbtn"        onclick="portTab(this,'ptab-daily')">มูลค่า Portfolio รายวัน</button>
-        <button class="ttbtn"        onclick="portTab(this,'ptab-nav')">NAV Portfolio รายวัน</button>
+        <button class="ttbtn"        onclick="portTab(this,'ptab-yearly')">ผลรายปี</button>
+        <button class="ttbtn"        onclick="portTab(this,'ptab-attrib')">P&L แต่ละกอง</button>
+        <button class="ttbtn"        onclick="portTab(this,'ptab-daily')">มูลค่ารายวัน</button>
+        <button class="ttbtn"        onclick="portTab(this,'ptab-nav')">NAV รายวัน</button>
       </div>
       <div class="tpanel active tscroll" id="ptab-hold"><table id="t-hold"></table></div>
       <div class="tpanel tscroll" id="ptab-tx"><table id="t-tx"></table></div>
       <div class="tpanel tscroll" id="ptab-monthly"><table id="t-monthly"></table></div>
+      <div class="tpanel tscroll" id="ptab-yearly"><div id="yearly-summary" style="overflow-x:auto"></div></div>
+      <div class="tpanel tscroll" id="ptab-attrib"><div id="perf-attrib-section"><div id="perf-attrib-body"></div></div></div>
       <div class="tpanel tscroll" id="ptab-daily"><table id="t-daily"></table></div>
       <div class="tpanel tscroll" id="ptab-nav"><table id="t-nav"></table></div>
     </div>
@@ -1438,43 +1483,84 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 // ================================================================
 //  CONSTANTS — v6.28 (Online Learning + Bayesian + MDP Quota + Crash Shield)
 // ================================================================
-const ALGO_VERSION  = 'v6.28';
+const ALGO_VERSION  = 'v7.29';
 const G_CAP         = 0.25;
 const QUOTA_PER_YR  = 12;
 const T_DELAY       = 2;
 const MIN_HIST_DAYS = 120;
 const CHANGE_THRESH = 0.05;
-// V28: Bayesian Optimized Parameters (adaptive via Online Learning)
-let VEL_FAST      = 3;      // was 5 — faster response
-let VEL_SLOW      = 10;     // was 15 — faster trend confirmation
-let ACCEL_SPAN    = 5;      // was 3 — smoother acceleration
-let ACCEL_TP_THRESHOLD = 0.05;  // was 0.03 — let profits run longer
-let ACCEL_EXIT_LEVEL   = -0.003; // was -0.0005 — wider, need strong decel to exit
-// V28: Wider adaptive trailing stop (adaptive via Online Learning)
-let TRAIL_MIN     = 0.045;  // was 0.03 — wider trailing stop
-const TRAIL_MAX     = 0.08;   // was 0.06
+// V29: Core signal parameters (kept for computeSignalV26 backward compat)
+const ACCEL_SPAN    = 5;
+const ACCEL_TP_THRESHOLD = 0.05;
+// V29: Legacy constants (used by computeSignalV26 + makeDecisionV22 backward compat only)
+let VEL_FAST      = 3;
+let VEL_SLOW      = 10;
+let ACCEL_EXIT_LEVEL   = -0.003;
+let TRAIL_MIN     = 0.045;
+const TRAIL_MAX     = 0.08;
 const TRAIL_VOL_MULT= 2.0;
-// Regime
 const BULL_TH       = 0.05;
 const BEAR_TH       = -0.05;
-// V26: New exit params
-const MAX_HOLD_DAYS      = 60;   // time-decay exit: held too long without profit
-const STALE_PROFIT_TH    = 0.01; // profit below 1% after MAX_HOLD → exit
-const STALE_VEL_DAYS     = 20;   // consecutive negative vel days → stale
-// V27: Quota management (Bayesian optimized)
-let MONTHLY_CAP        = 2;    // was 1 — allow 2 switches per month (adaptive)
-const CRITICAL_RESERVE   = 2;    // keep 2 quota for emergency exits
-const MIN_HOLD_DAYS      = 30;   // was 10 — longer min hold
-// const REENTRY_GUARD = 5;
-// V27: MDP Quota Planner
-const MDP_REGIME_LOOKBACK = 60;  // days for regime detection
-const MDP_BULL_TH = 0.05;        // 5% threshold (was 3% in V26)
-const MDP_BEAR_TH = -0.05;       // -5% threshold
+const MAX_HOLD_DAYS      = 60;
+const STALE_PROFIT_TH    = 0.01;
+const STALE_VEL_DAYS     = 20;
+let MONTHLY_CAP        = 2;
+const CRITICAL_RESERVE   = 2;
+const MIN_HOLD_DAYS      = 30;
+const MDP_REGIME_LOOKBACK = 60;
+const MDP_BULL_TH = 0.05;
+const MDP_BEAR_TH = -0.05;
 const MDP_COMPOSITE_WEIGHTS = {Base_Plan: 0.4, A65: 0.3, equity: 0.3};
-// V27: Strategy D Veto
-const VETO_VOL_RATIO = 2.5;      // vol must be 2.5x average to trigger veto
-const VETO_VOL_WINDOW = 20;      // 20-day rolling vol
-const VETO_VOL_BASELINE = 60;    // 60-day average vol baseline
+// V29: FRED API
+const FRED_KEY = 'e418123de2e0f4185f555a6b379169eb';
+const FRED_SERIES = ['DGS10','DFII10','T10YIE','BAMLH0A0HYM2','BAMLC0A0CM','DTWEXBGS','DCOILWTICO','T10Y3M','WALCL','NFCI','DPSACBW027SBOG','OVXCLS'];
+const FRED_CACHE_KEY = 'gpf_fred_v29';
+const FRED_TTL = 3600000;
+const FRED_META = {
+  DGS10:       {role:'bond',     label:'10Y Treasury Yield', unit:'%',
+    desc:'อัตราผลตอบแทนพันธบัตร 10 ปี สหรัฐ — PRIMARY indicator',
+    impact:'yield ขึ้น > +0.30 = RISK_ON (เงินไหลเข้า equity), ลง < -0.30 = RISK_OFF (หนีเข้า bond)'},
+  DFII10:      {role:'real',     label:'10Y Real Yield',     unit:'%',
+    desc:'อัตราผลตอบแทนจริง 10 ปี (หักเงินเฟ้อ) — Confirmation factor',
+    impact:'ลง < -0.20 = confirm RISK_ON, ขึ้น > +0.20 = confirm RISK_OFF'},
+  T10YIE:      {role:'infl',     label:'Breakeven Inflation',unit:'%',
+    desc:'คาดการณ์เงินเฟ้อ 10 ปี จากตลาด TIPS',
+    impact:'สูง = ตลาดคาดเงินเฟ้อ → Fed อาจขึ้นดอกเบี้ย'},
+  BAMLH0A0HYM2:{role:'credit',   label:'HY OAS Spread',     unit:'bp',
+    desc:'ส่วนต่าง yield พันธบัตรเสี่ยงสูง vs Treasury — Credit Stress Guard',
+    impact:'> 600bp = FORCE RISK_OFF, > 450bp = cap MILD_OFF, ขึ้น > 50bp/20d = downgrade'},
+  BAMLC0A0CM:  {role:'credit',   label:'IG OAS Spread',     unit:'bp',
+    desc:'ส่วนต่าง yield พันธบัตร Investment Grade vs Treasury',
+    impact:'กว้างขึ้น = ตลาดเครดิตตึงตัว → เสี่ยง risk-off'},
+  DTWEXBGS:    {role:'dollar',   label:'DXY (Broad USD)',    unit:'idx',
+    desc:'ดัชนีดอลลาร์ถ่วงน้ำหนักการค้า — Confirmation factor',
+    impact:'ขึ้น > +1.5 = confirm RISK_OFF (dollar แข็ง), ลง < -1.5 = confirm RISK_ON'},
+  DCOILWTICO:  {role:'commod',   label:'WTI Crude Oil',     unit:'$/b',
+    desc:'ราคาน้ำมันดิบ WTI — สะท้อนอุปสงค์โลก',
+    impact:'ขึ้น = demand สูง/inflation risk, ลง = demand อ่อน/deflation'},
+  T10Y3M:      {role:'curve',    label:'Yield Curve 10Y-3M',unit:'%',
+    desc:'ส่วนต่าง yield 10 ปี vs 3 เดือน — สัญญาณ recession',
+    impact:'ติดลบ (inverted) = ตลาดคาด recession, บวก = เศรษฐกิจปกติ'},
+  WALCL:       {role:'liquidity',label:'Fed Balance Sheet',  unit:'$B',
+    desc:'งบดุล Fed — สภาพคล่องในระบบ — Confirmation factor',
+    impact:'เพิ่ม > +0.3%/20d = confirm RISK_ON (QE), ลด < -0.3% = confirm RISK_OFF (QT)'},
+  NFCI:        {role:'risk',     label:'NFCI Risk Index',   unit:'idx',
+    desc:'ดัชนีสภาพการเงิน Chicago Fed — ลบ = ผ่อนคลาย, บวก = ตึงตัว',
+    impact:'ค่าสูง = สภาพการเงินตึง → เสี่ยง risk-off'},
+  DPSACBW027SBOG:{role:'credit', label:'Bank Credit Growth',unit:'$B',
+    desc:'สินเชื่อธนาคารพาณิชย์สหรัฐ — สะท้อนสุขภาพเครดิต',
+    impact:'ขยายตัว = เศรษฐกิจดี, หดตัว = credit crunch'},
+  OVXCLS:      {role:'vol',      label:'Oil VIX (OVX)',     unit:'idx',
+    desc:'ความผันผวนของน้ำมัน — สะท้อน geopolitical risk',
+    impact:'สูง = ความไม่แน่นอนด้านพลังงาน/ภูมิรัฐศาสตร์'},
+};
+const REGIME_LEVELS = {
+  RISK_OFF: {targetVol:0.05},
+  MILD_OFF: {targetVol:0.08},
+  NEUTRAL:  {targetVol:0.10},
+  MILD_ON:  {targetVol:0.12},
+  RISK_ON:  {targetVol:0.15},
+};
 // Legacy (kept for menu scoring display)
 const MOM_LOOKBACKS = [20, 60, 120];
 const MOM_WEIGHTS   = [0.5, 0.3, 0.2];
@@ -1494,7 +1580,7 @@ const PRESET_PLANS = {
   'TH_100':      {TH: 1.00},
 };
 const ALL_PLANS = ['A35','Base_Plan','B','Money_Market','A20','A65','TH','PR','F','Global_Bond','G','A75','Shariah'];
-const STORE_KEY    = 'gpf_live_v28';
+const STORE_KEY    = 'gpf_live_v29';
 const FM = {
   F:{l:'หุ้นต่างประเทศ (F)',c:'#3b82f6',s:'F',dash:[]},
   G:{l:'ทองคำ (G)',c:'#facc15',s:'G',dash:[]},
@@ -1519,6 +1605,7 @@ const TX_COLS = {
 //  SHARED STATE
 // ================================================================
 let NAV_SIGNAL = null;
+let FRED_DATA  = null;
 let NAV_PORT   = [];
 let TX_PORT    = [];
 let portCharts = {};
@@ -1652,6 +1739,75 @@ async function fetchSheet(sheetId,sheetName,forceRefresh){
   setCache(sheetId,sheetName,text);
   console.log('Cache updated: '+sheetName+' ('+Math.round(text.length/1024)+'KB)');
   return text;
+}
+
+// ================================================================
+//  V29: FRED DATA FETCH & CACHE
+// ================================================================
+function isFredCacheStale() {
+  try {
+    const raw = localStorage.getItem(FRED_CACHE_KEY);
+    if (!raw) return true;
+    const obj = JSON.parse(raw);
+    return !obj || !obj.ts || (Date.now() - obj.ts) > FRED_TTL;
+  } catch(e) { return true; }
+}
+function getFredCached() {
+  try {
+    const raw = localStorage.getItem(FRED_CACHE_KEY);
+    if (!raw) return null;
+    const obj = JSON.parse(raw);
+    if (!obj || !obj.data) return null;
+    return obj.data;
+  } catch(e) { return null; }
+}
+function setFredCache(data) {
+  try {
+    localStorage.setItem(FRED_CACHE_KEY, JSON.stringify({data, ts: Date.now()}));
+  } catch(e) {}
+}
+async function fetchFredSeries(seriesId) {
+  // Use FRED API via CORS proxies — key='demo' gives last 2 years of public data
+  const fredUrl = 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=' + seriesId;
+  const proxies = [
+    'https://corsproxy.io/?' + encodeURIComponent(fredUrl),
+    'https://api.allorigins.win/raw?url=' + encodeURIComponent(fredUrl),
+    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(fredUrl),
+  ];
+  for (const proxy of proxies) {
+    try {
+      const resp = await fetch(proxy, {signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined});
+      if (!resp.ok) continue;
+      const text = await resp.text();
+      if (!text || !text.includes(',')) continue;
+      // Parse CSV: DATE,VALUE
+      const rows = text.trim().split('\n').slice(1);
+      const pts = [];
+      for (const row of rows) {
+        const [d, v] = row.split(',');
+        const val = parseFloat(v);
+        if (d && !isNaN(val)) pts.push({date: d.trim(), value: val});
+      }
+      if (pts.length > 0) return pts;
+    } catch(e) { /* try next proxy */ }
+  }
+  return null; // all proxies failed
+}
+async function fetchAllFred() {
+  if (!isFredCacheStale()) {
+    const cached = getFredCached();
+    if (cached) { console.log('FRED cache hit'); return cached; }
+  }
+  console.log('Fetching FRED data...');
+  const result = {};
+  const fetches = FRED_SERIES.map(async s => {
+    const pts = await fetchFredSeries(s);
+    result[s] = pts || [];
+  });
+  await Promise.allSettled(fetches);
+  setFredCache(result);
+  console.log('FRED fetch done:', Object.keys(result).filter(k=>result[k].length>0).length + '/' + FRED_SERIES.length + ' series OK');
+  return result;
 }
 
 // ================================================================
@@ -2030,754 +2186,346 @@ function getMenuCached() {
   return _menuCache;
 }
 
-/* ================================================================
-   MDP QUOTA PLANNER — gates switches based on quota + regime + month
-   ================================================================ */
-function mdpQuotaCheck(action, regime, quotaLeft, month, currentClass) {
-  if (action === 'HOLD') return {allowed: true, reason: ''};
+// ================================================================
+//  V29: HIERARCHICAL REGIME DETECTION
+// ================================================================
+function detectRegimeV29(fredData, signalDate) {
+  // ============================================================
+  // Hierarchical Regime — ตรงกับ gpf_v29_hierarchical.py
+  // Bond=ศูนย์กลาง, Credit=guard, Confirmation=adjust
+  // ============================================================
+  const result = { regime: 'NEUTRAL', steps: {}, rawFactors: {} };
+  if (!fredData) return result;
 
-  // V28: Use learned MDP policy if available
-  // V28 FIX W4: Check staleness (max 90 days)
-  if (LEARNED.mdpPolicy) {
-    let policyStale = false;
-    if (LEARNED.lastLearnDate) {
-      const policyAge = (new Date() - new Date(LEARNED.lastLearnDate)) / 86400000;
-      if (policyAge > 90) {
-        console.warn('MDP policy stale (' + Math.round(policyAge) + ' days), using fallback');
-        policyStale = true;
-      }
-    }
-    if (!policyStale) {
-      const posType = (currentClass === 'OFFENSIVE' || currentClass === 'MODERATE') ? 'OFFENSIVE' : 'DEFENSIVE';
-      const stateKey = month+'_'+regime+'_'+quotaLeft+'_'+posType;
-      const learnedAction = LEARNED.mdpPolicy[stateKey];
+  const LEVELS = ['RISK_OFF','MILD_OFF','NEUTRAL','MILD_ON','RISK_ON'];
 
-      if (learnedAction) {
-        // Map learned action to current context
-        if (learnedAction === 'HOLD' && action !== 'HOLD') {
-          return {allowed: false, reason: 'MDP(learned): '+regime+' m'+month+' q'+quotaLeft+' \u2192 HOLD'};
-        }
-        if (learnedAction === 'SWITCH_DEFENSIVE' && action === 'SWITCH_OFFENSIVE') {
-          return {allowed: false, reason: 'MDP(learned): \u0e04\u0e27\u0e23 defensive \u0e44\u0e21\u0e48\u0e43\u0e0a\u0e48 offensive'};
-        }
-        // Learned says switch is ok
-        return {allowed: true, reason: 'MDP(learned): \u0e2d\u0e19\u0e38\u0e21\u0e31\u0e15\u0e34'};
-      }
-    }
+  function getPts(series) {
+    const pts = fredData[series];
+    if (!pts || pts.length === 0) return null;
+    return signalDate ? pts.filter(p => p.date <= signalDate) : pts;
+  }
+  function avgSlice(pts, from, to) {
+    if (!pts) return null;
+    const len = pts.length;
+    const s = pts.slice(Math.max(0, len + from), len + to);
+    if (s.length === 0) return null;
+    return s.reduce((sum, p) => sum + p.value, 0) / s.length;
   }
 
-  // Fallback to V27 hardcoded rules if no learned policy
-  const isDecember = (month === 12);
-  const effectiveQuota = isDecember ? quotaLeft + 1 : quotaLeft;
-
-  if (effectiveQuota <= 1) {
-    if (regime === 'BEAR' && currentClass === 'OFFENSIVE' && action === 'SWITCH_DEFENSIVE') {
-      return {allowed: true, reason: 'MDP: BEAR escape with last quota'};
-    }
-    return {allowed: false, reason: 'MDP: quota \u22641 \u2014 \u0e40\u0e01\u0e47\u0e1a\u0e44\u0e27\u0e49\u0e2b\u0e19\u0e35 BEAR \u0e40\u0e17\u0e48\u0e32\u0e19\u0e31\u0e49\u0e19'};
-  }
-
-  if (effectiveQuota <= 2 && action === 'SWITCH_OFFENSIVE' && regime === 'SIDEWAYS') {
-    return {allowed: false, reason: 'MDP: quota \u22642 + SIDEWAYS \u2014 \u0e44\u0e21\u0e48\u0e04\u0e38\u0e49\u0e21\u0e40\u0e2a\u0e35\u0e48\u0e22\u0e07'};
-  }
-
-  if (effectiveQuota <= 3) {
-    return {allowed: true, reason: 'MDP: quota \u22643 \u2014 \u0e15\u0e49\u0e2d\u0e07 high conviction', requireHighConviction: true};
-  }
-
-  return {allowed: true, reason: ''};
-}
-
-/* ================================================================
-   STRATEGY D VETO — crash protection override
-   ================================================================ */
-function strategyDVeto(navData, navKeys, dateIdx) {
-  // Check if ALL equity funds have vol_ratio > VETO_VOL_RATIO
-  // Returns: {veto: bool, reason: string, volData: object}
-
-  if (dateIdx < VETO_VOL_BASELINE) return {veto: false, reason: '', volData: {}};
-
-  const equityFunds = ['TH', 'F', 'PR']; // equity funds to check
-  const availableFunds = equityFunds.filter(f => {
-    // Check if fund has data at this point
-    const val = navData[dateIdx]?.[f];
-    return val && !isNaN(val) && val > 0;
-  });
-
-  if (availableFunds.length === 0) return {veto: false, reason: 'No equity data', volData: {}};
-
-  let highVolCount = 0;
-  const volData = {};
-
-  for (const fund of availableFunds) {
-    // Current 20d volatility
-    let returns20 = [];
-    for (let i = Math.max(0, dateIdx - VETO_VOL_WINDOW); i < dateIdx; i++) {
-      const prev = navData[i]?.[fund];
-      const curr = navData[i+1]?.[fund];
-      if (prev && curr && prev > 0) returns20.push(curr/prev - 1);
-    }
-
-    // Baseline 60d volatility
-    let returns60 = [];
-    for (let i = Math.max(0, dateIdx - VETO_VOL_BASELINE); i < dateIdx; i++) {
-      const prev = navData[i]?.[fund];
-      const curr = navData[i+1]?.[fund];
-      if (prev && curr && prev > 0) returns60.push(curr/prev - 1);
-    }
-
-    if (returns20.length < 10 || returns60.length < 30) continue;
-
-    const std = arr => {
-      const m = arr.reduce((a,b)=>a+b,0)/arr.length;
-      return Math.sqrt(arr.reduce((a,b)=>a+(b-m)**2,0)/arr.length);
-    };
-
-    const vol20 = std(returns20);
-    const vol60 = std(returns60);
-    const ratio = vol60 > 0 ? vol20 / vol60 : 0;
-
-    volData[fund] = {vol20: (vol20*Math.sqrt(252)*100).toFixed(1)+'%', vol60: (vol60*Math.sqrt(252)*100).toFixed(1)+'%', ratio: ratio.toFixed(2)};
-
-    if (ratio > VETO_VOL_RATIO) highVolCount++;
-  }
-
-  // Veto if ALL available equity funds have high vol ratio
-  const vetoTriggered = highVolCount === availableFunds.length && availableFunds.length >= 2;
-
-  return {
-    veto: vetoTriggered,
-    reason: vetoTriggered ? 'VETO: \u0e17\u0e38\u0e01 equity vol spike (' + availableFunds.map(f=>f+':'+volData[f]?.ratio).join(', ') + ')' : '',
-    volData
-  };
-}
-
-/* ================================================================
-   ONLINE LEARNING ENGINE — เรียนรู้ทุกครั้งที่โหลด data
-   ================================================================ */
-
-// Learning state — persisted to localStorage
-let LEARNED = {
-  mdpPolicy: null,        // MDP policy table (auto-updated)
-  transitionMatrix: null,  // regime transition probabilities
-  paramAdapt: {            // adaptive parameters
-    velFast: 3,
-    velSlow: 10,
-    accelSpan: 5,
-    trailMin: 0.045,
-    accelExit: -0.003,
-    accelTp: 0.05,
-    monthlyCap: 2,
-    lastAdaptDate: null,
-    adaptHistory: []       // log of param changes
-  },
-  txLearning: {            // learned from transactions
-    winRateByRegime: {},   // {BULL: {wins: 10, total: 15}, ...}
-    avgHoldDays: 0,
-    bestFundByMonth: {},   // {1: 'TH', 2: 'F', ...}
-    avgReturnByExitType: {}, // {ACCEL_TP: 0.04, TRAIL: -0.02, ...}
-    totalTrades: 0
-  },
-  lastLearnDate: null
-};
-
-// Load learned state from localStorage
-function loadLearned() {
-  try {
-    const saved = localStorage.getItem('gpf_v28_learned');
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      Object.assign(LEARNED, parsed);
-      // Apply learned params to engine
-      applyLearnedParams();
-    }
-  } catch(e) { console.warn('Failed to load learned state', e); }
-}
-
-function saveLearned() {
-  try {
-    localStorage.setItem('gpf_v28_learned', JSON.stringify(LEARNED));
-  } catch(e) { console.warn('Failed to save learned state', e); }
-}
-
-function applyLearnedParams() {
-  VEL_FAST = LEARNED.paramAdapt.velFast;
-  VEL_SLOW = LEARNED.paramAdapt.velSlow;
-  ACCEL_SPAN = LEARNED.paramAdapt.accelSpan;
-  TRAIL_MIN = LEARNED.paramAdapt.trailMin;
-  ACCEL_EXIT_LEVEL = LEARNED.paramAdapt.accelExit;
-  ACCEL_TP_THRESHOLD = LEARNED.paramAdapt.accelTp;
-  MONTHLY_CAP = LEARNED.paramAdapt.monthlyCap;
-}
-
-/* ----------------------------------------------------------------
-   LEARNING MODULE 1: MDP Re-solve
-   ---------------------------------------------------------------- */
-function learnMDP(navMatrix, navKeys) {
-  // Calculate regime for every day in history
-  const regimes = [];
-
-  for (let i = 60; i < navKeys.length; i++) {
-    // Composite regime: Base_Plan 40%, A65 30%, equity 30%
-    let ret60 = 0;
-    let weightSum = 0;
-
-    const funds = [
-      {key: 'Base_Plan', weight: 0.4},
-      {key: 'A65', weight: 0.3},
-      {key: 'TH', weight: 0.15},
-      {key: 'F', weight: 0.15}
-    ];
-
-    for (const f of funds) {
-      const curr = navMatrix[i]?.[f.key];
-      const prev = navMatrix[i-60]?.[f.key];
-      if (curr && prev && prev > 0) {
-        ret60 += (curr/prev - 1) * f.weight;
-        weightSum += f.weight;
-      }
-    }
-
-    if (weightSum > 0) ret60 /= weightSum;
-
-    let regime = 'SIDEWAYS';
-    if (ret60 > 0.05) regime = 'BULL';
-    else if (ret60 < -0.05) regime = 'BEAR';
-
-    const date = new Date(navKeys[i]);
-    const month = date.getMonth() + 1;
-
-    regimes.push({date: navKeys[i], regime, month, ret60});
-  }
-
-  // Build transition matrix: P(regime'|regime, month)
-  const trans = {}; // {month: {fromRegime: {toRegime: count}}}
-  for (let m = 1; m <= 12; m++) {
-    trans[m] = {
-      BULL: {BULL: 0, BEAR: 0, SIDEWAYS: 0},
-      BEAR: {BULL: 0, BEAR: 0, SIDEWAYS: 0},
-      SIDEWAYS: {BULL: 0, BEAR: 0, SIDEWAYS: 0}
-    };
-  }
-
-  for (let i = 1; i < regimes.length; i++) {
-    const prev = regimes[i-1];
-    const curr = regimes[i];
-    // V28 FIX W1: Key by source month (prev), not destination month (curr)
-    if (prev.month && trans[prev.month]?.[prev.regime]) {
-      trans[prev.month][prev.regime][curr.regime]++;
+  // ============================================================
+  // STEP 1: BOND DIRECTION (PRIMARY)
+  // yield ขึ้น = เงินออกจาก Bond → equity = risk on
+  // yield ลง = เงินเข้า Bond → safe haven = risk off
+  // Smoothed: avg last 10 vs avg 40-60 ago (ตรงกับ Python)
+  // ============================================================
+  let baseRegime = 'NEUTRAL';
+  let bondChg = null;
+  const dgs10 = getPts('DGS10');
+  if (dgs10 && dgs10.length >= 60) {
+    const recentAvg = avgSlice(dgs10, -10, 0); // last 10
+    const olderAvg  = avgSlice(dgs10, -60, -40); // 40-60 ago
+    if (recentAvg !== null && olderAvg !== null) {
+      bondChg = recentAvg - olderAvg;
+      result.rawFactors.DGS10_60d = bondChg;
+      if      (bondChg > 0.30)  baseRegime = 'RISK_ON';
+      else if (bondChg > 0.10)  baseRegime = 'MILD_ON';
+      else if (bondChg < -0.30) baseRegime = 'RISK_OFF';
+      else if (bondChg < -0.10) baseRegime = 'MILD_OFF';
     }
   }
+  result.steps.baseRegime = baseRegime;
+  result.steps.bondChg = bondChg;
+  let regimeIdx = LEVELS.indexOf(baseRegime);
 
-  // Normalize to probabilities
-  for (let m = 1; m <= 12; m++) {
-    for (const from of ['BULL','BEAR','SIDEWAYS']) {
-      const total = trans[m][from].BULL + trans[m][from].BEAR + trans[m][from].SIDEWAYS;
-      if (total > 0) {
-        trans[m][from].BULL /= total;
-        trans[m][from].BEAR /= total;
-        trans[m][from].SIDEWAYS /= total;
-      } else {
-        // Laplace smoothing
-        trans[m][from] = {BULL: 0.33, BEAR: 0.33, SIDEWAYS: 0.34};
+  // ============================================================
+  // STEP 2: CREDIT STRESS GUARD (ทำได้แค่ defensive)
+  // HY OAS > 6.0 = CRISIS → FORCE RISK_OFF
+  // HY OAS > 4.5 = STRESS → cap MILD_OFF
+  // HY widening > 0.5 ใน 20d → downgrade 1 step
+  // ============================================================
+  let creditOverride = null;
+  let hyLevel = null, hyChg = null;
+  const hy = getPts('BAMLH0A0HYM2');
+  if (hy && hy.length > 0) {
+    hyLevel = hy[hy.length - 1].value;
+    result.rawFactors.HY_OAS = hyLevel;
+    if (hyLevel > 6.0) {
+      regimeIdx = 0;
+      creditOverride = 'CRISIS';
+    } else if (hyLevel > 4.5) {
+      regimeIdx = Math.min(regimeIdx, 1);
+      creditOverride = 'STRESS';
+    }
+    if (hy.length >= 21) {
+      hyChg = hyLevel - hy[hy.length - 21].value;
+      result.rawFactors.HY_chg20d = hyChg;
+      if (hyChg > 0.5) {
+        regimeIdx = Math.max(0, regimeIdx - 1);
+        creditOverride = creditOverride || 'WIDENING';
       }
     }
   }
+  result.steps.credit = creditOverride;
+  result.steps.hyLevel = hyLevel;
+  result.steps.hyChg = hyChg;
 
-  LEARNED.transitionMatrix = trans;
+  // ============================================================
+  // STEP 3: CONFIRMATION (±1 step)
+  // Dollar (smoothed 60d ±1.5), WALCL (20d ±0.3%), DFII10 (smoothed 60d ±0.20)
+  // ============================================================
+  let confirmsOn = 0, confirmsOff = 0, nConfirm = 0;
 
-  // Calculate average returns per regime per position type
-  const regimeReturns = {
-    BULL: {offensive: [], defensive: []},
-    BEAR: {offensive: [], defensive: []},
-    SIDEWAYS: {offensive: [], defensive: []}
-  };
-
-  for (let i = 1; i < regimes.length; i++) {
-    const r = regimes[i].regime;
-    // V28 FIX C2: offset — regimes[0] corresponds to navMatrix[60]
-    const navIdx = i + 60;
-    // Use A65 as offensive proxy, B as defensive proxy
-    const offRet = navMatrix[navIdx]?.A65 && navMatrix[navIdx-1]?.A65 ?
-      navMatrix[navIdx].A65/navMatrix[navIdx-1].A65 - 1 : null;
-    const defRet = navMatrix[navIdx]?.B && navMatrix[navIdx-1]?.B ?
-      navMatrix[navIdx].B/navMatrix[navIdx-1].B - 1 : null;
-
-    if (offRet !== null) regimeReturns[r].offensive.push(offRet);
-    if (defRet !== null) regimeReturns[r].defensive.push(defRet);
-  }
-
-  const avg = arr => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
-
-  // Solve MDP via Value Iteration
-  const gamma = 0.95;
-  const REGIMES = ['BULL','BEAR','SIDEWAYS'];
-  const POS_TYPES = ['OFFENSIVE','DEFENSIVE'];
-  const ACTIONS = ['HOLD','SWITCH_OFFENSIVE','SWITCH_DEFENSIVE'];
-  const switchCost = 0.001;
-
-  // State: (month, regime, quotaLeft, posType)
-  // Value function
-  const V = {};
-  const policy = {};
-
-  const stateKey = (m,r,q,p) => `${m}_${r}_${q}_${p}`;
-
-  // Initialize
-  for (let m = 1; m <= 12; m++) {
-    for (const r of REGIMES) {
-      for (let q = 0; q <= 12; q++) {
-        for (const p of POS_TYPES) {
-          V[stateKey(m,r,q,p)] = 0;
-          policy[stateKey(m,r,q,p)] = 'HOLD';
-        }
-      }
+  // Dollar: แข็ง = off, อ่อน = on
+  const dxy = getPts('DTWEXBGS');
+  if (dxy && dxy.length >= 60) {
+    const dxyNow  = avgSlice(dxy, -5, 0);
+    const dxyPrev = avgSlice(dxy, -60, -40);
+    if (dxyNow !== null && dxyPrev !== null) {
+      const dxyChg = dxyNow - dxyPrev;
+      result.rawFactors.DXY_chg = dxyChg;
+      nConfirm++;
+      if (dxyChg > 1.5) confirmsOff++;
+      else if (dxyChg < -1.5) confirmsOn++;
     }
   }
 
-  // Value Iteration (50 iterations sufficient for convergence)
-  for (let iter = 0; iter < 50; iter++) {
-    const Vnew = {...V};
-
-    for (let m = 1; m <= 12; m++) {
-      const nextM = m === 12 ? 1 : m + 1;
-
-      for (const r of REGIMES) {
-        for (let q = 0; q <= 12; q++) {
-          for (const p of POS_TYPES) {
-            const sk = stateKey(m,r,q,p);
-            let bestVal = -Infinity;
-            let bestAct = 'HOLD';
-
-            for (const a of ACTIONS) {
-              // Check feasibility
-              if (a !== 'HOLD' && q <= 0) continue;
-              if (a === 'SWITCH_OFFENSIVE' && p === 'OFFENSIVE') continue;
-              if (a === 'SWITCH_DEFENSIVE' && p === 'DEFENSIVE') continue;
-
-              let newP = p;
-              let newQ = q;
-              let reward = 0;
-
-              if (a === 'HOLD') {
-                reward = p === 'OFFENSIVE' ? avg(regimeReturns[r].offensive) * 20 :
-                                             avg(regimeReturns[r].defensive) * 20;
-              } else {
-                newQ = q - 1;
-                newP = a === 'SWITCH_OFFENSIVE' ? 'OFFENSIVE' : 'DEFENSIVE';
-                reward = (newP === 'OFFENSIVE' ? avg(regimeReturns[r].offensive) * 20 :
-                                                  avg(regimeReturns[r].defensive) * 20) - switchCost;
-              }
-
-              // Penalty: if quota=0 and OFFENSIVE in BEAR potential
-              if (newQ === 0 && newP === 'OFFENSIVE') {
-                reward -= trans[m][r].BEAR * 0.05 * 10; // expected BEAR loss
-              }
-
-              // Expected future value
-              let futureVal = 0;
-              const nextQ = nextM === 1 ? 12 : newQ; // quota resets in January
-              for (const rNext of REGIMES) {
-                const prob = trans[m][r][rNext] || 0.33;
-                futureVal += prob * V[stateKey(nextM, rNext, Math.min(nextQ, 12), newP)];
-              }
-
-              const totalVal = reward + gamma * futureVal;
-              if (totalVal > bestVal) {
-                bestVal = totalVal;
-                bestAct = a;
-              }
-            }
-
-            Vnew[sk] = bestVal;
-            policy[sk] = bestAct;
-          }
-        }
-      }
-    }
-
-    // V28 FIX W6: Check convergence
-    let maxDelta = 0;
-    for (const key of Object.keys(V)) {
-      maxDelta = Math.max(maxDelta, Math.abs(Vnew[key] - V[key]));
-    }
-    Object.assign(V, Vnew);
-    if (maxDelta < 1e-6) {
-      console.log('MDP converged at iteration', iter);
-      break;
+  // WALCL: expanding = on
+  const walcl = getPts('WALCL');
+  if (walcl && walcl.length >= 21) {
+    const wNow  = walcl[walcl.length - 1].value;
+    const wPrev = walcl[walcl.length - 21].value;
+    if (wPrev > 0) {
+      const wPct = (wNow - wPrev) / wPrev * 100;
+      result.rawFactors.WALCL_pct = wPct;
+      nConfirm++;
+      if (wPct > 0.3) confirmsOn++;
+      else if (wPct < -0.3) confirmsOff++;
     }
   }
 
-  LEARNED.mdpPolicy = policy;
-  console.log('MDP re-solved with', regimes.length, 'data points');
-  return {policy, transitionMatrix: trans, regimeCount: regimes.length};
-}
-
-/* ----------------------------------------------------------------
-   LEARNING MODULE 2: Parameter Adaptation (monthly)
-   ---------------------------------------------------------------- */
-function learnParams(navMatrix, navKeys, txData) {
-  const today = navKeys[navKeys.length - 1];
-  const lastAdapt = LEARNED.paramAdapt.lastAdaptDate;
-
-  // Only adapt once per month
-  if (lastAdapt) {
-    const daysSince = (new Date(today) - new Date(lastAdapt)) / 86400000;
-    if (daysSince < 25) return {adapted: false, reason: 'Too soon (< 25 days)'};
-  }
-
-  // Calculate recent 6-month performance metrics
-  const lookback = Math.min(120, Math.floor(navKeys.length * 0.1)); // ~6 months or 10% of data
-  const recentStart = navKeys.length - lookback;
-
-  // Realized volatility of portfolio (recent vs historical)
-  let recentVols = [];
-  let histVols = [];
-
-  const equityFunds = ['TH','F','A65'];
-  for (const fund of equityFunds) {
-    // Recent vol
-    let rets = [];
-    for (let i = recentStart; i < navKeys.length - 1; i++) {
-      const p = navMatrix[i]?.[fund], c = navMatrix[i+1]?.[fund];
-      if (p && c && p > 0) rets.push(c/p - 1);
-    }
-    if (rets.length > 20) {
-      const m = rets.reduce((a,b)=>a+b,0)/rets.length;
-      recentVols.push(Math.sqrt(rets.reduce((a,b)=>a+(b-m)**2,0)/rets.length));
-    }
-
-    // Historical vol (all data)
-    rets = [];
-    for (let i = 0; i < navKeys.length - 1; i++) {
-      const p = navMatrix[i]?.[fund], c = navMatrix[i+1]?.[fund];
-      if (p && c && p > 0) rets.push(c/p - 1);
-    }
-    if (rets.length > 60) {
-      const m = rets.reduce((a,b)=>a+b,0)/rets.length;
-      histVols.push(Math.sqrt(rets.reduce((a,b)=>a+(b-m)**2,0)/rets.length));
+  // Real yield: ลง = on
+  const ry = getPts('DFII10');
+  if (ry && ry.length >= 60) {
+    const ryNow  = avgSlice(ry, -5, 0);
+    const ryPrev = avgSlice(ry, -60, -40);
+    if (ryNow !== null && ryPrev !== null) {
+      const ryChg = ryNow - ryPrev;
+      result.rawFactors.DFII10_chg = ryChg;
+      nConfirm++;
+      if (ryChg < -0.20) confirmsOn++;
+      else if (ryChg > 0.20) confirmsOff++;
     }
   }
 
-  const avgRecentVol = recentVols.length ? recentVols.reduce((a,b)=>a+b,0)/recentVols.length : 0;
-  const avgHistVol = histVols.length ? histVols.reduce((a,b)=>a+b,0)/histVols.length : 0;
-
-  const volRatio = avgHistVol > 0 ? avgRecentVol / avgHistVol : 1;
-
-  const changes = [];
-  const PA = LEARNED.paramAdapt;
-
-  // GUARD RAILS: params never go outside safe range
-  const BOUNDS = {
-    velFast: [2, 8],
-    velSlow: [8, 25],
-    accelSpan: [2, 7],
-    trailMin: [0.025, 0.07], // V28 FIX W5: Keep gap below TRAIL_MAX=0.08
-    accelExit: [-0.005, -0.001],
-    accelTp: [0.03, 0.08],
-    monthlyCap: [1, 3]
-  };
-
-  const clamp = (val, min, max) => Math.max(min, Math.min(max, val));
-
-  // Adapt trailing stop based on vol regime
-  if (volRatio > 1.3) {
-    // High vol -> widen trail
-    const newTrail = clamp(PA.trailMin * 1.05, ...BOUNDS.trailMin);
-    if (newTrail !== PA.trailMin) {
-      changes.push({param: 'trailMin', from: PA.trailMin, to: newTrail, reason: 'vol\u2191 ('+volRatio.toFixed(2)+'x)'});
-      PA.trailMin = newTrail;
-    }
-    // V28 FIX C5: High vol -> widen accel exit (closer to zero = more tolerant)
-    const newAE = clamp(PA.accelExit + 0.0002, ...BOUNDS.accelExit);
-    if (newAE !== PA.accelExit) {
-      changes.push({param: 'accelExit', from: PA.accelExit, to: newAE, reason: 'vol\u2191 adapt'});
-      PA.accelExit = newAE;
-    }
-  } else if (volRatio < 0.7) {
-    // Low vol -> tighten trail (take profit earlier in calm markets)
-    const newTrail = clamp(PA.trailMin * 0.97, ...BOUNDS.trailMin);
-    if (newTrail !== PA.trailMin) {
-      changes.push({param: 'trailMin', from: PA.trailMin, to: newTrail, reason: 'vol\u2193 ('+volRatio.toFixed(2)+'x)'});
-      PA.trailMin = newTrail;
-    }
-    // V28 FIX C5: Low vol -> tighten accel exit (more negative = stricter)
-    const newAELow = clamp(PA.accelExit - 0.0001, ...BOUNDS.accelExit);
-    if (newAELow !== PA.accelExit) {
-      changes.push({param: 'accelExit', from: PA.accelExit, to: newAELow, reason: 'vol\u2193 tighten'});
-      PA.accelExit = newAELow;
+  // Apply: 2+ disagree → adjust toward neutral
+  result.steps.confirmsOn = confirmsOn;
+  result.steps.confirmsOff = confirmsOff;
+  let confirmAdj = 'aligned';
+  if (nConfirm >= 2) {
+    const bondIsOn  = ['RISK_ON','MILD_ON'].includes(baseRegime);
+    const bondIsOff = ['RISK_OFF','MILD_OFF'].includes(baseRegime);
+    if (bondIsOn && confirmsOff >= 2) {
+      regimeIdx = Math.max(0, regimeIdx - 1);
+      confirmAdj = 'pulled_down';
+    } else if (bondIsOff && confirmsOn >= 2) {
+      regimeIdx = Math.min(4, regimeIdx + 1);
+      confirmAdj = 'pulled_up';
     }
   }
+  result.steps.confirmAdj = confirmAdj;
 
-  // Learn from transaction data if available
-  if (txData && txData.length > 0) {
-    // Count recent trade wins/losses
-    const recentTx = txData.filter(tx => {
-      const d = new Date(tx.date);
-      const cutoff = new Date(today);
-      cutoff.setMonth(cutoff.getMonth() - 6);
-      return d >= cutoff;
-    });
-
-    if (recentTx.length >= 5) {  // V28 FIX C3: need more data before adapting (was >= 3)
-      const wins = recentTx.filter(tx => tx.return > 0).length;
-      const winRate = wins / recentTx.length;
-
-      if (winRate < 0.3) {  // V28 FIX C3: more conservative threshold (was 0.4)
-        // Losing streak -> slow down (lower monthly cap)
-        const newCap = clamp(PA.monthlyCap - 1, ...BOUNDS.monthlyCap);
-        if (newCap !== PA.monthlyCap) {
-          changes.push({param: 'monthlyCap', from: PA.monthlyCap, to: newCap, reason: 'winRate\u2193 ('+(winRate*100).toFixed(0)+'%)'});
-          PA.monthlyCap = newCap;
-        }
-      } else if (winRate > 0.7 && recentTx.length >= 5) {
-        // Strong performance -> can be slightly more aggressive
-        const newCap = clamp(PA.monthlyCap + 1, ...BOUNDS.monthlyCap);
-        if (newCap !== PA.monthlyCap) {
-          changes.push({param: 'monthlyCap', from: PA.monthlyCap, to: newCap, reason: 'winRate\u2191 ('+(winRate*100).toFixed(0)+'%)'});
-          PA.monthlyCap = newCap;
-        }
-      }
-    }
-  }
-
-  PA.lastAdaptDate = today;
-  if (changes.length > 0) {
-    PA.adaptHistory.push({date: today, changes});
-    // Keep only last 24 entries
-    if (PA.adaptHistory.length > 24) PA.adaptHistory = PA.adaptHistory.slice(-24);
-  }
-
-  applyLearnedParams();
-
-  return {adapted: changes.length > 0, changes, volRatio};
-}
-
-/* ----------------------------------------------------------------
-   LEARNING MODULE 3: Transaction Learning
-   ---------------------------------------------------------------- */
-function learnFromTransactions(txData, navMatrix, navKeys) {
-  if (!txData || txData.length === 0) return {learned: false};
-
-  const TL = LEARNED.txLearning;
-  TL.totalTrades = txData.length;
-
-  // Win rate by regime
-  TL.winRateByRegime = {BULL: {wins:0,total:0}, BEAR: {wins:0,total:0}, SIDEWAYS: {wins:0,total:0}};
-
-  // Best fund by month
-  const fundRetByMonth = {}; // {month: {fund: [returns]}}
-
-  // Average return by exit type (if available in tx data)
-  TL.avgReturnByExitType = {};
-
-  let totalHoldDays = 0;
-  let holdCount = 0;
-
-  for (const tx of txData) {
-    // Determine regime at entry
-    const entryIdx = navKeys.indexOf(tx.entryDate);
-    if (entryIdx < 60) continue;
-
-    // Composite regime
-    let ret60 = 0, wSum = 0;
-    for (const {key, weight} of [{key:'Base_Plan',weight:0.4},{key:'A65',weight:0.3},{key:'TH',weight:0.15},{key:'F',weight:0.15}]) {
-      const c = navMatrix[entryIdx]?.[key], p = navMatrix[entryIdx-60]?.[key];
-      if (c && p && p > 0) { ret60 += (c/p-1)*weight; wSum += weight; }
-    }
-    if (wSum > 0) ret60 /= wSum;
-
-    const regime = ret60 > 0.05 ? 'BULL' : ret60 < -0.05 ? 'BEAR' : 'SIDEWAYS';
-
-    if (TL.winRateByRegime[regime]) {
-      TL.winRateByRegime[regime].total++;
-      if (tx.return > 0) TL.winRateByRegime[regime].wins++;
-    }
-
-    // Hold days
-    if (tx.holdDays) { totalHoldDays += tx.holdDays; holdCount++; }
-
-    // Fund by month
-    const month = new Date(tx.entryDate).getMonth() + 1;
-    if (!fundRetByMonth[month]) fundRetByMonth[month] = {};
-    const fundKey = tx.fund || tx.plan || 'unknown';
-    if (!fundRetByMonth[month][fundKey]) fundRetByMonth[month][fundKey] = [];
-    if (tx.return != null) fundRetByMonth[month][fundKey].push(tx.return);
-  }
-
-  TL.avgHoldDays = holdCount > 0 ? Math.round(totalHoldDays / holdCount) : 0;
-
-  // Best fund per month
-  for (const [m, funds] of Object.entries(fundRetByMonth)) {
-    let bestFund = '', bestAvg = -Infinity;
-    for (const [fund, rets] of Object.entries(funds)) {
-      const avg = rets.reduce((a,b)=>a+b,0)/rets.length;
-      if (avg > bestAvg) { bestAvg = avg; bestFund = fund; }
-    }
-    TL.bestFundByMonth[m] = {fund: bestFund, avgReturn: bestAvg};
-  }
-
-  return {learned: true, totalTrades: txData.length, regimeStats: TL.winRateByRegime};
-}
-
-/* ----------------------------------------------------------------
-   MASTER LEARN FUNCTION — called after every data load
-   ---------------------------------------------------------------- */
-function runOnlineLearning(navMatrix, navKeys, txData) {
-  console.time('Online Learning');
-
-  const results = {
-    mdp: null,
-    params: null,
-    tx: null,
-    timestamp: new Date().toISOString()
-  };
-
-  // 1. MDP Re-solve (always)
-  try {
-    results.mdp = learnMDP(navMatrix, navKeys);
-  } catch(e) {
-    console.error('MDP learn failed:', e);
-    results.mdp = {error: e.message};
-  }
-
-  // 2. Param Adaptation (monthly)
-  try {
-    results.params = learnParams(navMatrix, navKeys, txData);
-  } catch(e) {
-    console.error('Param learn failed:', e);
-    results.params = {error: e.message};
-  }
-
-  // 3. Transaction Learning
-  try {
-    results.tx = learnFromTransactions(txData, navMatrix, navKeys);
-  } catch(e) {
-    console.error('TX learn failed:', e);
-    results.tx = {error: e.message};
-  }
-
-  LEARNED.lastLearnDate = navKeys[navKeys.length - 1];
-  saveLearned();
-
-  console.timeEnd('Online Learning');
-  console.log('Learning results:', results);
-
-  // Update learning dashboard
-  renderLearningDashboard(results);
-
-  return results;
-}
-
-/* ----------------------------------------------------------------
-   LEARNING DASHBOARD RENDERER
-   ---------------------------------------------------------------- */
-function renderLearningDashboard(results) {
-  const card = document.getElementById('learning-card');
-  const status = document.getElementById('learning-status');
-  if (!card || !status) return;
-  card.style.display = 'block';
-
-  let html = '';
-
-  // Learning count and last date
-  html += '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px">';
-  html += '<div class="pos-stat"><div class="pos-stat-label">DATA \u0e16\u0e36\u0e07</div><div class="pos-stat-val" style="color:var(--text);font-size:13px">'+(LEARNED.lastLearnDate || '-')+'</div></div>';
-
-  // MDP data points
-  if (results?.mdp?.regimeCount) {
-    html += '<div class="pos-stat"><div class="pos-stat-label">MDP Data Points</div><div class="pos-stat-val" style="color:var(--teal)">'+results.mdp.regimeCount.toLocaleString()+'</div></div>';
-  }
-  html += '</div>';
-
-  // Param adaptation alert (show above details if params changed)
-  const PA = LEARNED.paramAdapt;
-  if (results?.params?.adapted && results.params.changes?.length > 0) {
-    html += '<div style="margin-top:8px;padding:6px 10px;border-radius:6px;background:rgba(139,92,246,.07);border:1px solid rgba(139,92,246,.2);font-size:11px;color:var(--purple)">';
-    html += '<b>\u0e1b\u0e23\u0e31\u0e1a params:</b> ';
-    html += results.params.changes.map(function(c){ return c.param+': '+(typeof c.from==='number'?c.from.toFixed(4):c.from)+'\u2192'+(typeof c.to==='number'?c.to.toFixed(4):c.to)+' ('+c.reason+')'; }).join(' \u00b7 ');
-    html += '</div>';
-  } else if (results?.params) {
-    html += '<div style="margin-top:6px;font-size:10px;color:var(--t3)">Vol ratio: '+(results.params?.volRatio?.toFixed(2) || '-')+'x \u2014 '+(results.params?.reason || '\u0e44\u0e21\u0e48\u0e1b\u0e23\u0e31\u0e1a params')+'</div>';
-  }
-
-  // Collapsible details section
-  html += '<details style="margin-top:8px"><summary style="font-size:10px;color:var(--purple);cursor:pointer">\u0e14\u0e39\u0e23\u0e32\u0e22\u0e25\u0e30\u0e40\u0e2d\u0e35\u0e22\u0e14 (Params \u00b7 MDP \u00b7 TX)</summary>';
-  html += '<div style="margin-top:6px">';
-
-  // Learned params
-  html += '<div style="margin-top:4px"><span style="font-size:9px;color:var(--t2);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">LEARNED PARAMETERS</span></div>';
-  html += '<div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:4px">';
-  const paramBadge = (label, val, defaultVal) => {
-    const changed = val !== defaultVal;
-    const color = changed ? 'var(--purple)' : 'var(--t3)';
-    const bg = changed ? 'rgba(139,92,246,.1)' : 'rgba(200,214,240,.05)';
-    const arrow = changed ? (val > defaultVal ? '\u2191' : '\u2193') : '';
-    const formatted = typeof val==='number' ? (val%1 ? val.toFixed(4) : String(val)) : val;
-    return '<span style="padding:2px 7px;border-radius:4px;font-size:10px;font-family:var(--mono);background:'+bg+';color:'+color+';border:1px solid '+(changed?'rgba(139,92,246,.3)':'var(--b1)')+'">'+label+'='+formatted+' '+arrow+'</span>';
-  };
-  html += paramBadge('vel_fast', PA.velFast, 3);
-  html += paramBadge('vel_slow', PA.velSlow, 10);
-  html += paramBadge('accel_span', PA.accelSpan, 5);
-  html += paramBadge('trail', PA.trailMin, 0.045);
-  html += paramBadge('accel_exit', PA.accelExit, -0.003);
-  html += paramBadge('accel_tp', PA.accelTp, 0.05);
-  html += paramBadge('cap', PA.monthlyCap, 2);
-  html += '</div>';
-
-  // MDP regime transitions
-  if (LEARNED.transitionMatrix) {
-    const currentMonth = new Date().getMonth() + 1;
-    const monthNames = ['','\u0e21.\u0e04.','\u0e01.\u0e1e.','\u0e21\u0e35.\u0e04.','\u0e40\u0e21.\u0e22.','\u0e1e.\u0e04.','\u0e21\u0e34.\u0e22.','\u0e01.\u0e04.','\u0e2a.\u0e04.','\u0e01.\u0e22.','\u0e15.\u0e04.','\u0e1e.\u0e22.','\u0e18.\u0e04.'];
-    const tm = LEARNED.transitionMatrix[currentMonth];
-    if (tm) {
-      html += '<div style="margin-top:8px"><span style="font-size:9px;color:var(--t2);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">MDP: REGIME TRANSITIONS \u0e40\u0e14\u0e37\u0e2d\u0e19'+monthNames[currentMonth]+'</span></div>';
-      html += '<div style="font-size:10px;font-family:var(--mono);color:var(--t2);margin-top:3px;line-height:1.8">';
-      for (const from of ['BULL','SIDEWAYS','BEAR']) {
-        const t = tm[from];
-        const bearPct = (t.BEAR*100).toFixed(0);
-        const bearColor = t.BEAR > 0.15 ? 'var(--red)' : 'var(--t3)';
-        html += from+'\u2192 BULL:'+(t.BULL*100).toFixed(0)+'% SIDE:'+(t.SIDEWAYS*100).toFixed(0)+'% <span style="color:'+bearColor+'">BEAR:'+bearPct+'%</span><br>';
-      }
-      html += '</div>';
-    }
-  }
-
-  // TX learning summary
-  if (LEARNED.txLearning.totalTrades > 0) {
-    html += '<div style="margin-top:8px"><span style="font-size:9px;color:var(--t2);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">TX LEARNING ('+LEARNED.txLearning.totalTrades+' trades)</span></div>';
-    const wr = LEARNED.txLearning.winRateByRegime;
-    html += '<div style="font-size:10px;font-family:var(--mono);color:var(--t2);margin-top:3px">';
-    for (const r of ['BULL','SIDEWAYS','BEAR']) {
-      if (wr[r]?.total > 0) {
-        const rate = (wr[r].wins/wr[r].total*100).toFixed(0);
-        const color = rate >= 60 ? 'var(--green)' : rate >= 40 ? 'var(--amber)' : 'var(--red)';
-        html += r+': <span style="color:'+color+'">'+rate+'%</span> ('+wr[r].wins+'/'+wr[r].total+') \u00b7 ';
-      }
-    }
-    if (LEARNED.txLearning.avgHoldDays > 0) {
-      html += 'avg hold: '+LEARNED.txLearning.avgHoldDays+'d';
-    }
-    html += '</div>';
-  }
-
-  // Adaptation history
-  if (PA.adaptHistory.length > 0) {
-    html += '<div style="margin-top:8px"><span style="font-size:9px;color:var(--t2);font-family:var(--mono);letter-spacing:.08em;text-transform:uppercase">\u0e1b\u0e23\u0e30\u0e27\u0e31\u0e15\u0e34\u0e01\u0e32\u0e23\u0e1b\u0e23\u0e31\u0e1a ('+PA.adaptHistory.length+' \u0e04\u0e23\u0e31\u0e49\u0e07)</span></div>';
-    html += '<div style="font-size:10px;font-family:var(--mono);color:var(--t3);margin-top:4px;line-height:1.8">';
-    for (const entry of PA.adaptHistory.slice(-5).reverse()) {
-      html += entry.date+': '+entry.changes.map(function(c){return c.param+' '+c.reason;}).join(', ')+'<br>';
-    }
-    html += '</div>';
-  }
-
-  html += '</div></details>';
-
-  status.innerHTML = html;
+  result.regime = LEVELS[regimeIdx];
+  return result;
 }
 
 // ================================================================
-//  DECISION ENGINE — v28 Online Learning + Bayesian + MDP Quota + Crash Shield
+//  V29: NAV MOMENTUM + VOL TARGETING ALLOCATION
+// ================================================================
+function computeV29Allocation(navMatrix, idx, plans, regime) {
+  // ============================================================
+  // 12-Month Momentum Fund Selection (Jegadeesh & Titman 1993)
+  // DIY: F, G, TH, PR (equity) + B, Global_Bond, Money_Market (bond)
+  // กฎ: G ≤ 25%, integer %, รวม 100%
+  // ============================================================
+  const level = REGIME_LEVELS[regime] || REGIME_LEVELS['NEUTRAL'];
+  const MOM_LB = 252; // 12 months — จาก academic literature
+  const EQUITY = ['F', 'TH', 'G', 'PR'];
+  const BONDS  = ['B', 'Global_Bond', 'Money_Market'];
+  const equityFunds = EQUITY.filter(f => plans.includes(f) && navMatrix[idx] && navMatrix[idx][f] != null);
+  const bondFunds   = BONDS.filter(f => plans.includes(f) && navMatrix[idx] && navMatrix[idx][f] != null);
+
+  // --- 12-month momentum ---
+  const mom12 = {};
+  const allFunds = [...equityFunds, ...bondFunds];
+  for (const fund of allFunds) {
+    if (idx < MOM_LB) { mom12[fund] = 0; continue; }
+    const vEnd = navMatrix[idx] && navMatrix[idx][fund];
+    const vPrev = navMatrix[idx - MOM_LB] && navMatrix[idx - MOM_LB][fund];
+    if (!vEnd || !vPrev || vPrev <= 0) { mom12[fund] = 0; continue; }
+    mom12[fund] = (vEnd - vPrev) / vPrev;
+  }
+
+  // Best equity fund (12M mom สูงสุด)
+  const bestFund = equityFunds.length > 0
+    ? equityFunds.reduce((a, b) => (mom12[a] || 0) >= (mom12[b] || 0) ? a : b)
+    : null;
+
+  // Best bond fund (12M mom สูงสุด)
+  const bestBond = bondFunds.length > 0
+    ? bondFunds.reduce((a, b) => (mom12[a] || 0) >= (mom12[b] || 0) ? a : b)
+    : 'B';
+
+  // --- Vol targeting on best fund ---
+  let fundVol = 0.12;
+  if (bestFund && idx >= 20) {
+    const rets = [];
+    for (let j = Math.max(1, idx - 20); j <= idx; j++) {
+      const p = navMatrix[j-1] && navMatrix[j-1][bestFund];
+      const c = navMatrix[j]   && navMatrix[j][bestFund];
+      if (p && p > 0 && c) rets.push((c - p) / p);
+    }
+    if (rets.length > 5) {
+      const mean = rets.reduce((a, b) => a + b, 0) / rets.length;
+      const v = rets.reduce((a, b) => a + (b - mean) ** 2, 0) / rets.length;
+      fundVol = Math.sqrt(v * 252);
+    }
+  }
+
+  // equity% = vol_target / realized_vol
+  const equityWt = fundVol > 0 ? Math.min(1.0, level.targetVol / fundVol) : 1.0;
+
+  // --- Build allocation: 1 best equity + 1 best bond ---
+  let allocation = {};
+  if (!bestFund || (mom12[bestFund] || 0) <= 0) {
+    // ทุก equity 12M mom ลบ → 100% best bond
+    allocation[bestBond] = 1.0;
+  } else if (bestFund === 'G' && equityWt > G_CAP) {
+    // G ติด cap → G 25% + ตัวที่ 2
+    const remainingEq = equityWt - G_CAP;
+    const eq2 = equityFunds.filter(f => f !== 'G').sort((a, b) => (mom12[b] || 0) - (mom12[a] || 0));
+    allocation['G'] = G_CAP;
+    if (eq2.length > 0 && (mom12[eq2[0]] || 0) > 0) {
+      allocation[eq2[0]] = remainingEq;
+    } else {
+      allocation[bestBond] = (allocation[bestBond] || 0) + remainingEq;
+    }
+    const bondFill = Math.max(0, 1.0 - Object.values(allocation).reduce((s, v) => s + v, 0));
+    if (bondFill > 0.01) allocation[bestBond] = (allocation[bestBond] || 0) + bondFill;
+  } else {
+    // ปกติ: 1 equity + 1 bond
+    allocation[bestFund] = equityWt;
+    const bondFill = Math.max(0, 1.0 - equityWt);
+    if (bondFill > 0.01) allocation[bestBond] = bondFill;
+  }
+
+  // Round integer %
+  const rounded = {};
+  for (const [k, v] of Object.entries(allocation)) {
+    const r = Math.round(v * 100);
+    if (r >= 1) rounded[k] = r / 100;
+  }
+  const total = Object.values(rounded).reduce((s, v) => s + v, 0);
+  if (total > 0) for (const k of Object.keys(rounded)) rounded[k] /= total;
+
+  return {
+    allocation: rounded, bestFund, equityWt, fundVol,
+    scores: mom12, level, momentum: mom12, accel: {},
+    bestBond,
+    presetRanking: [], diyScore: 0, bestPreset: null, recommend: 'MOM12',
+  };
+}
+
+// ================================================================
+//  V29: HIERARCHICAL REGIME SIGNAL ENGINE
+// ================================================================
+function computeSignalV29(navMatrix, dates, plans, delay, fredData) {
+  // Only compute the latest signal (last date - delay)
+  const N = dates.length;
+  const idx = N - 1 - (delay || 0);
+  if (idx < 0) return [];
+  const signalDate = dates[idx];
+  const regimeResult = detectRegimeV29(fredData, signalDate);
+  const regime = regimeResult.regime;
+  const allocResult = computeV29Allocation(navMatrix, idx, plans, regime);
+  return [{
+    date: signalDate,
+    regime, regimeResult,
+    allocation: allocResult.allocation,
+    bestFund: allocResult.bestFund,
+    equityWt: allocResult.equityWt,
+    fundVol: allocResult.fundVol,
+    scores: allocResult.scores,
+    level: allocResult.level,
+    momentum: allocResult.momentum,
+    accel: allocResult.accel,
+    presetRanking: allocResult.presetRanking,
+    bestPreset: allocResult.bestPreset,
+    diyScore: allocResult.diyScore,
+    recommend: allocResult.recommend,
+  }];
+}
+
+// ================================================================
+//  V29: DECISION ENGINE
+// ================================================================
+function makeDecisionV29(v29Signals, currentPlan, quotaUsed, quotaTotal) {
+  if (!v29Signals || v29Signals.length === 0) return null;
+  const latest = v29Signals[v29Signals.length-1];
+  const { regime, allocation, bestFund, equityWt, fundVol, scores, level } = latest;
+  const quotaRemain = quotaTotal - quotaUsed;
+  let targetPlan = 'Base_Plan';
+  let maxWt = 0;
+  for (const [plan, wt] of Object.entries(allocation)) {
+    if (wt > maxWt) { maxWt = wt; targetPlan = plan; }
+  }
+  let action, reason;
+  if (regime === 'RISK_OFF' && currentPlan !== 'Base_Plan') {
+    action = quotaRemain > 0 ? 'EXIT_CRISIS' : 'HOLD';
+    reason = 'RISK_OFF regime: credit stress + rising yields';
+  } else if (targetPlan !== currentPlan && quotaRemain > 0) {
+    action = 'SWITCH';
+    reason = 'Regime ' + regime + ': best fund ' + bestFund + ' (equityWt=' + (equityWt*100).toFixed(0) + '%)';
+  } else if (targetPlan !== currentPlan && quotaRemain <= 0) {
+    action = 'HOLD';
+    reason = 'Would switch to ' + targetPlan + ' but quota exhausted';
+  } else {
+    action = 'HOLD';
+    reason = 'Already in target plan for ' + regime + ' regime';
+  }
+  // Build target menu name + alloc in format render expects
+  const roundedAlloc = {};
+  for (const [k, v] of Object.entries(allocation)) {
+    const r = Math.round(v * 100);
+    if (r >= 1) roundedAlloc[k] = r / 100;
+  }
+  const totalR = Object.values(roundedAlloc).reduce((s, v) => s + v, 0);
+  if (totalR > 0) for (const k of Object.keys(roundedAlloc)) roundedAlloc[k] /= totalR;
+
+  const menuName = Object.entries(roundedAlloc)
+    .sort((a, b) => b[1] - a[1])
+    .map(([k, v]) => k + '_' + Math.round(v * 100))
+    .join('+');
+
+  return {
+    action, reason, regime, allocation,
+    bestFund, equityWt, fundVol, scores, level,
+    momentum: latest.momentum, accel: latest.accel,
+    presetRanking: latest.presetRanking, bestPreset: latest.bestPreset,
+    diyScore: latest.diyScore, recommend: latest.recommend,
+    regimeResult: latest.regimeResult, quotaRemain,
+    // Fields that render uses (override V22):
+    targetMenu: menuName,
+    targetAlloc: roundedAlloc,
+    targetPlan,
+    currentPlan,
+  };
+}
+
+// V29: mdpQuotaCheck removed — stub so makeDecisionV22 doesn't throw
+function mdpQuotaCheck() { return { allowed: true, requireHighConviction: false }; }
+
+// ================================================================
+//  DECISION ENGINE — v22 (kept for backward compat)
 // ================================================================
 function makeDecisionV22({scores, velocity, acceleration, regime, allocVel, allocAccel, ALLOCATIONS,
                           currentMenu, currentAlloc, quotaUsed, lastSwitchStr, referenceDate,
@@ -2903,7 +2651,8 @@ function makeDecisionV22({scores, velocity, acceleration, regime, allocVel, allo
 
   // Regime badge
   const regimeStrength = _rs || 0;
-  const regimeBadge = regime === 'BULL' ? '🟢 BULL' : regime === 'BEAR' ? '🔴 BEAR' : regime === 'SIDEWAYS' ? '🟡 SIDEWAYS' : '⚪ UNKNOWN';
+  // V29: ไม่ใช้ BULL/BEAR/SIDEWAYS แล้ว — ใช้ regime จาก FRED hierarchical
+  const regimeBadge = '⚪ (legacy)';
 
   // Legacy menu scores for display
   const MENU = getMenuCached();
@@ -2954,13 +2703,6 @@ function makeDecisionV22({scores, velocity, acceleration, regime, allocVel, allo
   // =============================================
   // V27: STRATEGY D VETO — crash protection override (before anything else)
   // Only veto if currently OFFENSIVE or MODERATE
-  // =============================================
-  if (curType === 'OFFENSIVE' || curType === 'MODERATE') {
-    // strategyDVeto needs navArr/navKeys but we don't have them in makeDecisionV22
-    // The veto check will be done externally and passed in; check for vetoOverride
-    // (handled in runSignal before calling makeDecisionV22)
-  }
-
   // =============================================
   // 0. QUOTA EXHAUSTED
   // =============================================
@@ -3544,48 +3286,6 @@ async function loadAll(forceRefresh){
       }catch(e){TX_PORT=[];setBadgeCfg('tx','err','โหลดไม่ได้: '+e.message.substring(0,30));}
     }
     if(NAV_PORT.length>0){renderPortAll();if(el('tab-nav').classList.contains('active'))renderNavTab();}else{showPortErr('ไม่พบข้อมูล NAV ใน Database sheet');}
-    // V28: Run Online Learning
-    if (NAV_SIGNAL && NAV_SIGNAL.navMatrix && NAV_SIGNAL.dates) {
-      // V28 FIX C3: Calculate actual returns from transaction pairs
-      let txLearnData = null;
-      if (TX_PORT && TX_PORT.length > 0) {
-        const rebalTxs = TX_PORT.filter(function(t){ return t.type && (t.type.includes('\u0e40\u0e1b\u0e25\u0e35\u0e48\u0e22\u0e19\u0e41\u0e1c\u0e19') || t.type.toLowerCase().includes('rebal')); })
-          .filter(function(t){ return t.date; })
-          .sort(function(a,b){ return a.date - b.date; });
-        if (rebalTxs.length >= 2) {
-          txLearnData = [];
-          for (var ti = 0; ti < rebalTxs.length - 1; ti++) {
-            var entry = rebalTxs[ti];
-            var exit = rebalTxs[ti + 1];
-            var entryStr = entry.date.getFullYear()+'-'+String(entry.date.getMonth()+1).padStart(2,'0')+'-'+String(entry.date.getDate()).padStart(2,'0');
-            var exitStr = exit.date.getFullYear()+'-'+String(exit.date.getMonth()+1).padStart(2,'0')+'-'+String(exit.date.getDate()).padStart(2,'0');
-            // Find NAV indices
-            var entryIdx = NAV_SIGNAL.dates.indexOf(entryStr);
-            var exitIdx = NAV_SIGNAL.dates.indexOf(exitStr);
-            if (entryIdx >= 0 && exitIdx > entryIdx) {
-              var entryNav = NAV_SIGNAL.navMatrix[entryIdx]?.A65 || NAV_SIGNAL.navMatrix[entryIdx]?.Base_Plan;
-              var exitNav = NAV_SIGNAL.navMatrix[exitIdx]?.A65 || NAV_SIGNAL.navMatrix[exitIdx]?.Base_Plan;
-              var ret = (entryNav && exitNav && entryNav > 0) ? (exitNav / entryNav - 1) : 0;
-              var holdDays = Math.round((exit.date - entry.date) / 86400000);
-              txLearnData.push({
-                date: entryStr,
-                entryDate: entryStr,
-                exitDate: exitStr,
-                fund: entry.plan || '',
-                return: ret,
-                holdDays: holdDays,
-                exitType: ''
-              });
-            }
-          }
-          if (txLearnData.length === 0) txLearnData = null;
-        }
-      }
-      try {
-        const learnResults = runOnlineLearning(NAV_SIGNAL.navMatrix, NAV_SIGNAL.dates, txLearnData);
-        console.log('V28 Online Learning complete:', learnResults);
-      } catch(learnErr) { console.warn('V28 Online Learning error:', learnErr); }
-    }
     const elapsed=((performance.now()-t0)/1000).toFixed(1);
     el('last-update-hdr').textContent='อัพเดต '+new Date().toLocaleTimeString('th-TH');
     const cs=el('cache-status');
@@ -3629,13 +3329,6 @@ async function handleFiles(e){
     if(txFile){TX_PORT=parseTx(await txFile.text());}
     el('run-btn').disabled=false;el('date-nav').style.display='flex';
     if(NAV_PORT.length>0){renderPortAll();if(el('tab-nav').classList.contains('active'))renderNavTab();}else showPortErr('ไม่พบข้อมูล NAV');
-    // V28: Run Online Learning after CSV load
-    if (NAV_SIGNAL && NAV_SIGNAL.navMatrix && NAV_SIGNAL.dates) {
-      try {
-        const learnResults = runOnlineLearning(NAV_SIGNAL.navMatrix, NAV_SIGNAL.dates, null);
-        console.log('V28 Online Learning (CSV) complete:', learnResults);
-      } catch(learnErr) { console.warn('V28 Online Learning error:', learnErr); }
-    }
   }catch(err){showPortErr(err.message);}
   finally{setLoadLoading(false);e.target.value='';}
 }
@@ -3947,6 +3640,11 @@ async function runSignal(){
     // history: T-2 already applied above (cut data to viewDate - T_DELAY)
     // live: data from user's sheet is already T-2 lagged (user updates from GPF announcement)
     const signalDelay = 0;
+    // V29: Fetch FRED data and compute hierarchical regime signal
+    const fredData = await fetchAllFred().catch(e => { console.warn('FRED fetch failed:', e.message); return null; });
+    FRED_DATA = fredData;
+    const v29Signals = computeSignalV29(navMatrix, dates, plans, signalDelay, fredData);
+    // Also run V26 for backward compat metrics (scores, velocity, etc.)
     const sigResult = computeSignalV26(navMatrix,dates,plans,signalDelay);
     const{scores, momReturns, signalDate, latestNavDate, velocity, acceleration, regime, allocVel, allocAccel, ALLOCATIONS: ALLOC_MAP,
           velFast, velSlow, regimeStrength, regimeRet, topOffensive, topModerate, topDefensive, menuRanked,
@@ -4383,7 +4081,7 @@ async function runSignal(){
       if (sb) {
         const simRefDate2 = new Date(histDateVal); simRefDate2.setHours(0,0,0,0);
         const cdBd = bdays(simEntryDate, simRefDate2);
-        const cdActive = cdBd < MIN_HOLD_DAYS;
+        const cdActive = cdBd < 30;  // V29: fixed 30d min-hold
         sb.style.display = 'block';
         sb.innerHTML = '<b>🔬 Simulation</b> — ถ้าถือ <b>' + simAllocName + '</b> ตั้งแต่ ' + simEntryStr + ' ถึง ' + histDateVal
           + (histPosEntry ? ' · เงินเข้า ฿' + histPosEntry.toLocaleString('th-TH',{maximumFractionDigits:0}) : '')
@@ -4401,35 +4099,10 @@ async function runSignal(){
     const posCurVal = histPosCurrent !== null ? histPosCurrent : (el('current-port-value') ? parseFloat(el('current-port-value').value) : null);
     const posPeakVal = histPosPeak !== null ? histPosPeak : (el('position-peak-value') ? parseFloat(el('position-peak-value').value) : null);
 
-    // V27: Strategy D Veto — crash protection override (before decision engine)
-    const vetoResult = strategyDVeto(navMatrix, dates, navMatrix.length - 1);
-    let vetoDecision = null;
-    if (vetoResult.veto) {
-      // Classify current allocation
-      const EQUITY_SET_V = new Set(['F', 'TH', 'G', 'PR']);
-      let eqPctV = 0;
-      Object.entries(currentAlloc).forEach(([f, w]) => { if (EQUITY_SET_V.has(f)) eqPctV += w; });
-      const curClassV = eqPctV >= 0.50 ? 'OFFENSIVE' : eqPctV < 0.20 ? 'DEFENSIVE' : 'MODERATE';
-      if (curClassV === 'OFFENSIVE' || curClassV === 'MODERATE') {
-        const defTarget = (topDefensive && topDefensive.length > 0) ? topDefensive[0] : null;
-        vetoDecision = {
-          action: 'VETO_CRASH_EXIT', level: 'CRITICAL',
-          reason: vetoResult.reason,
-          targetMenu: defTarget ? defTarget.name : 'B_100',
-          targetAlloc: defTarget ? defTarget.weights : {B: 1.0},
-          regime, regimeBadge: regime === 'BULL' ? '\ud83d\udfe2 BULL' : regime === 'BEAR' ? '\ud83d\udd34 BEAR' : regime === 'SIDEWAYS' ? '\ud83d\udfe1 SIDEWAYS' : '\u26aa UNKNOWN',
-          regimeStrength, quotaLeft: QUOTA_PER_YR - quotaUsed, quotaUsed,
-          quotaUrgency: (QUOTA_PER_YR - quotaUsed) <= 2 ? 'CRITICAL' : (QUOTA_PER_YR - quotaUsed) <= 4 ? 'LOW' : 'NORMAL',
-          vetoData: vetoResult.volData,
-          topMenus: [], allocRanking: [],
-          posRet: histNavReturn, velocity, acceleration, allocVel, allocAccel,
-          curType: curClassV, mdpRegime: 'BEAR',
-        };
-      }
-    }
-
-    // Decision
-    const decision = vetoDecision || makeDecisionV22({
+    // V29: Decision via hierarchical regime engine
+    const v29Decision = makeDecisionV29(v29Signals, currentMenu || 'Base_Plan', quotaUsed, QUOTA_PER_YR);
+    // Also run V22 decision for backward-compat display fields
+    const v22Decision = makeDecisionV22({
       scores, velocity, acceleration, regime, allocVel, allocAccel, ALLOCATIONS: ALLOC_MAP,
       currentMenu, currentAlloc, quotaUsed, lastSwitchStr,
       referenceDate: (isHistory||isSim) ? histDateVal : null,
@@ -4439,15 +4112,16 @@ async function runSignal(){
       positionPeakValue: posPeakVal,
       positionNavReturn: histNavReturn,
       positionNavPeakReturn: histNavPeakReturn,
-      // V26 new fields
       velFast, velSlow, regimeStrength, regimeRet, topOffensive, topModerate, topDefensive,
       menuRanked, classifyAlloc: sigClassify, passV22BFilter: sigFilter, getAdaptiveTrailPct: sigTrail,
       allocVelFast, allocVelSlow, allocVol,
     });
-
-    // V27: Attach veto data to decision for rendering
-    if (vetoResult) decision.vetoData = vetoResult.volData;
-    decision.vetoActive = vetoResult.veto;
+    // V29 decision overrides V22 when available
+    const decision = v29Decision ? Object.assign({}, v22Decision, v29Decision, {
+      v22Action: v22Decision.action, v22Reason: v22Decision.reason,
+      v29Regime: v29Decision.regime, fredData,
+    }) : v22Decision;
+    decision.vetoActive = false; // V29: no veto, replaced by regime
 
     // Render
     renderResults({decision, scores, momReturns, signalDate, latestNavDate, dataRows: navMatrix.length, plans, isHistory: isHistory||isSim, isSim, histDateVal,
@@ -4545,19 +4219,10 @@ function renderResults(data){
   // V21: Position status card
   renderPositionCard(decision, posEntryVal, posCurVal, posPeakVal, navDD);
 
-  // V21: Acceleration table
-  renderAccelTable(decision, allocVel, allocAccel);
-
-  // V27: MDP Quota Planner card
-  renderMdpCard(decision);
-
-  // V27: Veto badge
-  renderVetoBadge(decision);
-
-  // Legacy fund scores
-
-  // Menu ranking
-  renderMenuRanking(decision.topMenus||[]);
+  // V29: FRED Dashboard + Regime Flow + Score Card
+  renderFredDashboard(decision);
+  renderRegimeFlow(decision);
+  renderV29ScoreCard(decision);
 
   // Auto-update peak tracking
   autoUpdatePeak();
@@ -4568,26 +4233,20 @@ function renderResults(data){
   },100);
 }
 
-// V21: Regime bar
+// V29: Regime bar — แสดง hierarchical regime จาก FRED
 function renderRegimeBar(d){
   const bar=el('regime-bar');
   if(!bar) return;
   bar.style.display='flex';
   const badge=el('regime-badge');
   const meta=el('regime-meta');
-  const r = d.regime || 'UNKNOWN';
-  const rb = d.regimeBadge || '⚪ UNKNOWN';
-  badge.textContent = rb;
-  badge.className = 'regime-badge ' + r.toLowerCase();
-  // Meta info
-  const parts=[];
-  if(d.regimeStrength !== undefined && d.regimeStrength !== null) parts.push('Strength: '+(d.regimeStrength>=0?'+':'')+d.regimeStrength.toFixed(2));
-  if(d.quotaUsed != null) parts.push('Quota: '+(d.quotaUsed)+'/12');
-  if(d.allocRanking && d.allocRanking.length>0){
-    const top=d.allocRanking[0];
-    parts.push('Top: '+top.name+' ('+(top.accel*10000).toFixed(1)+'bp)');
-  }
-  meta.textContent = parts.join('  ·  ');
+  // ใช้ V29 regime (RISK_OFF/MILD_OFF/NEUTRAL/MILD_ON/RISK_ON)
+  const v29r = d.v29Regime || d.regime || 'UNKNOWN';
+  const regimeIcons = {RISK_OFF:'🔴',MILD_OFF:'🟡',NEUTRAL:'⚪',MILD_ON:'🟢',RISK_ON:'🟢'};
+  const regimeClasses = {RISK_OFF:'bear',MILD_OFF:'sideways',NEUTRAL:'unknown',MILD_ON:'bull',RISK_ON:'bull'};
+  badge.textContent = (regimeIcons[v29r]||'⚪') + ' ' + v29r;
+  badge.className = 'regime-badge ' + (regimeClasses[v29r]||'unknown');
+  meta.textContent = '';
 }
 
 function renderDecision(d){
@@ -4601,9 +4260,7 @@ function renderDecision(d){
   meta+='Quota: '+(d.quotaUsed??'—')+'/12';
   if(d.quotaUrgency==='CRITICAL') meta+=' (CRITICAL)';
   else if(d.quotaUrgency==='LOW') meta+=' (LOW)';
-  if(d.bdSince!==undefined && d.bdSince<999) meta+='  ·  Hold: '+d.bdSince+'d';
-  if(d.adaptiveTrailPct) meta+='  ·  Trail: '+(d.adaptiveTrailPct*100).toFixed(1)+'%';
-  if(d.monthSwitchCount!==undefined) meta+='  ·  Mo: '+d.monthSwitchCount+'/'+MONTHLY_CAP;
+  // V29: ลบ Hold/Trail/Mo — ไม่มี trailing stop แล้ว
   el('banner-meta').textContent=meta;
 
   const row=el('target-row');row.innerHTML='';
@@ -4672,25 +4329,7 @@ function renderPositionCard(d, entryOverride, curOverride, peakOverride, navDDOv
     html += '</div>';
   }
 
-  // DD from peak (trailing stop)
-  if(ddPct !== null){
-    const ddCls = ddPct <= -TRAIL_MIN*100 ? 'red' : ddPct <= -1.5 ? 'amber' : 'green';
-    html += '<div class="pos-stat">';
-    html += '<div class="pos-stat-label">DD from Peak</div>';
-    html += '<div class="pos-stat-val" style="color:var(--'+ddCls+')">'+ddPct.toFixed(2)+'%</div>';
-    html += '</div>';
-  }
-
-  // Sensor badge
-  html += '<div style="margin-left:auto">';
-  if(sensorOn){
-    html += '<div class="pos-sensor on">👁 SENSOR ON</div>';
-    html += '<div style="font-size:9px;color:var(--t3);margin-top:3px;text-align:center">\u0e01\u0e33\u0e44\u0e23\u22655% \u2192 \u0e14\u0e39 accel</div>';
-  } else {
-    html += '<div class="pos-sensor off">\u2014 SENSOR OFF</div>';
-    html += '<div style="font-size:9px;color:var(--t3);margin-top:3px;text-align:center">\u0e01\u0e33\u0e44\u0e23<5% \u2192 \u0e1b\u0e25\u0e48\u0e2d\u0e22\u0e27\u0e34\u0e48\u0e07</div>';
-  }
-  html += '</div>';
+  // V29: ไม่มี trailing stop / sensor — regime เป็นตัวตัดสินใจ
 
   card.innerHTML = html;
 }
@@ -4761,53 +4400,6 @@ function renderAccelTable(d, allocVel, allocAccel){
   // Show menu count
   const statMenus = el('stat-menus');
   if(statMenus) statMenus.textContent = ranked.length + ' scored';
-}
-
-// V27: Render MDP Quota Planner card
-function renderMdpCard(d) {
-  const card = el('mdp-card');
-  const status = el('mdp-status');
-  if (!card || !status) return;
-
-  // Only show if we have MDP data
-  if (d.mdpRegime === undefined) { card.style.display = 'none'; return; }
-  card.style.display = 'block';
-
-  const mdpR = d.mdpRegime || 'SIDEWAYS';
-  const quotaLeft = d.quotaLeft || (QUOTA_PER_YR - (d.quotaUsed || 0));
-  const month = d.currentMonth || (new Date().getMonth() + 1);
-
-  const regimeCls = mdpR === 'BULL' ? 'bull' : mdpR === 'BEAR' ? 'bear' : 'sideways';
-  const quotaClr = quotaLeft <= 1 ? 'var(--red)' : quotaLeft <= 3 ? 'var(--amber)' : 'var(--green)';
-  const isMdpBlock = d.action === 'HOLD_MDP_BLOCK' || d.action === 'HOLD_MDP_LOW_CONVICTION';
-
-  let html = '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center">';
-  html += '<span class="regime-badge ' + regimeCls + '" style="font-size:11px;padding:3px 10px">MDP: ' + mdpR + '</span>';
-  html += '<span style="font-family:var(--mono);font-size:12px;color:' + quotaClr + '">Quota: ' + quotaLeft + '/' + QUOTA_PER_YR + '</span>';
-  html += '<span style="font-family:var(--mono);font-size:11px;color:var(--t2)">Month: ' + month + '/12</span>';
-  if (isMdpBlock) {
-    html += '<span style="font-family:var(--mono);font-size:10px;padding:2px 8px;border-radius:4px;background:rgba(255,170,0,.12);border:1px solid rgba(255,170,0,.3);color:var(--amber)">\u26a0 MDP BLOCKING</span>';
-  }
-  html += '</div>';
-  if (isMdpBlock) {
-    html += '<div style="font-size:11px;color:var(--amber);margin-top:6px;font-family:var(--mono)">' + (d.reason || '') + '</div>';
-  }
-
-  status.innerHTML = html;
-}
-
-// V27: Render Veto badge
-function renderVetoBadge(d) {
-  const badge = el('veto-badge');
-  if (!badge) return;
-
-  if (d.vetoActive) {
-    badge.style.cssText = 'margin-left:auto;font-size:9px;padding:2px 8px;border-radius:4px;background:rgba(255,61,90,.15);border:1px solid rgba(255,61,90,.3);color:var(--red);animation:pulse 1.5s ease-in-out infinite';
-    badge.textContent = '\ud83d\udea8 Crash Shield: ACTIVE';
-  } else {
-    badge.style.cssText = 'margin-left:auto;font-size:9px;padding:2px 8px;border-radius:4px;background:rgba(0,230,118,.08);border:1px solid rgba(0,230,118,.2);color:var(--green)';
-    badge.textContent = '\ud83d\udee1 Crash Shield: STANDBY';
-  }
 }
 
 // Auto-update peak tracking
@@ -4980,7 +4572,7 @@ function renderPortAll(){
   renderDaily(NAV_PORT,TX_PORT);renderTxTbl(TX_PORT);renderMon(TX_PORT);
   showPortDash();
   requestAnimationFrame(()=>{requestAnimationFrame(()=>{
-    renderPortChart(curPeriod);renderAlloc(hold,NAV_PORT);renderFund(NAV_PORT);renderNavCh(NAV_PORT,hold);
+    renderPortChart(curPeriod);renderAlloc(hold,NAV_PORT);
     renderYearlySummary(NAV_PORT,TX_PORT);
   });});
   el('port-last-update').textContent='อัพเดต: '+new Date().toLocaleTimeString('th-TH');
@@ -5433,6 +5025,7 @@ function renderAlloc(hold,nav){
   const ctx=el('alloc-chart').getContext('2d');destroyChart('alloc');
   portCharts.alloc=new Chart(ctx,{type:'doughnut',data:{labels:ls,datasets:[{data,backgroundColor:cs,borderColor:'#0d1526',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#7888a8',font:{family:'Sarabun',size:11},padding:8}},tooltip:{callbacks:{label:c=>{const total=data.reduce((a,b)=>a+b,0);return' '+c.label+': ฿'+c.parsed.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+((c.parsed/total)*100).toFixed(1)+'%)';}}}}}}); }
 function renderFund(nav, days){
+  if(!el('fund-chart'))return;
   if(days===undefined)days=fundPeriod;
   const fs=ALL_PLANS.filter(f=>FM[f]);
   const av=fs.filter(f=>nav.some(n=>n.funds[f]!=null));
@@ -5446,6 +5039,7 @@ function renderFund(nav, days){
   portCharts.fund=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{title:items=>{const i=items[0]?.dataIndex;return i!=null&&rc[i]?fmtDateTooltip(rc[i].date):items[0]?.label||'';},label:c=>{if(c.parsed.y==null)return null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%';}},filter:c=>c.parsed.y!=null}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
 }
 function renderNavCh(nav,hold){
+  if(!el('nav-chart'))return;
   const active=Object.keys(hold).filter(f=>FM[f]&&nav.some(n=>n.funds[f]));
   const rc=nav.slice(-90);const fn={};
   for(const f of active){const v=rc.find(n=>n.funds[f]!=null)?.funds[f];if(v)fn[f]=v;}
@@ -5505,7 +5099,7 @@ function navMaxDD(nav,fund){
 function navSharpe(rets,rf){const ar=navAnnReturn(rets);const av=navAnnVol(rets);if(ar==null||av==null||av===0)return null;return(ar-(rf||1.5))/av;}
 
 // --- S1: NAV Performance (toggle funds, normalized %) + Drawdown ---
-function navPerfRefresh(){destroyChart('navperf');renderNavPerf(NAV_PORT,navPerfPeriod);destroyChart('navdd');renderNavDrawdown(NAV_PORT,navPerfPeriod);if(fsCurrentKey==='navperf'&&el('fs-overlay').classList.contains('show'))renderFsChart('navperf');}
+function navPerfRefresh(){destroyChart('navperf');renderNavPerf(NAV_PORT,navPerfPeriod);destroyChart('navdd');renderNavDrawdown(NAV_PORT,navPerfPeriod);renderScatToggles('nav-scat-toggles');scatRefresh();if(fsCurrentKey==='navperf'&&el('fs-overlay').classList.contains('show'))renderFsChart('navperf');}
 function renderNavPerfToggles(allF){
   const box=el('nav-perf-toggles');if(!box)return;
   box.innerHTML='';
@@ -5807,8 +5401,8 @@ function switchTab(id, btn) {
   if(id==='portfolio'&&NAV_PORT.length>0){
     requestAnimationFrame(()=>{
       const hold=calcHold(TX_PORT);
-      destroyChart('port');destroyChart('alloc');destroyChart('fund');destroyChart('navchart');
-      renderPortChart(curPeriod);renderAlloc(hold,NAV_PORT);renderFund(NAV_PORT);renderNavCh(NAV_PORT,hold);
+      destroyChart('port');destroyChart('alloc');
+      renderPortChart(curPeriod);renderAlloc(hold,NAV_PORT);
       const analytics=calcAnalytics(hold,NAV_PORT,TX_PORT);
       renderYearlySummary(NAV_PORT,TX_PORT);
     });
@@ -6133,10 +5727,187 @@ function closeFullscreen(){
 document.addEventListener('keydown', e => { if(e.key === 'Escape') closeFullscreen(); });
 
 // ================================================================
+//  V29: RENDER — FRED Dashboard + Regime Flow
+// ================================================================
+function renderFredDashboard(decision) {
+  const card = el('fred-card');
+  if (!card) return;
+  const fredData = decision.fredData || FRED_DATA;
+  if (!fredData || Object.keys(fredData).length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  function latestVal(series) {
+    const pts = fredData[series];
+    if (!pts || pts.length === 0) return null;
+    return pts[pts.length - 1].value;
+  }
+  function prevVal(series, n) {
+    const pts = fredData[series];
+    if (!pts || pts.length < n + 1) return null;
+    return pts[pts.length - 1 - n].value;
+  }
+  function fmtVal(v, unit) {
+    if (v === null || v === undefined) return '<span style="color:var(--t3)">N/A</span>';
+    if (unit === '%')   return v.toFixed(2) + '%';
+    if (unit === 'bp')  return v.toFixed(0) + 'bp';
+    if (unit === '$B')  return (v/1000).toFixed(1) + 'T';
+    if (unit === 'idx') return v.toFixed(2);
+    if (unit === '$/b') return '$' + v.toFixed(1);
+    return v.toFixed(2);
+  }
+
+  const rr = decision.regimeResult || {};
+  const regime = (rr.regime || decision.v29Regime || 'NEUTRAL');
+  const regimeColors = {
+    RISK_OFF:'var(--red)', MILD_OFF:'var(--amber)', NEUTRAL:'var(--t2)', MILD_ON:'var(--acc)', RISK_ON:'var(--green)'
+  };
+  const regColor = regimeColors[regime] || 'var(--t2)';
+
+  let html = '<div style="font-size:11px;font-family:var(--mono);color:var(--t2);margin-bottom:8px">'
+    + '🌎 Regime: <b style="color:' + regColor + '">' + regime + '</b> · FRED 12 Factors</div>'
+    + '<div class="fred-grid">';
+
+  for (const sid of FRED_SERIES) {
+    const meta = FRED_META[sid] || {label: sid, role: 'risk', unit: 'idx'};
+    const v = latestVal(sid);
+    const v20 = prevVal(sid, 20);
+    const v60 = prevVal(sid, 60);
+    const chg = (v !== null && v20 !== null) ? v - v20 : null;
+    const chgStr = chg !== null ? (chg >= 0 ? '+' : '') + chg.toFixed(2) : '';
+    const chgCls = chg === null ? 'neu' : chg > 0.001 ? 'pos' : chg < -0.001 ? 'neg' : 'neu';
+    const arrow = chg === null ? '' : chg > 0.001 ? ' ↑' : chg < -0.001 ? ' ↓' : ' →';
+    const roleStr = meta.role || 'risk';
+    html += '<div class="fred-card" onclick="this.classList.toggle(\'expanded\')">'
+      + '<div class="fred-card-name">' + esc(sid) + '</div>'
+      + '<div class="fred-card-val">' + fmtVal(v, meta.unit) + '</div>'
+      + (chgStr ? '<div class="fred-card-chg ' + chgCls + '">' + esc(chgStr) + arrow + '</div>' : '')
+      + '<span class="role-badge ' + esc(roleStr.toUpperCase()) + '">' + esc(roleStr) + '</span>'
+      + '<div class="fred-detail">'
+      + '<div class="fd-row"><b>' + esc(meta.label || sid) + '</b></div>'
+      + (meta.desc ? '<div class="fd-row">' + esc(meta.desc) + '</div>' : '')
+      + '<div class="fd-row"><span class="fd-label">20d ago:</span> ' + fmtVal(v20, meta.unit) + '</div>'
+      + '<div class="fd-row"><span class="fd-label">60d ago:</span> ' + fmtVal(v60, meta.unit) + '</div>'
+      + (meta.impact ? '<div class="fd-row fd-impact">' + esc(meta.impact) + '</div>' : '')
+      + '</div>'
+      + '</div>';
+  }
+  html += '</div>';
+  card.innerHTML = html;
+}
+
+function renderRegimeFlow(decision) {
+  const rr = decision.regimeResult || {};
+  const steps = rr.steps || {};
+  const raw = rr.rawFactors || {};
+  const regime = decision.v29Regime || rr.regime || decision.regime || 'NEUTRAL';
+  const metaEl = el('regime-meta');
+  if (!metaEl) return;
+
+  const regimeColors = {
+    RISK_OFF:'var(--red)', MILD_OFF:'var(--amber)', NEUTRAL:'var(--t2)', MILD_ON:'var(--acc)', RISK_ON:'var(--green)'
+  };
+  const rc = regimeColors[regime] || 'var(--t2)';
+
+  // Build detail string for regime-meta bar
+  const parts = [];
+
+  // Step 1: Bond
+  const bondChg = steps.bondChg;
+  if (bondChg != null) {
+    const bondStr = (bondChg >= 0 ? '+' : '') + bondChg.toFixed(2);
+    const baseR = steps.baseRegime || '?';
+    parts.push('Bond: ' + bondStr + ' → ' + baseR);
+  }
+
+  // Step 2: Credit
+  const hyLvl = steps.hyLevel;
+  if (hyLvl != null) {
+    const creditStr = steps.credit ? '⚠ ' + steps.credit + ' (' + hyLvl.toFixed(1) + ')' : '✓ OK (' + hyLvl.toFixed(1) + ')';
+    parts.push('HY: ' + creditStr);
+  }
+
+  // Step 3: Confirmation
+  const cOn = steps.confirmsOn || 0;
+  const cOff = steps.confirmsOff || 0;
+  const adj = steps.confirmAdj || 'aligned';
+  parts.push('Confirm: on=' + cOn + ' off=' + cOff + (adj !== 'aligned' ? ' (' + adj + ')' : ''));
+
+  // Final
+  parts.push('<b style="color:' + rc + '">' + regime + '</b>');
+
+  metaEl.innerHTML = parts.join('  ·  ');
+}
+
+// ================================================================
+//  V29 SCORE CARD — replaces V28 Optimizer + Menu Ranking
+// ================================================================
+function renderV29ScoreCard(decision) {
+  const card = el('v29-score-card');
+  const body = el('v29-score-body');
+  if (!card || !body) return;
+
+  const alloc = decision.targetAlloc || decision.allocation || {};
+  const mom12 = decision.scores || {};  // 12-month momentum
+  const regime = decision.v29Regime || decision.regime || 'NEUTRAL';
+  const equityWt = decision.equityWt;
+  const fundVol = decision.fundVol;
+  const level = decision.level || {};
+
+  if (Object.keys(alloc).length === 0) { card.style.display = 'none'; return; }
+  card.style.display = 'block';
+
+  const regimeColors = {
+    RISK_OFF:'var(--red)', MILD_OFF:'var(--amber)', NEUTRAL:'var(--t2)', MILD_ON:'var(--acc)', RISK_ON:'var(--green)'
+  };
+  const rc = regimeColors[regime] || 'var(--t2)';
+
+  let html = '';
+
+  // Regime → Vol Target summary
+  html += '<div style="margin-bottom:12px;padding:8px 12px;background:var(--bg-2);border-radius:8px;border:1px solid var(--b1)">';
+  html += '<span style="color:var(--t2)">Regime</span> <b style="color:'+rc+'">'+regime+'</b>';
+  if (level.targetVol) html += ' &middot; <span style="color:var(--t2)">Vol Target</span> '+(level.targetVol*100).toFixed(0)+'%';
+  if (equityWt != null) html += ' &middot; <span style="color:var(--t2)">Equity%</span> <b>'+(equityWt*100).toFixed(0)+'%</b>';
+  if (fundVol) html += ' &middot; <span style="color:var(--t2)">Fund Vol</span> '+(fundVol*100).toFixed(1)+'%';
+  html += '</div>';
+
+  // Fund 12M momentum table
+  html += '<div style="font-size:10px;color:var(--t3);margin-bottom:6px">Fund Selection: 12-Month Momentum (Jegadeesh & Titman 1993)</div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">';
+  html += '<tr style="border-bottom:1px solid var(--b2);color:var(--t2);font-size:10px">';
+  html += '<th style="text-align:left;padding:4px 8px">Fund</th>';
+  html += '<th style="text-align:right;padding:4px 8px">Mom 12M</th>';
+  html += '<th style="text-align:right;padding:4px 8px">Alloc</th>';
+  html += '</tr>';
+
+  const fundSet = new Set([...Object.keys(mom12), ...Object.keys(alloc)]);
+  const funds = ['F','G','TH','PR','B','Global_Bond','Money_Market'].filter(f => fundSet.has(f));
+  for (const f of funds) {
+    const m = mom12[f];
+    const al = alloc[f];
+    if (m == null && al == null) continue;
+    const mStr = m != null ? (m >= 0 ? '+' : '') + (m*100).toFixed(2) + '%' : '—';
+    const alStr = al != null ? (al*100).toFixed(0) + '%' : '—';
+    const mColor = m != null ? (m > 0 ? 'var(--green)' : 'var(--red)') : 'var(--t3)';
+    const isBest = decision.bestFund === f;
+    const isBestBond = decision.bestBond === f;
+    const rowBg = isBest ? 'rgba(0,230,118,.06)' : isBestBond ? 'rgba(56,189,248,.06)' : 'transparent';
+    const tag = isBest ? ' ★ eq' : isBestBond ? ' ★ bond' : '';
+    html += '<tr style="border-bottom:1px solid rgba(26,32,48,.5);background:'+rowBg+'">';
+    html += '<td style="padding:6px 8px;font-weight:600">' + f + tag + '</td>';
+    html += '<td style="padding:6px 8px;text-align:right;color:'+mColor+'">' + mStr + '</td>';
+    html += '<td style="padding:6px 8px;text-align:right;font-weight:600">' + alStr + '</td>';
+    html += '</tr>';
+  }
+  html += '</table>';
+
+  body.innerHTML = html;
+}
+
+// ================================================================
 //  BOOTSTRAP
 // ================================================================
 window.addEventListener('DOMContentLoaded',function(){
-  loadLearned(); // V28: Load previous learning state
   buildGrid('grid-diy',DIY);
   buildGrid('grid-mix',MIX_BUTTONS);
   loadCfg();load();bindSave();onAllocChange();updateQuotaBar();
@@ -6151,7 +5922,7 @@ window.addEventListener('DOMContentLoaded',function(){
     const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
     setPortMode(s['port-mode']||'auto');
   }catch(e){setPortMode('auto');}
-  console.log('GPF LiveTrade '+ALGO_VERSION+' loaded | Menu options: '+Object.keys(getMenuCached()).length+' | Online Learning + MDP+Veto enabled');
+  console.log('GPF LiveTrade '+ALGO_VERSION+' loaded | Menu options: '+Object.keys(getMenuCached()).length+' | Hierarchical Regime + FRED 12 Factors');
 });
 </script>
 </body>
