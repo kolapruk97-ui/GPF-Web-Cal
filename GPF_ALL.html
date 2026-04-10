@@ -4605,7 +4605,7 @@ function calcPort(nav,tx,days){
   const l=[],v=[],iv=[];
   for(const n of nf){
     const u={};let inv=0;
-    for(const t of ts){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts)){u[f]=(u[f]||0)+a.u;if(a.u>0)inv+=_txCostOf(a);}}
+    for(const t of ts){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts)){u[f]=(u[f]||0)+a.u;if(a.u>0)inv+=_txCostOf(a);else if(a.u<0)inv-=_txCostOf(a);}}
     let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
     if(val>0||v.length>0){l.push(n.date);v.push(val);iv.push(inv);}
   }
@@ -4635,11 +4635,14 @@ function calcAnalytics(hold,nav,tx){
   for(const p of portSeries){
     prevRunCost=runCost;
     while(txIdx2<txSorted.length&&txSorted[txIdx2].date<=p.date){
-      // Accumulate effective cost from ALL tx types (not just เงินนำส่ง)
-      for(const[f,a]of Object.entries(txSorted[txIdx2].amounts)){if(a.u>0)runCost+=_txCostOf(a);}
+      // NET cost: buys add, sells subtract → switches cancel out, only net new money accumulates
+      for(const[f,a]of Object.entries(txSorted[txIdx2].amounts)){
+        if(a.u>0)runCost+=_txCostOf(a);
+        else if(a.u<0)runCost-=_txCostOf(a);
+      }
       txIdx2++;
     }
-    const deposit=runCost-prevRunCost;
+    const deposit=Math.max(0,runCost-prevRunCost);
     if(deposit>0)peak+=deposit;
     if(p.val>peak){peak=p.val;peakValue=p.val;peakDate=p.date;}
     const profit=p.val-runCost;
@@ -4959,7 +4962,7 @@ function renderDaily(nav,tx){
   const txSorted=[...tx].sort((a,b)=>a.date-b.date);const txDateSet=new Set(tx.map(t=>t.date.toDateString()));const portFull=[];
   for(const n of nav){
     const u={};let inv=0;
-    for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts)){u[f]=(u[f]||0)+a.u;if(a.u>0)inv+=_txCostOf(a);}}
+    for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts)){u[f]=(u[f]||0)+a.u;if(a.u>0)inv+=_txCostOf(a);else if(a.u<0)inv-=_txCostOf(a);}}
     let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
     portFull.push({date:n.date,val,inv,hasTx:txDateSet.has(n.date.toDateString())});
   }
