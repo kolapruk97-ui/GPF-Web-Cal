@@ -1297,17 +1297,17 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   <!-- App กบข. instruction box -->
   <div id="app-instr-box" class="app-instr" style="display:none"></div>
 
-  <!-- V29: 12M Momentum Details -->
+  <!-- V29: 6M Preset Momentum Details -->
   <div id="v29-score-card" class="card" style="padding:12px 14px; display:none">
-    <div class="card-head" style="color:var(--acc)">📊 12-Month Momentum Fund Selection</div>
+    <div class="card-head" style="color:var(--acc)">📊 6-Month Preset Momentum Fund Selection</div>
     <div id="v29-score-body" style="font-family:var(--mono); font-size:12px"></div>
   </div>
 </div>
 
 <div id="run-time"></div>
 <div class="sig-footer">
-  v7.29 · FRED Hierarchical Regime + 12M Momentum (Jegadeesh 1993)<br>
-  DGS10(bond) → HY OAS(credit) → DXY+WALCL+DFII10(confirm) · Vol targeting · 1 best fund<br>
+  v7.29 · FRED Hierarchical Regime + 6M Preset Momentum (Jegadeesh 1993)<br>
+  DGS10(bond) → HY OAS(credit) → DXY+WALCL+DFII10(confirm) · Vol targeting (round 5%) · V28 presets<br>
   <span class="calib-badge">⚙ RISK_OFF=5% · MILD_OFF=8% · NEUTRAL=10% · MILD_ON=12% · RISK_ON=15% · G≤25%</span>
 </div>
 
@@ -1513,7 +1513,7 @@ const MDP_BEAR_TH = -0.05;
 const MDP_COMPOSITE_WEIGHTS = {Base_Plan: 0.4, A65: 0.3, equity: 0.3};
 // V29: FRED API
 const FRED_KEY = 'e418123de2e0f4185f555a6b379169eb';
-const FRED_SERIES = ['DGS10','DFII10','T10YIE','BAMLH0A0HYM2','BAMLC0A0CM','DTWEXBGS','DCOILWTICO','T10Y3M','WALCL','NFCI','DPSACBW027SBOG','OVXCLS'];
+const FRED_SERIES = ['DGS10','DFII10','T10YIE','BAMLH0A0HYM2','BAMLC0A0CM','DTWEXBGS','DCOILWTICO','DTB3','T10Y3M','WALCL','NFCI','DPSACBW027SBOG','OVXCLS'];
 const FRED_CACHE_KEY = 'gpf_fred_v29';
 const FRED_TTL = 3600000;
 const FRED_META = {
@@ -1538,6 +1538,9 @@ const FRED_META = {
   DCOILWTICO:  {role:'commod',   label:'WTI Crude Oil',     unit:'$/b',
     desc:'ราคาน้ำมันดิบ WTI — สะท้อนอุปสงค์โลก',
     impact:'ขึ้น = demand สูง/inflation risk, ลง = demand อ่อน/deflation'},
+  DTB3:        {role:'rate',     label:'3M Treasury Bill',  unit:'%',
+    desc:'อัตราผลตอบแทนพันธบัตร 3 เดือน — short-end yield',
+    impact:'สะท้อน Fed policy rate / คู่กับ 10Y เพื่อดู yield curve'},
   T10Y3M:      {role:'curve',    label:'Yield Curve 10Y-3M',unit:'%',
     desc:'ส่วนต่าง yield 10 ปี vs 3 เดือน — สัญญาณ recession',
     impact:'ติดลบ (inverted) = ตลาดคาด recession, บวก = เศรษฐกิจปกติ'},
@@ -2216,14 +2219,15 @@ function detectRegimeV29(fredData, signalDate) {
   // STEP 1: BOND DIRECTION (PRIMARY)
   // yield ขึ้น = เงินออกจาก Bond → equity = risk on
   // yield ลง = เงินเข้า Bond → safe haven = risk off
-  // Smoothed: avg last 10 vs avg 40-60 ago (ตรงกับ Python)
+  // Python: iloc[i-10:i+1] (11 items) vs iloc[i-60:i-40] (20 items)
+  // JS: avgSlice(-11, 0) vs avgSlice(-61, -41) (exact parity)
   // ============================================================
   let baseRegime = 'NEUTRAL';
   let bondChg = null;
   const dgs10 = getPts('DGS10');
-  if (dgs10 && dgs10.length >= 60) {
-    const recentAvg = avgSlice(dgs10, -10, 0); // last 10
-    const olderAvg  = avgSlice(dgs10, -60, -40); // 40-60 ago
+  if (dgs10 && dgs10.length >= 61) {
+    const recentAvg = avgSlice(dgs10, -11, 0);   // == Python iloc[i-10:i+1] (11 pts)
+    const olderAvg  = avgSlice(dgs10, -61, -41); // == Python iloc[i-60:i-40] (20 pts)
     if (recentAvg !== null && olderAvg !== null) {
       bondChg = recentAvg - olderAvg;
       result.rawFactors.DGS10_60d = bondChg;
@@ -2276,10 +2280,11 @@ function detectRegimeV29(fredData, signalDate) {
   let confirmsOn = 0, confirmsOff = 0, nConfirm = 0;
 
   // Dollar: แข็ง = off, อ่อน = on
+  // Python: iloc[i-5:i+1] (6 items) vs iloc[i-60:i-40] (20 items)
   const dxy = getPts('DTWEXBGS');
-  if (dxy && dxy.length >= 60) {
-    const dxyNow  = avgSlice(dxy, -5, 0);
-    const dxyPrev = avgSlice(dxy, -60, -40);
+  if (dxy && dxy.length >= 61) {
+    const dxyNow  = avgSlice(dxy, -6, 0);
+    const dxyPrev = avgSlice(dxy, -61, -41);
     if (dxyNow !== null && dxyPrev !== null) {
       const dxyChg = dxyNow - dxyPrev;
       result.rawFactors.DXY_chg = dxyChg;
@@ -2304,10 +2309,11 @@ function detectRegimeV29(fredData, signalDate) {
   }
 
   // Real yield: ลง = on
+  // Python: iloc[i-5:i+1] (6 items) vs iloc[i-60:i-40] (20 items)
   const ry = getPts('DFII10');
-  if (ry && ry.length >= 60) {
-    const ryNow  = avgSlice(ry, -5, 0);
-    const ryPrev = avgSlice(ry, -60, -40);
+  if (ry && ry.length >= 61) {
+    const ryNow  = avgSlice(ry, -6, 0);
+    const ryPrev = avgSlice(ry, -61, -41);
     if (ryNow !== null && ryPrev !== null) {
       const ryChg = ryNow - ryPrev;
       result.rawFactors.DFII10_chg = ryChg;
@@ -2341,81 +2347,119 @@ function detectRegimeV29(fredData, signalDate) {
 // ================================================================
 //  V29: NAV MOMENTUM + VOL TARGETING ALLOCATION
 // ================================================================
-function computeV29Allocation(navMatrix, idx, plans, regime) {
+// 6-Month Preset Momentum — V28-style templates (equity-only)
+// ไม่มี PR / ไม่มี bond ใน preset (bond = 1 - equity_pct)
+const EQUITY_PRESETS = {
+  F100:         { F: 1.0 },
+  TH100:        { TH: 1.0 },
+  F75_G25:      { F: 0.75, G: 0.25 },
+  TH75_G25:     { TH: 0.75, G: 0.25 },
+  F50_TH25_G25: { F: 0.50, TH: 0.25, G: 0.25 },
+};
+
+function computeV29Allocation(navMatrix, idx, plans, regime, curAlloc) {
   // ============================================================
-  // 12-Month Momentum Fund Selection (Jegadeesh & Titman 1993)
+  // 6-Month Preset Momentum + Vol target (round 5%)
+  // Decision 2026-04-09: Preset 6M beats 12M (Sharpe 1.698 vs 1.574)
   // DIY: F, G, TH, PR (equity) + B, Global_Bond, Money_Market (bond)
   // กฎ: G ≤ 25%, integer %, รวม 100%
   // ============================================================
   const level = REGIME_LEVELS[regime] || REGIME_LEVELS['NEUTRAL'];
-  const MOM_LB = 252; // 12 months — จาก academic literature
+  const MOM_LB = 126; // 6 months — Jegadeesh 1993 lower bound
   const EQUITY = ['F', 'TH', 'G', 'PR'];
   const BONDS  = ['B', 'Global_Bond', 'Money_Market'];
   const equityFunds = EQUITY.filter(f => plans.includes(f) && navMatrix[idx] && navMatrix[idx][f] != null);
   const bondFunds   = BONDS.filter(f => plans.includes(f) && navMatrix[idx] && navMatrix[idx][f] != null);
 
-  // --- 12-month momentum ---
-  const mom12 = {};
+  // --- 6-month momentum (only funds with valid 6M history) ---
+  // Match Python semantics: fund is ONLY in mom if it has valid NAV at both endpoints
+  const mom = {};
   const allFunds = [...equityFunds, ...bondFunds];
-  for (const fund of allFunds) {
-    if (idx < MOM_LB) { mom12[fund] = 0; continue; }
-    const vEnd = navMatrix[idx] && navMatrix[idx][fund];
-    const vPrev = navMatrix[idx - MOM_LB] && navMatrix[idx - MOM_LB][fund];
-    if (!vEnd || !vPrev || vPrev <= 0) { mom12[fund] = 0; continue; }
-    mom12[fund] = (vEnd - vPrev) / vPrev;
+  if (idx >= MOM_LB) {
+    for (const fund of allFunds) {
+      const vEnd = navMatrix[idx] && navMatrix[idx][fund];
+      const vPrev = navMatrix[idx - MOM_LB] && navMatrix[idx - MOM_LB][fund];
+      if (vEnd != null && vPrev != null && vPrev > 0) {
+        mom[fund] = (vEnd - vPrev) / vPrev;
+      }
+    }
   }
 
-  // Best equity fund (12M mom สูงสุด)
-  const bestFund = equityFunds.length > 0
-    ? equityFunds.reduce((a, b) => (mom12[a] || 0) >= (mom12[b] || 0) ? a : b)
-    : null;
-
-  // Best bond fund (12M mom สูงสุด)
-  const bestBond = bondFunds.length > 0
-    ? bondFunds.reduce((a, b) => (mom12[a] || 0) >= (mom12[b] || 0) ? a : b)
+  // Best bond fund (6M mom สูงสุด) — only among bonds with valid mom
+  const bondWithMom = bondFunds.filter(f => f in mom);
+  const bestBond = bondWithMom.length > 0
+    ? bondWithMom.reduce((a, b) => mom[a] >= mom[b] ? a : b)
     : 'B';
 
-  // --- Vol targeting on best fund ---
+  // --- Score each preset = weighted 6M mom ---
+  // Skip preset if ANY of its funds lacks valid 6M mom (== Python `all(f in mom for f in weights)`)
+  const presetScores = {};
+  for (const [name, weights] of Object.entries(EQUITY_PRESETS)) {
+    if (!Object.keys(weights).every(f => f in mom)) continue;
+    let score = 0;
+    for (const [f, w] of Object.entries(weights)) score += mom[f] * w;
+    presetScores[name] = score;
+  }
+
+  // --- Pick best preset ---
+  let bestPreset = null;
+  let bestScore = -Infinity;
+  for (const [name, s] of Object.entries(presetScores)) {
+    if (s > bestScore) { bestScore = s; bestPreset = name; }
+  }
+  if (bestPreset === null) bestScore = 0;
+
+  // --- Realized vol from CURRENT allocation's equity funds ---
   let fundVol = 0.12;
-  if (bestFund && idx >= 20) {
-    const rets = [];
-    for (let j = Math.max(1, idx - 20); j <= idx; j++) {
-      const p = navMatrix[j-1] && navMatrix[j-1][bestFund];
-      const c = navMatrix[j]   && navMatrix[j][bestFund];
-      if (p && p > 0 && c) rets.push((c - p) / p);
-    }
-    if (rets.length > 5) {
-      const mean = rets.reduce((a, b) => a + b, 0) / rets.length;
-      const v = rets.reduce((a, b) => a + (b - mean) ** 2, 0) / rets.length;
-      fundVol = Math.sqrt(v * 252);
+  if (curAlloc && idx >= 20) {
+    const curEqFunds = EQUITY.filter(f => (curAlloc[f] || 0) > 0);
+    if (curEqFunds.length > 0) {
+      const rets = [];
+      for (let j = Math.max(1, idx - 20); j <= idx; j++) {
+        let pr = 0;
+        for (const f of curEqFunds) {
+          const pv = navMatrix[j-1] && navMatrix[j-1][f];
+          const cv = navMatrix[j]   && navMatrix[j][f];
+          if (pv && pv > 0 && cv) pr += (curAlloc[f] || 0) * ((cv - pv) / pv);
+        }
+        rets.push(pr);
+      }
+      if (rets.length > 5) {
+        const mean = rets.reduce((a, b) => a + b, 0) / rets.length;
+        const v = rets.reduce((a, b) => a + (b - mean) ** 2, 0) / rets.length;
+        fundVol = Math.max(Math.sqrt(v * 252), 0.01);
+      }
     }
   }
 
-  // equity% = vol_target / realized_vol
-  const equityWt = fundVol > 0 ? Math.min(1.0, level.targetVol / fundVol) : 1.0;
+  // equity% = vol_target / realized_vol → round 5%
+  const rawEqWt = fundVol > 0 ? Math.min(1.0, level.targetVol / fundVol) : 1.0;
+  const equityWt = Math.round(rawEqWt * 20) / 20;
 
-  // --- Build allocation: 1 best equity + 1 best bond ---
+  // --- Build allocation ---
   let allocation = {};
-  if (!bestFund || (mom12[bestFund] || 0) <= 0) {
-    // ทุก equity 12M mom ลบ → 100% best bond
+  let bestFund = null; // top-weighted fund in preset (for UI star)
+
+  if (bestPreset === null || bestScore <= 0 || equityWt < 0.01) {
+    // preset score ลบ / no preset / zero equity → 100% best bond
     allocation[bestBond] = 1.0;
-  } else if (bestFund === 'G' && equityWt > G_CAP) {
-    // G ติด cap → G 25% + ตัวที่ 2
-    const remainingEq = equityWt - G_CAP;
-    const eq2 = equityFunds.filter(f => f !== 'G').sort((a, b) => (mom12[b] || 0) - (mom12[a] || 0));
-    allocation['G'] = G_CAP;
-    if (eq2.length > 0 && (mom12[eq2[0]] || 0) > 0) {
-      allocation[eq2[0]] = remainingEq;
-    } else {
-      allocation[bestBond] = (allocation[bestBond] || 0) + remainingEq;
+  } else {
+    const weights = EQUITY_PRESETS[bestPreset];
+    bestFund = Object.entries(weights).sort((a, b) => b[1] - a[1])[0][0];
+    for (const [f, w] of Object.entries(weights)) allocation[f] = w * equityWt;
+
+    // G cap safety
+    if ((allocation['G'] || 0) > G_CAP) {
+      const excess = allocation['G'] - G_CAP;
+      allocation['G'] = G_CAP;
+      const others = Object.keys(allocation).filter(f => f !== 'G');
+      const ot = others.reduce((s, f) => s + allocation[f], 0);
+      if (ot > 0) for (const f of others) allocation[f] += excess * (allocation[f] / ot);
     }
+
+    // Bond fill
     const bondFill = Math.max(0, 1.0 - Object.values(allocation).reduce((s, v) => s + v, 0));
     if (bondFill > 0.01) allocation[bestBond] = (allocation[bestBond] || 0) + bondFill;
-  } else {
-    // ปกติ: 1 equity + 1 bond
-    allocation[bestFund] = equityWt;
-    const bondFill = Math.max(0, 1.0 - equityWt);
-    if (bondFill > 0.01) allocation[bestBond] = bondFill;
   }
 
   // Round integer %
@@ -2427,18 +2471,23 @@ function computeV29Allocation(navMatrix, idx, plans, regime) {
   const total = Object.values(rounded).reduce((s, v) => s + v, 0);
   if (total > 0) for (const k of Object.keys(rounded)) rounded[k] /= total;
 
+  // Preset ranking for UI
+  const presetRanking = Object.entries(presetScores)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, s]) => ({ name, score: s }));
+
   return {
-    allocation: rounded, bestFund, equityWt, fundVol,
-    scores: mom12, level, momentum: mom12, accel: {},
-    bestBond,
-    presetRanking: [], diyScore: 0, bestPreset: null, recommend: 'MOM12',
+    allocation: rounded, bestFund, equityWt, fundVol, rawEqWt,
+    scores: mom, level, momentum: mom, accel: {},
+    bestBond, bestPreset, presetScores, presetRanking,
+    diyScore: bestScore, recommend: 'PRESET6M',
   };
 }
 
 // ================================================================
 //  V29: HIERARCHICAL REGIME SIGNAL ENGINE
 // ================================================================
-function computeSignalV29(navMatrix, dates, plans, delay, fredData) {
+function computeSignalV29(navMatrix, dates, plans, delay, fredData, curAlloc) {
   // Only compute the latest signal (last date - delay)
   const N = dates.length;
   const idx = N - 1 - (delay || 0);
@@ -2446,7 +2495,7 @@ function computeSignalV29(navMatrix, dates, plans, delay, fredData) {
   const signalDate = dates[idx];
   const regimeResult = detectRegimeV29(fredData, signalDate);
   const regime = regimeResult.regime;
-  const allocResult = computeV29Allocation(navMatrix, idx, plans, regime);
+  const allocResult = computeV29Allocation(navMatrix, idx, plans, regime, curAlloc);
   return [{
     date: signalDate,
     regime, regimeResult,
@@ -2454,12 +2503,15 @@ function computeSignalV29(navMatrix, dates, plans, delay, fredData) {
     bestFund: allocResult.bestFund,
     equityWt: allocResult.equityWt,
     fundVol: allocResult.fundVol,
+    rawEqWt: allocResult.rawEqWt,
     scores: allocResult.scores,
     level: allocResult.level,
     momentum: allocResult.momentum,
     accel: allocResult.accel,
     presetRanking: allocResult.presetRanking,
     bestPreset: allocResult.bestPreset,
+    bestBond: allocResult.bestBond,
+    presetScores: allocResult.presetScores,
     diyScore: allocResult.diyScore,
     recommend: allocResult.recommend,
   }];
@@ -2468,31 +2520,16 @@ function computeSignalV29(navMatrix, dates, plans, delay, fredData) {
 // ================================================================
 //  V29: DECISION ENGINE
 // ================================================================
-function makeDecisionV29(v29Signals, currentPlan, quotaUsed, quotaTotal) {
+// Switch threshold — match Python backtest (diff < 0.10 → HOLD)
+const V29_SWITCH_THRESHOLD = 0.10;
+
+function makeDecisionV29(v29Signals, currentPlan, quotaUsed, quotaTotal, currentAlloc) {
   if (!v29Signals || v29Signals.length === 0) return null;
   const latest = v29Signals[v29Signals.length-1];
   const { regime, allocation, bestFund, equityWt, fundVol, scores, level } = latest;
   const quotaRemain = quotaTotal - quotaUsed;
-  let targetPlan = 'Base_Plan';
-  let maxWt = 0;
-  for (const [plan, wt] of Object.entries(allocation)) {
-    if (wt > maxWt) { maxWt = wt; targetPlan = plan; }
-  }
-  let action, reason;
-  if (regime === 'RISK_OFF' && currentPlan !== 'Base_Plan') {
-    action = quotaRemain > 0 ? 'EXIT_CRISIS' : 'HOLD';
-    reason = 'RISK_OFF regime: credit stress + rising yields';
-  } else if (targetPlan !== currentPlan && quotaRemain > 0) {
-    action = 'SWITCH';
-    reason = 'Regime ' + regime + ': best fund ' + bestFund + ' (equityWt=' + (equityWt*100).toFixed(0) + '%)';
-  } else if (targetPlan !== currentPlan && quotaRemain <= 0) {
-    action = 'HOLD';
-    reason = 'Would switch to ' + targetPlan + ' but quota exhausted';
-  } else {
-    action = 'HOLD';
-    reason = 'Already in target plan for ' + regime + ' regime';
-  }
-  // Build target menu name + alloc in format render expects
+
+  // Build target menu name + alloc
   const roundedAlloc = {};
   for (const [k, v] of Object.entries(allocation)) {
     const r = Math.round(v * 100);
@@ -2506,13 +2543,46 @@ function makeDecisionV29(v29Signals, currentPlan, quotaUsed, quotaTotal) {
     .map(([k, v]) => k + '_' + Math.round(v * 100))
     .join('+');
 
+  // --- Compare current vs target by max allocation diff (Python parity) ---
+  // diff < 10% → HOLD (no material change worth using a quota)
+  let maxDiff = 0;
+  const curAlloc = currentAlloc || {};
+  const keys = new Set([...Object.keys(curAlloc), ...Object.keys(roundedAlloc)]);
+  for (const k of keys) {
+    const d = Math.abs((curAlloc[k] || 0) - (roundedAlloc[k] || 0));
+    if (d > maxDiff) maxDiff = d;
+  }
+  const isMaterialChange = maxDiff >= V29_SWITCH_THRESHOLD;
+
+  // targetPlan for legacy display = dominant fund
+  let targetPlan = Object.entries(roundedAlloc).sort((a,b)=>b[1]-a[1])[0]?.[0] || 'Base_Plan';
+
+  let action, reason;
+  if (regime === 'RISK_OFF' && isMaterialChange) {
+    action = quotaRemain > 0 ? 'EXIT_CRISIS' : 'HOLD';
+    reason = 'RISK_OFF regime: credit stress + rising yields (diff ' + (maxDiff*100).toFixed(0) + '%)';
+  } else if (isMaterialChange && quotaRemain > 0) {
+    action = 'SWITCH';
+    const presetLbl = latest.bestPreset ? latest.bestPreset : bestFund;
+    reason = 'Regime ' + regime + ': preset ' + presetLbl + ' eq=' + (equityWt*100).toFixed(0) + '% (diff ' + (maxDiff*100).toFixed(0) + '%)';
+  } else if (isMaterialChange && quotaRemain <= 0) {
+    action = 'HOLD';
+    reason = 'Would switch to ' + menuName + ' but quota exhausted';
+  } else {
+    action = 'HOLD';
+    reason = 'Current allocation close to target (diff ' + (maxDiff*100).toFixed(0) + '% < 10%)';
+  }
+
   return {
     action, reason, regime, allocation,
     bestFund, equityWt, fundVol, scores, level,
+    rawEqWt: latest.rawEqWt,
     momentum: latest.momentum, accel: latest.accel,
     presetRanking: latest.presetRanking, bestPreset: latest.bestPreset,
+    bestBond: latest.bestBond, presetScores: latest.presetScores,
     diyScore: latest.diyScore, recommend: latest.recommend,
     regimeResult: latest.regimeResult, quotaRemain,
+    maxDiff,
     // Fields that render uses (override V22):
     targetMenu: menuName,
     targetAlloc: roundedAlloc,
@@ -3643,7 +3713,13 @@ async function runSignal(){
     // V29: Fetch FRED data and compute hierarchical regime signal
     const fredData = await fetchAllFred().catch(e => { console.warn('FRED fetch failed:', e.message); return null; });
     FRED_DATA = fredData;
-    const v29Signals = computeSignalV29(navMatrix, dates, plans, signalDelay, fredData);
+    // Current allocation for realized-vol calc (preview; validated later)
+    const curAllocForVol = (function(){
+      try { const g = getAllocFromGrid(); if (g && Object.keys(g).length) return g; } catch(_){}
+      try { const m = (el('current-menu').value || '').trim(); if (m) return parseMenuAlloc(m); } catch(_){}
+      return null;
+    })();
+    const v29Signals = computeSignalV29(navMatrix, dates, plans, signalDelay, fredData, curAllocForVol);
     // Also run V26 for backward compat metrics (scores, velocity, etc.)
     const sigResult = computeSignalV26(navMatrix,dates,plans,signalDelay);
     const{scores, momReturns, signalDate, latestNavDate, velocity, acceleration, regime, allocVel, allocAccel, ALLOCATIONS: ALLOC_MAP,
@@ -4100,7 +4176,7 @@ async function runSignal(){
     const posPeakVal = histPosPeak !== null ? histPosPeak : (el('position-peak-value') ? parseFloat(el('position-peak-value').value) : null);
 
     // V29: Decision via hierarchical regime engine
-    const v29Decision = makeDecisionV29(v29Signals, currentMenu || 'Base_Plan', quotaUsed, QUOTA_PER_YR);
+    const v29Decision = makeDecisionV29(v29Signals, currentMenu || 'Base_Plan', quotaUsed, QUOTA_PER_YR, currentAlloc);
     // Also run V22 decision for backward-compat display fields
     const v22Decision = makeDecisionV22({
       scores, velocity, acceleration, regime, allocVel, allocAccel, ALLOCATIONS: ALLOC_MAP,
@@ -4499,6 +4575,29 @@ function calcHold(tx){
   for(const k of Object.keys(u))if(Math.abs(u[k])<0.0001){console.warn('[calcHold] tiny units deleted:',k,u[k]);delete u[k];}
   return u;
 }
+// Shared: transaction cost helper (handles carry-in where a.b=null → NAV×units fallback)
+function _txCostOf(a){const ab=a.b!=null?Math.abs(a.b):0;if(ab>0)return ab;if(a.n!=null&&a.u!=null)return Math.abs(a.n*a.u);return 0;}
+// Shared: compute effective invested capital up to a set of TX using average-cost method
+// Returns the "effective deposits" — what the investor actually put in (cash + carry-in cost)
+function calcEffectiveCost(txList, holdObj, latestNav) {
+  const bB={},bU={},sB={},sU={};
+  for(const t of txList){for(const[f,a]of Object.entries(t.amounts)){
+    const c=_txCostOf(a);
+    if(a.u>0){bB[f]=(bB[f]||0)+c;bU[f]=(bU[f]||0)+a.u;}
+    else if(a.u<0){sB[f]=(sB[f]||0)+c;sU[f]=(sU[f]||0)+Math.abs(a.u);}
+  }}
+  let costBasis=0,realized=0;
+  const allF=new Set([...Object.keys(bB),...Object.keys(sB),...Object.keys(holdObj||{})]);
+  for(const f of allF){
+    let avgBuy=bU[f]>0?bB[f]/bU[f]:0;
+    const cu=(holdObj&&holdObj[f])||0;
+    const nv=latestNav?.funds?.[f];
+    if(avgBuy<=0&&cu>0.0001&&nv)avgBuy=nv;
+    if(cu>0.0001)costBasis+=avgBuy*cu;
+    if((sU[f]||0)>0.0001&&avgBuy>0)realized+=(sB[f]||0)-avgBuy*(sU[f]||0);
+  }
+  return{costBasis,realized,effectiveDeposits:costBasis-realized};
+}
 function calcPort(nav,tx,days){
   const cut=days>0?new Date(Date.now()-days*864e5):new Date(0);
   const nf=nav.filter(n=>n.date>=cut);if(!nf.length)return{l:[],v:[],iv:[]};
@@ -4506,7 +4605,7 @@ function calcPort(nav,tx,days){
   const l=[],v=[],iv=[];
   for(const n of nf){
     const u={};let inv=0;
-    for(const t of ts){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;if(t.type==='เงินนำส่ง'&&t.total!=null)inv+=t.total;}
+    for(const t of ts){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts)){u[f]=(u[f]||0)+a.u;if(a.u>0)inv+=_txCostOf(a);}}
     let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
     if(val>0||v.length>0){l.push(n.date);v.push(val);iv.push(inv);}
   }
@@ -4522,19 +4621,25 @@ function calcAnalytics(hold,nav,tx){
     let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
     if(val>0||portSeries.length>0)portSeries.push({date:n.date,val,hasTx:txDateSet.has(n.date.toDateString())});
   }
-  let tot=0,prev=0,cost=0;
+  let tot=0,prev=0;
   for(const[f,u]of Object.entries(hold)){const nv=ln?.funds[f];if(nv)tot+=u*nv;const pv=pn?.funds[f];if(pv)prev+=u*pv;}
-  for(const t of tx)if(t.type==='เงินนำส่ง'&&t.total!=null)cost+=t.total;
-  const pnl=tot-cost,pp=cost>0?(pnl/cost)*100:0;
+  // Cost basis via shared average-cost helper
+  const {costBasis,realized:realizedPnl,effectiveDeposits}=calcEffectiveCost(tx,hold,ln);
+  const cost=effectiveDeposits;
+  const pnl=(tot-costBasis)+realizedPnl,pp=cost>0?(pnl/cost)*100:0;
   const dc=prev>0?tot-prev:0,dp=prev>0?(dc/prev)*100:0;
+  // Peak / DD / peakProfit: use running effective cost (deposit + carry-in cost)
   let peak=0,peakValue=0,peakDate=null,maxDD=0,ddEnd=null;
   let peakProfit=-Infinity,peakProfitDate=null,peakProfitValue=0,peakProfitCost=0;
-  let runCost=0,prevCost=0,txIdx2=0;
+  let runCost=0,prevRunCost=0,txIdx2=0;
   for(const p of portSeries){
-    prevCost=runCost;
-    while(txIdx2<txSorted.length&&txSorted[txIdx2].date<=p.date){if(txSorted[txIdx2].type==='เงินนำส่ง'&&txSorted[txIdx2].total!=null)runCost+=txSorted[txIdx2].total;txIdx2++;}
-    const deposit=runCost-prevCost;
-    // Adjust peak by deposit so DD isn't distorted
+    prevRunCost=runCost;
+    while(txIdx2<txSorted.length&&txSorted[txIdx2].date<=p.date){
+      // Accumulate effective cost from ALL tx types (not just เงินนำส่ง)
+      for(const[f,a]of Object.entries(txSorted[txIdx2].amounts)){if(a.u>0)runCost+=_txCostOf(a);}
+      txIdx2++;
+    }
+    const deposit=runCost-prevRunCost;
     if(deposit>0)peak+=deposit;
     if(p.val>peak){peak=p.val;peakValue=p.val;peakDate=p.date;}
     const profit=p.val-runCost;
@@ -4542,7 +4647,8 @@ function calcAnalytics(hold,nav,tx){
     const dd=peak>0?(p.val-peak)/peak*100:0;
     if(dd<maxDD){maxDD=dd;ddEnd=p.date;}
   }
-  const firstTx=tx.find(t=>t.type==='เงินนำส่ง');
+  // startDate: first TX of any type (including carry-in)
+  const firstTx=txSorted[0];
   const startDate=firstTx?.date;
   const daysHeld=startDate?Math.round((ln.date-startDate)/864e5):0;
   const yearsHeld=daysHeld/365;
@@ -4560,7 +4666,9 @@ function calcAnalytics(hold,nav,tx){
   const winDays=rets.filter(r=>r>0).length;
   const winRate=rets.length>0?winDays/rets.length*100:0;
   const txDeposits=tx.filter(t=>t.type==='เงินนำส่ง');
-  const avgMonthly=txDeposits.length>0?cost/txDeposits.length:0;
+  // avgMonthly: cash deposits only (not carry-in) — reflects DCA behavior
+  const cashDeposits=txDeposits.reduce((s,t)=>s+(t.total||0),0);
+  const avgMonthly=txDeposits.length>0?cashDeposits/txDeposits.length:0;
   const lastTx=[...tx].reverse().find(t=>t.plan);
   return{tot,prev,cost,pnl,pp,dc,dp,navDt:ln?.date?fDt(ln.date):'-',maxDD,ddEnd,peakValue,peakDate,peakProfit,peakProfitDate,peakProfitValue,peakProfitCost,cagr,yearsHeld,daysHeld,annVol,sharpe,winRate,winDays,totalDays:rets.length,bestDay,worstDay,avgMonthly,txCount:txDeposits.length,currentPlan:lastTx?.plan||'-',startDate,portSeries};
 }
@@ -4711,109 +4819,115 @@ function renderHold(hold,nav){
 function renderPerfAttrib(hold,nav,tx){
   const sec=el('perf-attrib-section'),body=el('perf-attrib-body');if(!sec||!body)return;
   const ln=nav[nav.length-1];if(!ln)return;
-  // Net baht flow per fund from TX (a.b = actual baht amount per transaction)
-  // Also track buy cost & sell proceeds for realized P&L %
-  const netBaht={};
+  // Aggregate buys/sells per fund using AVERAGE COST method
+  //   buyBaht / buyUnits = avg buy price per unit
+  //   held cost basis    = avgBuy * currentUnits  (NOT net cash — avoids bleeding realized into unrealized)
+  //   realized P&L       = sellProceeds - avgBuy * sellUnits
+  // Uses shared _txCostOf: prefer |a.b|; fall back to |a.n × a.u| for carry-in rows
   const buyBaht={}, buyUnits={}, sellBaht={}, sellUnits={};
-  let totalDeposits=0;
   for(const t of tx){
-    if(t.type==='เงินนำส่ง'&&t.total!=null) totalDeposits+=t.total;
     for(const[f,a]of Object.entries(t.amounts)){
-      netBaht[f]=(netBaht[f]||0)+(a.b||0);
-      if(a.u>0){buyBaht[f]=(buyBaht[f]||0)+(a.b||0);buyUnits[f]=(buyUnits[f]||0)+a.u;}
-      else if(a.u<0){sellBaht[f]=(sellBaht[f]||0)+Math.abs(a.b||0);sellUnits[f]=(sellUnits[f]||0)+Math.abs(a.u);}
+      const cost=_txCostOf(a);
+      if(a.u>0){buyBaht[f]=(buyBaht[f]||0)+cost;buyUnits[f]=(buyUnits[f]||0)+a.u;}
+      else if(a.u<0){sellBaht[f]=(sellBaht[f]||0)+cost;sellUnits[f]=(sellUnits[f]||0)+Math.abs(a.u);}
     }
   }
-  // Current value per fund
-  let grandVal=0;
-  const fundVals={};
-  for(const[f,u]of Object.entries(hold)){
-    const nv=ln.funds[f];if(!nv||Math.abs(u)<0.0001)continue;
-    fundVals[f]=u*nv;grandVal+=u*nv;
-  }
-  // Currently held funds (unrealized)
-  const rows=[];
-  let totalPnl=0,totalCost=0,totalVal=0;
-  for(const[f,val]of Object.entries(fundVals)){
-    const basis=netBaht[f]||0;
-    const pnl=val-basis;
-    const pnlPct=basis>0?(pnl/basis)*100:0;
+
+  // Every fund with any activity OR any current holding
+  const allFunds=new Set([...Object.keys(buyBaht),...Object.keys(sellBaht),...Object.keys(hold||{})]);
+  const unrealizedRows=[], realizedRows=[];
+  let totalUnrealized=0, totalRealized=0, totalVal=0, totalCostBasis=0, totalProceeds=0;
+  for(const f of allFunds){
+    const bU=buyUnits[f]||0, bB=buyBaht[f]||0;
+    const sU=sellUnits[f]||0, sB=sellBaht[f]||0;
+    const curUnits=hold[f]||0;
+    let avgBuy=bU>0?bB/bU:0;
+    const nv=ln.funds[f];
     const m=FM[f]||{l:f,c:'#888'};
-    totalPnl+=pnl;totalCost+=basis;totalVal+=val;
-    rows.push({f,name:m.l,color:m.c,val,basis,pnl,pnlPct,held:true});
+    // Sanity: if avgBuy is 0 but we have units (no cost basis in Tx sheet),
+    // fall back to current NAV → unrealized P&L = 0 instead of pnl = full value
+    if(avgBuy<=0&&curUnits>0.0001&&nv){
+      avgBuy=nv;
+      console.warn('[renderPerfAttrib] No cost basis for '+f+' — using current NAV as basis. units='+curUnits+' nav='+nv);
+    }
+    // Unrealized (currently held)
+    if(curUnits>0.0001&&nv){
+      const curVal=curUnits*nv;
+      const basis=avgBuy*curUnits;
+      const pnl=curVal-basis;
+      const pnlPct=basis>0?(pnl/basis)*100:0;
+      totalUnrealized+=pnl; totalVal+=curVal; totalCostBasis+=basis;
+      unrealizedRows.push({f,name:m.l,color:m.c,val:curVal,basis,pnl,pnlPct,units:curUnits,avgBuy,curNav:nv});
+    }
+    // Realized (any sells — includes partial sells from still-held funds)
+    if(sU>0.0001&&avgBuy>0){
+      const costOfSold=avgBuy*sU;
+      const realPnl=sB-costOfSold;
+      const realPct=costOfSold>0?(realPnl/costOfSold)*100:0;
+      totalRealized+=realPnl; totalProceeds+=sB;
+      realizedRows.push({f,name:m.l,color:m.c,basis:costOfSold,proceeds:sB,pnl:realPnl,pnlPct:realPct,units:sU,avgBuy,avgSell:sU>0?sB/sU:0});
+    }
   }
-  // Previously held funds (realized — compare avg buy cost vs sell proceeds)
-  for(const[f,net]of Object.entries(netBaht)){
-    if(fundVals[f])continue; // skip currently held
-    if(Math.abs(net)<1)continue; // skip negligible
-    const m=FM[f]||{l:f,c:'#888'};
-    const realized=-net; // negative net = money came OUT = realized gain
-    // Compute realized %: avg buy cost per unit vs avg sell price per unit
-    const bU=buyUnits[f]||0, sU=sellUnits[f]||0, bB=buyBaht[f]||0, sB=sellBaht[f]||0;
-    const avgBuy=bU>0?bB/bU:0;
-    const avgSell=sU>0?sB/sU:0;
-    const realPct=bB>0?(realized/bB)*100:0;
-    totalPnl+=realized;
-    rows.push({f,name:m.l,color:m.c,val:0,basis:bB,pnl:realized,pnlPct:realPct,held:false,avgBuy,avgSell,sellBaht:sB});
-  }
-  if(rows.length===0){sec.style.display='none';return;}
-  rows.sort((a,b)=>b.pnl-a.pnl);
-  // Contribution %
-  const maxAbs=Math.max(...rows.map(r=>Math.abs(r.pnl)),1);
+  if(unrealizedRows.length===0&&realizedRows.length===0){sec.style.display='none';return;}
+  unrealizedRows.sort((a,b)=>b.pnl-a.pnl);
+  realizedRows.sort((a,b)=>b.pnl-a.pnl);
+  const maxAbs=Math.max(...[...unrealizedRows,...realizedRows].map(r=>Math.abs(r.pnl)),1);
+
   let html='<table style="width:100%;font-size:12px;font-family:var(--mono)"><thead><tr>'
     +'<th style="text-align:left;padding:6px">กองทุน</th>'
     +'<th style="text-align:right;padding:6px">ต้นทุน</th>'
-    +'<th style="text-align:right;padding:6px">มูลค่าปัจจุบัน</th>'
+    +'<th style="text-align:right;padding:6px">มูลค่า/ขายได้</th>'
     +'<th style="text-align:right;padding:6px">กำไร/ขาดทุน</th>'
     +'<th style="text-align:right;padding:6px">%</th>'
     +'<th style="padding:6px;min-width:120px">Contribution</th>'
     +'</tr></thead><tbody>';
-  const heldRows=rows.filter(r=>r.held), realizedRows=rows.filter(r=>!r.held);
-  // Currently held
-  if(heldRows.length>0){
+  const renderRow=(r,opacity)=>{
+    const cc=r.pnl>=0?'var(--green)':'var(--red)';
+    const barW=Math.abs(r.pnl)/maxAbs*100;
+    const barColor=r.pnl>=0?'rgba(0,230,118,.3)':'rgba(255,61,90,.3)';
+    const barBorder=r.pnl>=0?'rgba(0,230,118,.6)':'rgba(255,61,90,.6)';
+    const rightVal=r.val!=null?r.val:r.proceeds;
+    return'<tr style="border-bottom:1px solid var(--b1)'+(opacity<1?';opacity:'+opacity:'')+'">'
+      +'<td style="padding:6px"><span class="fdot" style="background:'+r.color+';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px"></span>'+r.name+'</td>'
+      +'<td style="text-align:right;padding:6px">'+fmt(r.basis,2)+'</td>'
+      +'<td style="text-align:right;padding:6px">'+fmt(rightVal,2)+'</td>'
+      +'<td style="text-align:right;padding:6px;color:'+cc+';font-weight:600">'+fmtS(r.pnl)+' ฿</td>'
+      +'<td style="text-align:right;padding:6px;color:'+cc+'">'+fmtS(r.pnlPct)+'%</td>'
+      +'<td style="padding:6px"><div style="height:14px;width:'+barW+'%;background:'+barColor+';border:1px solid '+barBorder+';border-radius:3px"></div></td>'
+      +'</tr>';
+  };
+  const subtotalRow=(label,total)=>{
+    const cc=total>=0?'var(--green)':'var(--red)';
+    return'<tr style="border-bottom:1px dashed var(--b2)">'
+      +'<td style="padding:4px 6px;color:var(--t2);font-size:11px">'+label+'</td>'
+      +'<td></td><td></td>'
+      +'<td style="text-align:right;padding:4px 6px;color:'+cc+';font-weight:600">'+fmtS(total)+' ฿</td>'
+      +'<td></td><td></td></tr>';
+  };
+  if(unrealizedRows.length>0){
     html+='<tr><td colspan="6" style="padding:6px 6px 2px;font-size:10px;color:var(--t2);letter-spacing:.08em;text-transform:uppercase">ถือปัจจุบัน (unrealized)</td></tr>';
-    for(const r of heldRows){
-      const cc=r.pnl>=0?'var(--green)':'var(--red)';
-      const barW=Math.abs(r.pnl)/maxAbs*100;
-      const barColor=r.pnl>=0?'rgba(0,230,118,.3)':'rgba(255,61,90,.3)';
-      const barBorder=r.pnl>=0?'rgba(0,230,118,.6)':'rgba(255,61,90,.6)';
-      html+='<tr style="border-bottom:1px solid var(--b1)">'
-        +'<td style="padding:6px"><span class="fdot" style="background:'+r.color+';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px"></span>'+r.name+'</td>'
-        +'<td style="text-align:right;padding:6px">'+fmt(r.basis,2)+'</td>'
-        +'<td style="text-align:right;padding:6px">'+fmt(r.val,2)+'</td>'
-        +'<td style="text-align:right;padding:6px;color:'+cc+';font-weight:600">'+fmtS(r.pnl)+' ฿</td>'
-        +'<td style="text-align:right;padding:6px;color:'+cc+'">'+fmtS(r.pnlPct)+'%</td>'
-        +'<td style="padding:6px"><div style="height:14px;width:'+barW+'%;background:'+barColor+';border:1px solid '+barBorder+';border-radius:3px"></div></td>'
-        +'</tr>';
-    }
+    for(const r of unrealizedRows) html+=renderRow(r,1);
+    html+=subtotalRow('รวม unrealized',totalUnrealized);
   }
-  // Previously held (realized)
   if(realizedRows.length>0){
     html+='<tr><td colspan="6" style="padding:8px 6px 2px;font-size:10px;color:var(--t2);letter-spacing:.08em;text-transform:uppercase">ขายแล้ว (realized)</td></tr>';
-    for(const r of realizedRows){
-      const cc=r.pnl>=0?'var(--green)':'var(--red)';
-      const barW=Math.abs(r.pnl)/maxAbs*100;
-      const barColor=r.pnl>=0?'rgba(0,230,118,.3)':'rgba(255,61,90,.3)';
-      const barBorder=r.pnl>=0?'rgba(0,230,118,.6)':'rgba(255,61,90,.6)';
-      html+='<tr style="border-bottom:1px solid var(--b1);opacity:0.7">'
-        +'<td style="padding:6px"><span class="fdot" style="background:'+r.color+';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px"></span>'+r.name+'</td>'
-        +'<td style="text-align:right;padding:6px">'+fmt(r.basis,2)+'</td>'
-        +'<td style="text-align:right;padding:6px">'+(r.sellBaht?fmt(r.sellBaht,2):'—')+'</td>'
-        +'<td style="text-align:right;padding:6px;color:'+cc+';font-weight:600">'+fmtS(r.pnl)+' ฿</td>'
-        +'<td style="text-align:right;padding:6px;color:'+cc+'">'+fmtS(r.pnlPct)+'%</td>'
-        +'<td style="padding:6px"><div style="height:14px;width:'+barW+'%;background:'+barColor+';border:1px solid '+barBorder+';border-radius:3px"></div></td>'
-        +'</tr>';
-    }
+    for(const r of realizedRows) html+=renderRow(r,0.75);
+    html+=subtotalRow('รวม realized',totalRealized);
   }
-  const realPnl=totalVal-totalDeposits;
-  const tcc=realPnl>=0?'var(--green)':'var(--red)';
-  const realPnlPct=totalDeposits>0?(realPnl/totalDeposits)*100:0;
+  // Grand total: "effective deposits" = totalCostBasis − totalRealized
+  //   For switch-only GPF flows this exactly equals actual cash deposited to the account.
+  //   Survives carry-in balances because costBasis is reconstructed from NAV×units when baht is blank.
+  //   Overall return = totalVal − effectiveDeposits = totalUnrealized + totalRealized
+  const effectiveDeposits=totalCostBasis-totalRealized;
+  const grandPnl=totalUnrealized+totalRealized;
+  const gpc=grandPnl>=0?'var(--green)':'var(--red)';
+  const gpPct=effectiveDeposits>0?(grandPnl/effectiveDeposits)*100:0;
   html+='<tr style="border-top:2px solid var(--b2);font-weight:700">'
     +'<td style="padding:6px;color:var(--gold)">รวมทั้งหมด</td>'
-    +'<td style="text-align:right;padding:6px">'+fmt(totalDeposits,2)+'</td>'
+    +'<td style="text-align:right;padding:6px">'+fmt(effectiveDeposits,2)+'</td>'
     +'<td style="text-align:right;padding:6px">'+fmt(totalVal,2)+'</td>'
-    +'<td style="text-align:right;padding:6px;color:'+tcc+'">'+fmtS(realPnl)+' ฿</td>'
-    +'<td style="text-align:right;padding:6px;color:'+tcc+'">'+fmtS(realPnlPct)+'%</td>'
+    +'<td style="text-align:right;padding:6px;color:'+gpc+'">'+fmtS(grandPnl)+' ฿</td>'
+    +'<td style="text-align:right;padding:6px;color:'+gpc+'">'+fmtS(gpPct)+'%</td>'
     +'<td></td></tr>';
   html+='</tbody></table>';
   body.innerHTML=html;
@@ -4843,7 +4957,12 @@ function renderMon(tx){
 }
 function renderDaily(nav,tx){
   const txSorted=[...tx].sort((a,b)=>a.date-b.date);const txDateSet=new Set(tx.map(t=>t.date.toDateString()));const portFull=[];
-  for(const n of nav){const u={};for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;}let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}let inv=0;for(const t of txSorted){if(t.date>n.date)break;if(t.type==='เงินนำส่ง'&&t.total!=null)inv+=t.total;}portFull.push({date:n.date,val,inv,hasTx:txDateSet.has(n.date.toDateString())});}
+  for(const n of nav){
+    const u={};let inv=0;
+    for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts)){u[f]=(u[f]||0)+a.u;if(a.u>0)inv+=_txCostOf(a);}}
+    let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
+    portFull.push({date:n.date,val,inv,hasTx:txDateSet.has(n.date.toDateString())});
+  }
   const series=portFull.filter(p=>p.val>0);const reversed=[...series].reverse();
   const bdy=reversed.map((p,i)=>{const prev=reversed[i+1];const dayChg=(prev&&!p.hasTx)?p.val-prev.val:null;const dayPct=(prev&&prev.val>0&&!p.hasTx)?(dayChg/prev.val)*100:null;const pnl=p.val-p.inv,pnlPct=p.inv>0?(pnl/p.inv)*100:0;const txMark=p.hasTx?'<span style="font-size:10px;color:var(--gold);margin-left:4px">● TX</span>':'';const chgClr=dayChg==null?'var(--t3)':dayChg>=0?'var(--green)':'var(--red)';
     return'<tr'+(p.hasTx?' style="background:rgba(255,193,32,.04)"':'')+'><td>'+fDt(p.date)+txMark+'</td><td style="font-weight:600;color:var(--gold)">฿'+fmt(p.val,2)+'</td><td style="color:'+chgClr+'">'+(dayChg!=null?fmtS(dayChg):'-')+'</td><td style="color:'+chgClr+'">'+(dayPct!=null?fmtS(dayPct)+'%':p.hasTx?'TX day':'-')+'</td><td>฿'+fmt(p.inv,2)+'</td><td style="color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+fmtS(pnl)+'</td><td style="color:'+(pnl>=0?'var(--green)':'var(--red)')+'">'+fmtS(pnlPct)+'%</td></tr>';}).join('');
@@ -5302,17 +5421,23 @@ function renderYearlySummary(nav,tx){
   allYears.forEach(yr=>{
     const yrNav=nav.filter(n=>n.date.getFullYear()===yr);
     const yrTx=tx.filter(t=>t.date.getFullYear()===yr);
-    // Deposits this year
-    const deposits=yrTx.filter(t=>t.type==='เงินนำส่ง').reduce((s,t)=>s+(t.total||0),0);
-    // Rebalance count
-    const rebalCount=new Set(yrTx.filter(t=>t.type&&(t.type.includes('เปลี่ยนแผน')||t.type.toLowerCase().includes('rebal'))).map(t=>t.date.toDateString())).size;
-    // Start/end portfolio values
+    // Start/end portfolio values — use <= for start to include carry-in on day 1
     const yrEnd=yrNav[yrNav.length-1];
     const yrStart=yrNav[0];
     const hold=calcHold(tx.filter(t=>t.date<=yrEnd.date));
     let endVal=0;for(const[f,u]of Object.entries(hold)){const nv=yrEnd?.funds[f];if(nv)endVal+=u*nv;}
-    const holdStart=calcHold(tx.filter(t=>t.date<yrStart.date));
+    const holdStart=calcHold(tx.filter(t=>t.date<=yrStart.date));
     let startVal=0;for(const[f,u]of Object.entries(holdStart)){const nv=yrStart?.funds[f];if(nv)startVal+=u*nv;}
+    // Deposits = net new capital AFTER yrStart (tx after yrStart that add money)
+    // startVal already accounts for capital present at start of year
+    const postStartTx=yrTx.filter(t=>t.date>yrStart.date);
+    let deposits=0;
+    for(const t of postStartTx)for(const[f,a]of Object.entries(t.amounts)){if(a.u>0)deposits+=_txCostOf(a);}
+    let sellProceeds=0;
+    for(const t of postStartTx)for(const[f,a]of Object.entries(t.amounts)){if(a.u<0)sellProceeds+=_txCostOf(a);}
+    deposits=deposits-sellProceeds; // net new money (switches cancel out)
+    // Rebalance count (include สลับกองทุน)
+    const rebalCount=new Set(yrTx.filter(t=>t.type&&(t.type.includes('เปลี่ยนแผน')||t.type.includes('สลับ')||t.type.toLowerCase().includes('rebal'))).map(t=>t.date.toDateString())).size;
     // Skip years with no activity
     if(endVal===0&&startVal===0&&deposits===0) return;
     // DD within year
@@ -5847,11 +5972,15 @@ function renderV29ScoreCard(decision) {
   if (!card || !body) return;
 
   const alloc = decision.targetAlloc || decision.allocation || {};
-  const mom12 = decision.scores || {};  // 12-month momentum
+  const mom6 = decision.scores || {};  // 6-month momentum
   const regime = decision.v29Regime || decision.regime || 'NEUTRAL';
   const equityWt = decision.equityWt;
+  const rawEqWt = decision.rawEqWt;
   const fundVol = decision.fundVol;
   const level = decision.level || {};
+  const bestPreset = decision.bestPreset;
+  const bestBond = decision.bestBond;
+  const presetRanking = decision.presetRanking || [];
 
   if (Object.keys(alloc).length === 0) { card.style.display = 'none'; return; }
   card.style.display = 'block';
@@ -5863,34 +5992,61 @@ function renderV29ScoreCard(decision) {
 
   let html = '';
 
-  // Regime → Vol Target summary
+  // Regime → Vol Target → Equity% summary
   html += '<div style="margin-bottom:12px;padding:8px 12px;background:var(--bg-2);border-radius:8px;border:1px solid var(--b1)">';
   html += '<span style="color:var(--t2)">Regime</span> <b style="color:'+rc+'">'+regime+'</b>';
   if (level.targetVol) html += ' &middot; <span style="color:var(--t2)">Vol Target</span> '+(level.targetVol*100).toFixed(0)+'%';
-  if (equityWt != null) html += ' &middot; <span style="color:var(--t2)">Equity%</span> <b>'+(equityWt*100).toFixed(0)+'%</b>';
-  if (fundVol) html += ' &middot; <span style="color:var(--t2)">Fund Vol</span> '+(fundVol*100).toFixed(1)+'%';
+  if (fundVol) html += ' &middot; <span style="color:var(--t2)">Realized Vol</span> '+(fundVol*100).toFixed(1)+'%';
+  if (equityWt != null) {
+    html += ' &middot; <span style="color:var(--t2)">Equity%</span> <b>'+(equityWt*100).toFixed(0)+'%</b>';
+    if (rawEqWt != null && Math.abs(rawEqWt - equityWt) > 0.005) {
+      html += ' <span style="color:var(--t3);font-size:10px">(raw '+(rawEqWt*100).toFixed(1)+'% → round 5%)</span>';
+    }
+  }
   html += '</div>';
 
-  // Fund 12M momentum table
-  html += '<div style="font-size:10px;color:var(--t3);margin-bottom:6px">Fund Selection: 12-Month Momentum (Jegadeesh & Titman 1993)</div>';
-  html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">';
+  // --- Preset ranking (6M weighted momentum) ---
+  if (presetRanking.length > 0) {
+    html += '<div style="font-size:10px;color:var(--t3);margin-bottom:6px">Preset Selection: 6-Month Weighted Momentum (Jegadeesh 1993 lower bound)</div>';
+    html += '<table style="width:100%;border-collapse:collapse;font-size:12px;margin-bottom:10px">';
+    html += '<tr style="border-bottom:1px solid var(--b2);color:var(--t2);font-size:10px">';
+    html += '<th style="text-align:left;padding:4px 8px">Preset</th>';
+    html += '<th style="text-align:right;padding:4px 8px">Weighted 6M</th>';
+    html += '</tr>';
+    for (const p of presetRanking) {
+      const isBest = p.name === bestPreset;
+      const rowBg = isBest ? 'rgba(0,230,118,.06)' : 'transparent';
+      const tag = isBest ? ' ★ picked' : '';
+      const sColor = p.score > 0 ? 'var(--green)' : 'var(--red)';
+      const sStr = (p.score >= 0 ? '+' : '') + (p.score*100).toFixed(2) + '%';
+      html += '<tr style="border-bottom:1px solid rgba(26,32,48,.5);background:'+rowBg+'">';
+      html += '<td style="padding:6px 8px;font-weight:600">' + p.name + tag + '</td>';
+      html += '<td style="padding:6px 8px;text-align:right;color:'+sColor+'">' + sStr + '</td>';
+      html += '</tr>';
+    }
+    html += '</table>';
+  }
+
+  // --- Fund 6M momentum + allocation table ---
+  html += '<div style="font-size:10px;color:var(--t3);margin-bottom:6px">Fund 6-Month Momentum &amp; Final Allocation</div>';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:12px">';
   html += '<tr style="border-bottom:1px solid var(--b2);color:var(--t2);font-size:10px">';
   html += '<th style="text-align:left;padding:4px 8px">Fund</th>';
-  html += '<th style="text-align:right;padding:4px 8px">Mom 12M</th>';
+  html += '<th style="text-align:right;padding:4px 8px">Mom 6M</th>';
   html += '<th style="text-align:right;padding:4px 8px">Alloc</th>';
   html += '</tr>';
 
-  const fundSet = new Set([...Object.keys(mom12), ...Object.keys(alloc)]);
+  const fundSet = new Set([...Object.keys(mom6), ...Object.keys(alloc)]);
   const funds = ['F','G','TH','PR','B','Global_Bond','Money_Market'].filter(f => fundSet.has(f));
   for (const f of funds) {
-    const m = mom12[f];
+    const m = mom6[f];
     const al = alloc[f];
     if (m == null && al == null) continue;
     const mStr = m != null ? (m >= 0 ? '+' : '') + (m*100).toFixed(2) + '%' : '—';
     const alStr = al != null ? (al*100).toFixed(0) + '%' : '—';
     const mColor = m != null ? (m > 0 ? 'var(--green)' : 'var(--red)') : 'var(--t3)';
     const isBest = decision.bestFund === f;
-    const isBestBond = decision.bestBond === f;
+    const isBestBond = bestBond === f;
     const rowBg = isBest ? 'rgba(0,230,118,.06)' : isBestBond ? 'rgba(56,189,248,.06)' : 'transparent';
     const tag = isBest ? ' ★ eq' : isBestBond ? ' ★ bond' : '';
     html += '<tr style="border-bottom:1px solid rgba(26,32,48,.5);background:'+rowBg+'">';
