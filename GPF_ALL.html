@@ -152,6 +152,31 @@ body::before {
   color: var(--t3);
   flex-shrink: 0;
 }
+.changelog-btn { background: transparent; border: 1px solid var(--b2); color: var(--t2); font-size: 14px; padding: 4px 9px; border-radius: 5px; cursor: pointer; transition: all .15s; }
+.changelog-btn:hover { background: var(--b1); color: var(--text); border-color: var(--purple); }
+.cl-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.85); z-index:1000; align-items:center; justify-content:center; padding:20px; }
+.cl-overlay.show { display:flex; }
+.cl-modal { background:var(--bg-1); border:1px solid var(--b2); border-radius:12px; width:100%; max-width:900px; max-height:85vh; display:flex; flex-direction:column; }
+.cl-head { display:flex; justify-content:space-between; align-items:center; padding:14px 18px; border-bottom:1px solid var(--b1); }
+.cl-head h2 { margin:0; font-size:16px; font-weight:700; color:var(--gold); }
+.cl-close { background:transparent; border:none; color:var(--t2); font-size:18px; cursor:pointer; padding:4px 10px; border-radius:5px; }
+.cl-close:hover { background:var(--b1); color:var(--text); }
+.cl-tabs { display:flex; gap:4px; padding:10px 18px 0; border-bottom:1px solid var(--b1); }
+.cl-tab { background:transparent; border:1px solid transparent; color:var(--t2); padding:8px 14px; border-radius:6px 6px 0 0; cursor:pointer; font-size:13px; font-weight:600; border-bottom:none; }
+.cl-tab.active { background:var(--b1); color:var(--text); border-color:var(--b2); }
+.cl-body { padding:18px; overflow-y:auto; flex:1; font-size:13px; line-height:1.55; }
+.cl-section { display:none; }
+.cl-section.active { display:block; }
+.cl-version { font-weight:800; color:var(--gold); margin:18px 0 0; padding:8px 12px; background:linear-gradient(90deg,rgba(255,193,32,.15),rgba(255,193,32,.02)); border-left:3px solid var(--gold); border-radius:4px 0 0 4px; font-family:var(--mono); font-size:14px; letter-spacing:.04em; }
+.cl-version:first-child { margin-top:0; }
+.cl-version-body { padding-left:14px; border-left:1px dashed var(--b2); margin-left:6px; }
+.cl-algo { font-size:10px; color:var(--t2); font-weight:500; margin-left:6px; padding:1px 5px; border-radius:3px; background:var(--b1); letter-spacing:0; }
+.cl-extra { font-size:10px; color:var(--t3); font-weight:400; margin-left:4px; }
+.cl-date { font-weight:700; color:var(--teal); margin:12px 0 6px; padding-bottom:3px; border-bottom:1px solid var(--b1); font-family:var(--mono); font-size:11px; }
+.cl-group { font-weight:600; color:var(--purple); margin:10px 0 4px; font-size:12px; }
+.cl-body ul { margin:4px 0 8px 20px; padding:0; }
+.cl-body li { color:var(--t2); margin:2px 0; }
+.cl-body code { background:var(--b1); padding:1px 5px; border-radius:3px; font-family:var(--mono); font-size:11px; color:var(--text); }
 .sync-badge {
   display: none;
   align-items: center;
@@ -648,9 +673,11 @@ input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { po
 .sec::after { content: ''; flex: 1; height: 1px; background: var(--b1); }
 .pcards { display: grid; grid-template-columns: repeat(auto-fit,minmax(170px,1fr)); gap: 10px; }
 .pcards6 { grid-template-columns: repeat(6,1fr); }
+.pcards5 { grid-template-columns: repeat(5,1fr); }
+.pcards4 { grid-template-columns: repeat(4,1fr); }
 .pcards3 { grid-template-columns: repeat(3,1fr); }
-@media(max-width:1100px) { .pcards6 { grid-template-columns: repeat(3,1fr); } }
-@media(max-width:700px)  { .pcards6, .pcards3 { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:1100px) { .pcards6, .pcards5 { grid-template-columns: repeat(3,1fr); } .pcards4 { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:700px)  { .pcards6, .pcards5, .pcards4, .pcards3 { grid-template-columns: repeat(2,1fr); } }
 .pc {
   background: var(--bg-1);
   border: 1px solid var(--b1);
@@ -672,7 +699,7 @@ input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { po
 .cval { font-size: 19px; font-weight: 700; font-family: var(--mono); letter-spacing: -.5px; line-height: 1.2; }
 .csub { font-size: 11px; color: var(--t2); margin-top: 3px; }
 .cgrid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px; }
-@media(max-width:900px) { .cgrid { grid-template-columns: 1fr; } }
+@media(max-width:900px) { .cgrid { grid-template-columns: 1fr; } .pie-grid { grid-template-columns: 1fr !important; } }
 .ccrd { background: var(--bg-1); border: 1px solid var(--b1); border-radius: 12px; padding: 15px; }
 .chart-box { position: relative; width: 100%; }
 .chart-box.h220 { height: 220px; }
@@ -1043,6 +1070,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
       <button class="tab-btn nav-tab"           onclick="switchTab('nav',this)">📊 NAV Analysis</button>
     </div>
     <div class="hdr-right">
+      <button class="changelog-btn" onclick="openChangelog()" title="Changelog">📋</button>
       <div class="sync-badge" id="sync-badge">🔗 synced</div>
       <span id="last-update-hdr"></span>
     </div>
@@ -1333,42 +1361,53 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div class="sec">📊 ภาพรวม Portfolio</div>
     <div class="pcards pcards6" id="cards-row1"></div>
     <div class="sec">📈 Analytics</div>
-    <div class="pcards pcards6" id="cards-row2"></div>
-    <div class="pcards pcards3" id="cards-row3" style="margin-top:10px"></div>
+    <div class="pcards pcards5" id="cards-row2"></div>
+    <div class="pcards pcards4" id="cards-row3" style="margin-top:10px"></div>
     <div class="sec">📉 กราฟ</div>
-    <div class="cgrid">
-      <div class="ccrd">
-        <div class="ctitle">
-          Portfolio Value
-          <div style="display:flex;align-items:center">
-            <div class="pbtns">
-              <button class="pbtn active" onclick="setPeriod(this,30)">1M</button>
-              <button class="pbtn"        onclick="setPeriod(this,90)">3M</button>
-              <button class="pbtn"        onclick="setPeriod(this,180)">6M</button>
-              <button class="pbtn"        onclick="setPeriod(this,365)">1Y</button>
-              <button class="pbtn"        onclick="setPeriod(this,0)">All</button>
-            </div>
-            <button class="expand-btn" onclick="openFullscreen('port','Portfolio Value')" title="ขยายเต็มจอ">⛶</button>
+    <div class="ccrd" style="margin-bottom:12px">
+      <div class="ctitle">
+        Portfolio Value
+        <div style="display:flex;align-items:center">
+          <div class="pbtns">
+            <button class="pbtn active" onclick="setPeriod(this,30)">1M</button>
+            <button class="pbtn"        onclick="setPeriod(this,90)">3M</button>
+            <button class="pbtn"        onclick="setPeriod(this,180)">6M</button>
+            <button class="pbtn"        onclick="setPeriod(this,365)">1Y</button>
+            <button class="pbtn"        onclick="setPeriod(this,1825)">5Y</button>
+            <button class="pbtn"        onclick="setPeriod(this,0)">All</button>
           </div>
+          <button class="expand-btn" onclick="openFullscreen('port','Portfolio Value')" title="ขยายเต็มจอ">⛶</button>
         </div>
-        <div class="chart-box" style="height:190px"><canvas id="port-chart"></canvas></div>
-        <div class="chart-box" style="height:70px"><canvas id="dd-chart"></canvas></div>
+      </div>
+      <div class="chart-box" style="height:280px"><canvas id="port-chart"></canvas></div>
+      <div class="chart-box" style="height:80px"><canvas id="dd-chart"></canvas></div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px" class="pie-grid">
+      <div class="ccrd">
+        <div class="ctitle">ยอดเงินปัจจุบัน <span id="contrib-date" style="font-size:10px;color:var(--t3);font-weight:normal;margin-left:4px"></span>
+          <button class="expand-btn" onclick="openFullscreen('contrib','ยอดเงินปัจจุบัน')" title="ขยายเต็มจอ">⛶</button>
+        </div>
+        <div class="chart-box h220"><canvas id="contrib-chart"></canvas></div>
+        <div id="contrib-legend" style="margin-top:10px;font-size:12px;font-family:var(--mono)"></div>
       </div>
       <div class="ccrd">
         <div class="ctitle">Allocation ปัจจุบัน
           <button class="expand-btn" onclick="openFullscreen('alloc','Allocation ปัจจุบัน')" title="ขยายเต็มจอ">⛶</button>
         </div>
         <div class="chart-box h220"><canvas id="alloc-chart"></canvas></div>
+        <div id="alloc-legend" style="margin-top:10px"></div>
       </div>
-      <!-- เปรียบเทียบกองทุน + NAV ย้ายไป NAV Analysis tab แล้ว -->
     </div>
     <div class="tcrd">
       <div class="ttabs">
         <button class="ttbtn active" onclick="portTab(this,'ptab-hold')">กองทุนที่ถือ</button>
         <button class="ttbtn"        onclick="portTab(this,'ptab-tx')">Transaction</button>
         <button class="ttbtn"        onclick="portTab(this,'ptab-monthly')">เงินนำส่งรายเดือน</button>
-        <button class="ttbtn"        onclick="portTab(this,'ptab-yearly')">ผลรายปี</button>
-        <button class="ttbtn"        onclick="portTab(this,'ptab-attrib')">P&L แต่ละกอง</button>
+        <button class="ttbtn"        onclick="portTab(this,'ptab-yearly')">P&L Annual</button>
+        <button class="ttbtn"        onclick="portTab(this,'ptab-attrib')">P&L by Asset ALL</button>
+        <button class="ttbtn"        onclick="portTab(this,'ptab-attrib-month')">P&L by Asset Month</button>
+        <button class="ttbtn"        onclick="portTab(this,'ptab-heatmap')">Monthly Heatmap</button>
+        <button class="ttbtn"        onclick="portTab(this,'ptab-rebal-roi')">Rebalance ROI</button>
         <button class="ttbtn"        onclick="portTab(this,'ptab-daily')">มูลค่ารายวัน</button>
         <button class="ttbtn"        onclick="portTab(this,'ptab-nav')">NAV รายวัน</button>
       </div>
@@ -1377,6 +1416,9 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
       <div class="tpanel tscroll" id="ptab-monthly"><table id="t-monthly"></table></div>
       <div class="tpanel tscroll" id="ptab-yearly"><div id="yearly-summary" style="overflow-x:auto"></div></div>
       <div class="tpanel tscroll" id="ptab-attrib"><div id="perf-attrib-section"><div id="perf-attrib-body"></div></div></div>
+      <div class="tpanel tscroll" id="ptab-attrib-month"><div id="perf-attrib-month-body"></div></div>
+      <div class="tpanel tscroll" id="ptab-heatmap"><div id="port-heatmap-body"></div></div>
+      <div class="tpanel tscroll" id="ptab-rebal-roi"><div id="rebal-roi-body"></div></div>
       <div class="tpanel tscroll" id="ptab-daily"><table id="t-daily"></table></div>
       <div class="tpanel tscroll" id="ptab-nav"><table id="t-nav"></table></div>
     </div>
@@ -1411,6 +1453,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
               <button class="navpbtn" onclick="setNavPeriod(this,90)">3M</button>
               <button class="navpbtn" onclick="setNavPeriod(this,180)">6M</button>
               <button class="navpbtn active" onclick="setNavPeriod(this,365)">1Y</button>
+              <button class="navpbtn" onclick="setNavPeriod(this,1825)">5Y</button>
               <button class="navpbtn" onclick="setNavPeriod(this,0)">All</button>
             </div>
             <button class="expand-btn" onclick="openFullscreen('navperf','NAV Performance & Drawdown')" title="ขยายเต็มจอ">⛶</button>
@@ -1429,9 +1472,11 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
         <div class="ctitle">Annualized Return vs Volatility
           <div style="display:flex;align-items:center">
             <div class="pbtns">
+              <button class="scatpbtn" onclick="setScatPeriod(this,30)">1M</button>
               <button class="scatpbtn" onclick="setScatPeriod(this,90)">3M</button>
               <button class="scatpbtn" onclick="setScatPeriod(this,180)">6M</button>
               <button class="scatpbtn active" onclick="setScatPeriod(this,365)">1Y</button>
+              <button class="scatpbtn" onclick="setScatPeriod(this,1825)">5Y</button>
               <button class="scatpbtn" onclick="setScatPeriod(this,0)">All</button>
             </div>
             <button class="expand-btn" onclick="openFullscreen('navscat','Risk / Return')" title="ขยายเต็มจอ">⛶</button>
@@ -1453,6 +1498,39 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
       </div>
     </div>
 
+    <!-- S8: Monthly Returns Heatmap per Fund -->
+    <div class="nav-section">
+      <div class="nav-sec-head">Monthly Returns Heatmap (per Fund)</div>
+      <div class="ccrd">
+        <div class="ctitle">ผลตอบแทนรายเดือน · เลือกกอง
+          <div class="nav-fund-toggles" id="nav-heatmap-funds" style="margin-bottom:0"></div>
+        </div>
+        <div style="overflow-x:auto"><div id="nav-heatmap-body"></div></div>
+      </div>
+    </div>
+
+    <!-- S9: Correlation Matrix -->
+    <div class="nav-section">
+      <div class="nav-sec-head">Correlation Matrix</div>
+      <div class="ccrd">
+        <div class="ctitle">ความสัมพันธ์ระหว่างกอง (1Y daily returns)
+          <div class="pbtns" id="nav-corr-period"></div>
+        </div>
+        <div style="overflow-x:auto"><div id="nav-corr-body"></div></div>
+      </div>
+    </div>
+
+    <!-- S10: Rolling Returns / Volatility -->
+    <div class="nav-section">
+      <div class="nav-sec-head">Rolling Returns &amp; Volatility</div>
+      <div class="ccrd">
+        <div class="ctitle">Rolling 30-day Return + 90-day Volatility
+          <div class="nav-fund-toggles" id="nav-rolling-funds" style="margin-bottom:0"></div>
+        </div>
+        <div class="chart-box" style="height:280px"><canvas id="nav-rolling-chart"></canvas></div>
+      </div>
+    </div>
+
   </div>
   <div class="port-footer">
     NAV Analysis · ข้อมูลจาก Google Sheets · ไม่ผ่าน server<br>
@@ -1462,6 +1540,22 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 </div>
 
 </div><!-- /page-wrap -->
+
+<!-- Changelog overlay -->
+<div class="cl-overlay" id="cl-overlay" onclick="if(event.target===this)closeChangelog()">
+  <div class="cl-modal">
+    <div class="cl-head">
+      <h2>📋 Changelog — v29</h2>
+      <button class="cl-close" onclick="closeChangelog()">✕ ปิด (Esc)</button>
+    </div>
+    <div class="cl-tabs">
+      <button class="cl-tab active" onclick="switchClTab(this,'cl-signal')">📡 Signal</button>
+      <button class="cl-tab" onclick="switchClTab(this,'cl-port')">💼 Portfolio</button>
+      <button class="cl-tab" onclick="switchClTab(this,'cl-nav')">📊 NAV Analysis</button>
+    </div>
+    <div class="cl-body" id="cl-body"></div>
+  </div>
+</div>
 
 <!-- Fullscreen chart overlay (outside page-wrap for proper fixed positioning) -->
 <div class="fs-overlay" id="fs-overlay">
@@ -4628,27 +4722,29 @@ function calcAnalytics(hold,nav,tx){
   const cost=effectiveDeposits;
   const pnl=(tot-costBasis)+realizedPnl,pp=cost>0?(pnl/cost)*100:0;
   const dc=prev>0?tot-prev:0,dp=prev>0?(dc/prev)*100:0;
-  // Peak / DD / peakProfit: use running effective cost (deposit + carry-in cost)
-  let peak=0,peakValue=0,peakDate=null,maxDD=0,ddEnd=null;
+  // ============================================================
+  // Peak / DD / peakProfit
+  //   peakValue = running max of port value → for "Peak Value" card
+  //   maxDD = (val - peakValue) / peakValue
+  //   When val is at all-time high → DD = 0 (peak = val)
+  //   peakProfit: max(val - runCost) → absolute baht gain over cost basis
+  // ============================================================
+  let peakValue=0,peakDate=null,maxDD=0,ddEnd=null;
   let peakProfit=-Infinity,peakProfitDate=null,peakProfitValue=0,peakProfitCost=0;
-  let runCost=0,prevRunCost=0,txIdx2=0;
+  let runCost=0,txIdx2=0;
   for(const p of portSeries){
-    prevRunCost=runCost;
     while(txIdx2<txSorted.length&&txSorted[txIdx2].date<=p.date){
-      // NET cost: buys add, sells subtract → switches cancel out, only net new money accumulates
       for(const[f,a]of Object.entries(txSorted[txIdx2].amounts)){
         if(a.u>0)runCost+=_txCostOf(a);
         else if(a.u<0)runCost-=_txCostOf(a);
       }
       txIdx2++;
     }
-    const deposit=Math.max(0,runCost-prevRunCost);
-    if(deposit>0)peak+=deposit;
-    if(p.val>peak){peak=p.val;peakValue=p.val;peakDate=p.date;}
+    if(p.val>peakValue){peakValue=p.val;peakDate=p.date;}
+    const dd=peakValue>0?(p.val-peakValue)/peakValue*100:0;
+    if(dd<maxDD){maxDD=dd;ddEnd=p.date;}
     const profit=p.val-runCost;
     if(profit>peakProfit){peakProfit=profit;peakProfitDate=p.date;peakProfitValue=p.val;peakProfitCost=runCost;}
-    const dd=peak>0?(p.val-peak)/peak*100:0;
-    if(dd<maxDD){maxDD=dd;ddEnd=p.date;}
   }
   // startDate: first TX of any type (including carry-in)
   const firstTx=txSorted[0];
@@ -4664,6 +4760,13 @@ function calcAnalytics(hold,nav,tx){
   const dailyVol=Math.sqrt(variance);
   const annVol=dailyVol*Math.sqrt(252);
   const sharpe=annVol>0?(avgRet*252-1.5)/annVol:null;
+  // Sortino: like Sharpe but only downside deviation (negative returns)
+  const negRets=rets.filter(r=>r<0);
+  const downsideVar=negRets.length>1?negRets.reduce((a,b)=>a+b*b,0)/(negRets.length-1):0;
+  const downsideAnnVol=Math.sqrt(downsideVar)*Math.sqrt(252);
+  const sortino=downsideAnnVol>0?(avgRet*252-1.5)/downsideAnnVol:null;
+  // Calmar: annualized return / |max DD|. For momentum strategies.
+  const calmar=(maxDD<0&&cagr!=null)?(cagr/Math.abs(maxDD)):null;
   let bestDay={ret:-Infinity,date:null,val:0},worstDay={ret:Infinity,date:null,val:0};
   for(const d of dailyRet){if(d.r>bestDay.ret)bestDay={ret:d.r,date:d.date,val:d.chg};if(d.r<worstDay.ret)worstDay={ret:d.r,date:d.date,val:d.chg};}
   const winDays=rets.filter(r=>r>0).length;
@@ -4673,17 +4776,60 @@ function calcAnalytics(hold,nav,tx){
   const cashDeposits=txDeposits.reduce((s,t)=>s+(t.total||0),0);
   const avgMonthly=txDeposits.length>0?cashDeposits/txDeposits.length:0;
   const lastTx=[...tx].reverse().find(t=>t.plan);
-  return{tot,prev,cost,pnl,pp,dc,dp,navDt:ln?.date?fDt(ln.date):'-',maxDD,ddEnd,peakValue,peakDate,peakProfit,peakProfitDate,peakProfitValue,peakProfitCost,cagr,yearsHeld,daysHeld,annVol,sharpe,winRate,winDays,totalDays:rets.length,bestDay,worstDay,avgMonthly,txCount:txDeposits.length,currentPlan:lastTx?.plan||'-',startDate,portSeries};
+  // IRR (Money-Weighted Return): solve for r where NPV of cash flows + final value = 0
+  // Cash flows: deposits (negative outflows from investor's perspective), final port value (positive)
+  const cashFlows=[];
+  for(const t of txDeposits){cashFlows.push({date:t.date,amount:-(t.total||0)});}
+  if(ln&&tot>0)cashFlows.push({date:ln.date,amount:tot});
+  const irr=calcIRR(cashFlows);
+  // Tax savings (Thai PIT): GPF deductible up to 500k/yr (or 15% of income).
+  // Assume 20% marginal rate as approximation. taxSaved = sum of member contributions × 20%
+  const memberDeductible=txDeposits.reduce((s,t)=>s+(t.accum||0)+(t.extra||0),0);
+  const taxSaved=memberDeductible*0.20;
+  return{tot,prev,cost,pnl,pp,dc,dp,navDt:ln?.date?fDt(ln.date):'-',maxDD,ddEnd,peakValue,peakDate,peakProfit,peakProfitDate,peakProfitValue,peakProfitCost,cagr,yearsHeld,daysHeld,annVol,sharpe,sortino,calmar,irr,taxSaved,memberDeductible,winRate,winDays,totalDays:rets.length,bestDay,worstDay,avgMonthly,txCount:txDeposits.length,currentPlan:lastTx?.plan||'-',startDate,portSeries};
+}
+// IRR via Newton-Raphson with bisection fallback. cashFlows: [{date, amount}] (deposits negative).
+// Returns annualized %, or null if no convergence.
+function calcIRR(cashFlows){
+  if(!cashFlows||cashFlows.length<2)return null;
+  const sorted=[...cashFlows].sort((a,b)=>a.date-b.date);
+  const t0=sorted[0].date;
+  const yrs=sorted.map(c=>(c.date-t0)/(365*864e5));
+  const amts=sorted.map(c=>c.amount);
+  // NPV at rate r
+  const npv=r=>amts.reduce((s,a,i)=>s+a/Math.pow(1+r,yrs[i]),0);
+  const dnpv=r=>amts.reduce((s,a,i)=>s-a*yrs[i]/Math.pow(1+r,yrs[i]+1),0);
+  // Newton-Raphson
+  let r=0.1;
+  for(let iter=0;iter<60;iter++){
+    const f=npv(r),df=dnpv(r);
+    if(Math.abs(f)<1e-6)return r*100;
+    if(Math.abs(df)<1e-12)break;
+    const newR=r-f/df;
+    if(newR<-0.99)r=-0.5; // prevent divergence
+    else r=newR;
+    if(Math.abs(newR-r)<1e-9)break;
+  }
+  // Bisection fallback
+  let lo=-0.99,hi=10;
+  if(npv(lo)*npv(hi)>0)return null;
+  for(let iter=0;iter<200;iter++){
+    const mid=(lo+hi)/2,fm=npv(mid);
+    if(Math.abs(fm)<1e-6||(hi-lo)<1e-9)return mid*100;
+    if(npv(lo)*fm<0)hi=mid;else lo=mid;
+  }
+  return null;
 }
 
 function renderPortAll(){
   const hold=calcHold(TX_PORT);
   const analytics=calcAnalytics(hold,NAV_PORT,TX_PORT);
-  renderPortCards(hold,analytics);renderHold(hold,NAV_PORT);renderPerfAttrib(hold,NAV_PORT,TX_PORT);renderNavTbl(NAV_PORT,hold);
+  renderPortCards(hold,analytics);renderHold(hold,NAV_PORT);renderPerfAttrib(hold,NAV_PORT,TX_PORT);renderPerfAttribMonth(TX_PORT,NAV_PORT);renderPortHeatmap(TX_PORT,NAV_PORT);renderRebalROI(TX_PORT,NAV_PORT);renderNavTbl(NAV_PORT,hold);
   renderDaily(NAV_PORT,TX_PORT);renderTxTbl(TX_PORT);renderMon(TX_PORT);
   showPortDash();
   requestAnimationFrame(()=>{requestAnimationFrame(()=>{
     renderPortChart(curPeriod);renderAlloc(hold,NAV_PORT);
+    renderContribPie(TX_PORT,NAV_PORT,hold);
     renderYearlySummary(NAV_PORT,TX_PORT);
   });});
   el('port-last-update').textContent='อัพเดต: '+new Date().toLocaleTimeString('th-TH');
@@ -4792,9 +4938,12 @@ function renderPortCards(hold,a){
     {l:'Peak Value',v:'฿'+fmt(a.peakValue,2),s:'ณ '+fDt(a.peakDate),c:'ca',clr:'var(--amber)'},
     {l:'Peak Profit',v:a.peakProfit!=null?fmtS(a.peakProfit)+' ฿':'-',s:(a.peakProfitCost>0?fmtS((a.peakProfit/a.peakProfitCost)*100)+'% จากต้นทุน · ':'')+fDt(a.peakProfitDate),c:a.peakProfit>=0?'cG':'cr',clr:a.peakProfit>=0?'var(--green)':'var(--red)'},
     {l:'Max Drawdown',v:fmt(a.maxDD,2)+'%',s:'ต่ำสุด ณ '+fDt(a.ddEnd),c:'cr',clr:a.maxDD<0?'var(--red)':'var(--t2)'},
-    {l:'Annualized Return',v:a.cagr!=null?fmtS(a.cagr)+'%':'-',s:'CAGR/ปี',c:a.cagr>=0?'cG':'cr',clr:a.cagr!=null?co(a.cagr):'var(--t2)'},
+    {l:'CAGR (Simple)',v:a.cagr!=null?fmtS(a.cagr)+'%':'-',s:'(สมมติ lump sum)',c:a.cagr>=0?'cG':'cr',clr:a.cagr!=null?co(a.cagr):'var(--t2)'},
+    {l:'IRR (Money-weighted)',v:a.irr!=null?fmtS(a.irr)+'%':'-',s:'ผลตอบแทนจริง DCA',c:a.irr>=0?'cG':'cr',clr:a.irr!=null?co(a.irr):'var(--t2)'},
     {l:'Volatility (ปี)',v:a.annVol>0?fmt(a.annVol,2)+'%':'-',s:'ความผันผวน Annualized',c:'cp',clr:'var(--purple)'},
     {l:'Sharpe Ratio',v:a.sharpe!=null?fmt(a.sharpe,2):'-',s:a.sharpe>=1?'ดีมาก':a.sharpe>=0.5?'ดี':'พอใช้',c:'cp',clr:'var(--purple)'},
+    {l:'Sortino Ratio',v:a.sortino!=null?fmt(a.sortino,2):'-',s:'ปรับเฉพาะ downside',c:'cp',clr:'var(--purple)'},
+    {l:'Calmar Ratio',v:a.calmar!=null?fmt(a.calmar,2):'-',s:'CAGR ÷ |Max DD|',c:'cp',clr:'var(--purple)'},
     {l:'Win Rate',v:fmt(a.winRate,1)+'%',s:a.winDays+'/'+a.totalDays+' วัน',c:'ct',clr:a.winRate>=50?'var(--teal)':'var(--t2)'},
   ];
   const durStr=a.daysHeld>0?(a.daysHeld>=365?fmt(a.yearsHeld,1)+' ปี':a.daysHeld+' วัน'):'-';
@@ -4802,6 +4951,7 @@ function renderPortCards(hold,a){
     {l:'Best Day',v:a.bestDay.date?fmtS(a.bestDay.ret)+'%':'-',s:a.bestDay.date?fDt(a.bestDay.date)+' · ฿'+fmtS(a.bestDay.val||0):'-',c:'cG',clr:'var(--green)'},
     {l:'Worst Day',v:a.worstDay.date?fmtS(a.worstDay.ret)+'%':'-',s:a.worstDay.date?fDt(a.worstDay.date)+' · ฿'+fmtS(a.worstDay.val||0):'-',c:'cr',clr:'var(--red)'},
     {l:'ระยะเวลาลงทุน',v:durStr,s:'เริ่ม '+fDt(a.startDate),c:'cg',clr:'var(--gold)'},
+    {l:'ภาษีประหยัด',v:'~฿'+fmt(a.taxSaved,0),s:'จาก ฿'+fmt(a.memberDeductible,0)+' · สมมติ 20% PIT',c:'ct',clr:'var(--teal)'},
   ];
   const mkCard=x=>'<div class="pc '+x.c+'"><div class="clbl">'+x.l+'</div><div class="cval" style="color:'+x.clr+'">'+x.v+'</div><div class="csub">'+x.s+'</div></div>';
   el('cards-row1').innerHTML=row1.map(mkCard).join('');
@@ -4936,6 +5086,274 @@ function renderPerfAttrib(hold,nav,tx){
   body.innerHTML=html;
   sec.style.display='block';
 }
+// Monthly P&L per asset: for each year-month, compute startVal/endVal/cashFlow/PnL per fund
+function renderPerfAttribMonth(tx,nav){
+  const body=el('perf-attrib-month-body');if(!body)return;
+  if(!nav||nav.length<2||!tx||tx.length<1){body.innerHTML='<div style="color:var(--t3);padding:16px">ข้อมูลไม่พอ</div>';return;}
+  const txSorted=[...tx].sort((a,b)=>a.date-b.date);
+  // Collect year-months that have NAV data
+  const monthSet=new Set();
+  for(const n of nav)monthSet.add(n.date.getFullYear()+'-'+String(n.date.getMonth()+1).padStart(2,'0'));
+  const months=[...monthSet].sort().reverse();
+  let html='';
+  for(const ym of months){
+    const[year,mo]=ym.split('-').map(Number);
+    const monthStart=new Date(year,mo-1,1);
+    const monthEnd=new Date(year,mo,0,23,59,59);
+    // NAV at month start (last NAV before this month) and end (last NAV in month)
+    let navStart=null,navEnd=null;
+    for(const n of nav){
+      if(n.date<monthStart)navStart=n;
+      if(n.date>=monthStart&&n.date<=monthEnd)navEnd=n;
+    }
+    if(!navEnd)continue;
+    // Holdings at start (TX strictly before month) and end (TX up to monthEnd)
+    const holdStart={},holdEnd={},cashFlow={};
+    for(const t of txSorted){
+      if(t.date<monthStart){
+        for(const[f,a]of Object.entries(t.amounts))holdStart[f]=(holdStart[f]||0)+a.u;
+        for(const[f,a]of Object.entries(t.amounts))holdEnd[f]=(holdEnd[f]||0)+a.u;
+      }else if(t.date<=monthEnd){
+        for(const[f,a]of Object.entries(t.amounts)){
+          holdEnd[f]=(holdEnd[f]||0)+a.u;
+          const c=_txCostOf(a);
+          if(a.u>0)cashFlow[f]=(cashFlow[f]||0)+c;
+          else if(a.u<0)cashFlow[f]=(cashFlow[f]||0)-c;
+        }
+      }
+    }
+    // Compute per-asset PnL
+    const allFunds=new Set([...Object.keys(holdStart),...Object.keys(holdEnd),...Object.keys(cashFlow)]);
+    const rows=[];let totStart=0,totEnd=0,totFlow=0,totPnl=0;
+    for(const f of allFunds){
+      const uS=holdStart[f]||0,uE=holdEnd[f]||0;
+      const navS=navStart?.funds?.[f],navE=navEnd?.funds?.[f];
+      const sV=(navS&&Math.abs(uS)>0.0001)?uS*navS:0;
+      const eV=(navE&&Math.abs(uE)>0.0001)?uE*navE:0;
+      const fl=cashFlow[f]||0;
+      const pnl=eV-sV-fl;
+      if(Math.abs(sV)<0.01&&Math.abs(eV)<0.01&&Math.abs(fl)<0.01)continue;
+      const base=Math.abs(sV)+Math.abs(fl)*0.5;
+      const pct=base>0?(pnl/base)*100:0;
+      rows.push({f,sV,eV,fl,pnl,pct});
+      totStart+=sV;totEnd+=eV;totFlow+=fl;totPnl+=pnl;
+    }
+    if(rows.length===0)continue;
+    rows.sort((a,b)=>b.pnl-a.pnl);
+    // Render section per month
+    const ymLbl=monthStart.toLocaleDateString('th-TH-u-ca-gregory',{year:'numeric',month:'long'});
+    const totBase=Math.abs(totStart)+Math.abs(totFlow)*0.5;
+    const totPct=totBase>0?(totPnl/totBase)*100:0;
+    const totClr=totPnl>=0?'var(--green)':'var(--red)';
+    html+='<div style="margin-bottom:14px;border:1px solid var(--b1);border-radius:8px;padding:10px;background:var(--bg-1)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;font-family:var(--mono)">'
+      +'<div style="font-weight:700;color:var(--gold);font-size:13px">'+ymLbl+'</div>'
+      +'<div style="font-weight:700;color:'+totClr+';font-size:13px">'+fmtS(totPnl)+' ฿ ('+fmtS(totPct)+'%)</div>'
+      +'</div>'
+      +'<table style="width:100%;font-size:11px;font-family:var(--mono)">'
+      +'<thead><tr style="border-bottom:1px solid var(--b2);color:var(--t2)">'
+      +'<th style="text-align:left;padding:4px 6px">กองทุน</th>'
+      +'<th style="text-align:right;padding:4px 6px">ต้นเดือน</th>'
+      +'<th style="text-align:right;padding:4px 6px">สิ้นเดือน</th>'
+      +'<th style="text-align:right;padding:4px 6px">เงินไหลเข้า</th>'
+      +'<th style="text-align:right;padding:4px 6px">P&L</th>'
+      +'<th style="text-align:right;padding:4px 6px">%</th>'
+      +'</tr></thead><tbody>';
+    for(const r of rows){
+      const m=FM[r.f]||{l:r.f,c:'#888'};
+      const cc=r.pnl>=0?'var(--green)':'var(--red)';
+      html+='<tr style="border-bottom:1px solid var(--b1)">'
+        +'<td style="padding:4px 6px"><span style="background:'+m.c+';display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:middle"></span>'+m.l+'</td>'
+        +'<td style="text-align:right;padding:4px 6px">'+fmt(r.sV,2)+'</td>'
+        +'<td style="text-align:right;padding:4px 6px">'+fmt(r.eV,2)+'</td>'
+        +'<td style="text-align:right;padding:4px 6px;color:var(--acc)">'+fmtS(r.fl)+'</td>'
+        +'<td style="text-align:right;padding:4px 6px;color:'+cc+';font-weight:600">'+fmtS(r.pnl)+'</td>'
+        +'<td style="text-align:right;padding:4px 6px;color:'+cc+'">'+fmtS(r.pct)+'%</td>'
+        +'</tr>';
+    }
+    html+='</tbody></table></div>';
+  }
+  body.innerHTML=html||'<div style="color:var(--t3);padding:16px">ไม่มีข้อมูล</div>';
+}
+// Monthly Returns Heatmap: matrix of year × month with portfolio returns
+function renderPortHeatmap(tx,nav){
+  const body=el('port-heatmap-body');if(!body)return;
+  if(!nav||nav.length<2){body.innerHTML='<div style="color:var(--t3);padding:16px">ข้อมูลไม่พอ</div>';return;}
+  const txSorted=[...tx].sort((a,b)=>a.date-b.date);
+  // Compute monthly returns map: yyyy-mm → {pnl, pct}
+  const monthSet=new Set();
+  for(const n of nav)monthSet.add(n.date.getFullYear()+'-'+String(n.date.getMonth()+1).padStart(2,'0'));
+  const months=[...monthSet].sort();
+  const monthData={};const yearData={};
+  for(const ym of months){
+    const[yr,mo]=ym.split('-').map(Number);
+    const mStart=new Date(yr,mo-1,1);
+    const mEnd=new Date(yr,mo,0,23,59,59);
+    let navStart=null,navEnd=null;
+    for(const n of nav){if(n.date<mStart)navStart=n;if(n.date>=mStart&&n.date<=mEnd)navEnd=n;}
+    if(!navEnd)continue;
+    const holdStart={},holdEnd={};let cashIn=0;
+    for(const t of txSorted){
+      if(t.date<mStart){
+        for(const[f,a]of Object.entries(t.amounts))holdStart[f]=(holdStart[f]||0)+a.u;
+        for(const[f,a]of Object.entries(t.amounts))holdEnd[f]=(holdEnd[f]||0)+a.u;
+      }else if(t.date<=mEnd){
+        for(const[f,a]of Object.entries(t.amounts))holdEnd[f]=(holdEnd[f]||0)+a.u;
+        if(t.type==='เงินนำส่ง')cashIn+=t.total||0;
+      }
+    }
+    let sV=0,eV=0;
+    for(const[f,u]of Object.entries(holdStart)){const nv=navStart?.funds?.[f];if(nv&&Math.abs(u)>0.0001)sV+=u*nv;}
+    for(const[f,u]of Object.entries(holdEnd)){const nv=navEnd?.funds?.[f];if(nv&&Math.abs(u)>0.0001)eV+=u*nv;}
+    if(Math.abs(sV)<0.01&&Math.abs(eV)<0.01)continue;
+    const pnl=eV-sV-cashIn;
+    const base=Math.abs(sV)+Math.abs(cashIn)*0.5;
+    const pct=base>0?(pnl/base)*100:0;
+    monthData[ym]={pnl,pct,sV,eV,cashIn};
+    if(!yearData[yr])yearData[yr]={pnl:0,base:0};
+    yearData[yr].pnl+=pnl;yearData[yr].base+=base;
+  }
+  // Only include years that have actual monthly data (skip empty NAV-only years)
+  const allYears=[...new Set(Object.keys(monthData).map(m=>+m.split('-')[0]))].sort();
+  // Render heatmap
+  const monthLbls=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const colorFor=(pct)=>{
+    if(pct==null)return 'transparent';
+    const p=Math.max(-10,Math.min(10,pct));
+    const intensity=Math.abs(p)/10;
+    if(p>=0)return 'rgba(0,230,118,'+(0.15+intensity*0.65).toFixed(2)+')';
+    return 'rgba(255,61,90,'+(0.15+intensity*0.65).toFixed(2)+')';
+  };
+  let html='<div style="overflow-x:auto"><table style="border-collapse:collapse;font-family:var(--mono);font-size:11px;width:100%">';
+  html+='<thead><tr><th style="padding:6px;text-align:left;color:var(--t2)">ปี</th>';
+  monthLbls.forEach(m=>html+='<th style="padding:6px;text-align:center;color:var(--t2);min-width:60px">'+m+'</th>');
+  html+='<th style="padding:6px;text-align:center;color:var(--t2);background:rgba(255,193,32,.08)">รวม</th>';
+  html+='</tr></thead><tbody>';
+  for(const yr of allYears){
+    // Year total = compound (geometric) of monthly returns
+    let yrCompound=1;let hasMonth=false;
+    html+='<tr style="border-top:1px solid var(--b1)"><td style="padding:6px;font-weight:700;color:var(--gold)">'+yr+'</td>';
+    for(let m=1;m<=12;m++){
+      const ym=yr+'-'+String(m).padStart(2,'0');
+      const d=monthData[ym];
+      if(d){
+        yrCompound*=(1+d.pct/100);hasMonth=true;
+        const c=colorFor(d.pct);
+        const txt=fmtS(d.pct)+'%';
+        const ttl=fDt(new Date(yr,m-1,15))+' · P&L: '+fmtS(d.pnl)+' ฿';
+        html+='<td title="'+ttl+'" style="padding:6px;text-align:center;background:'+c+';font-weight:600">'+txt+'</td>';
+      }else{
+        html+='<td style="padding:6px;text-align:center;color:var(--t3)">-</td>';
+      }
+    }
+    const yrPct=hasMonth?(yrCompound-1)*100:0;
+    const yrClr=colorFor(yrPct);
+    html+='<td style="padding:6px;text-align:center;background:'+yrClr+';font-weight:700">'+fmtS(yrPct)+'%</td>';
+    html+='</tr>';
+  }
+  html+='</tbody></table></div>';
+  html+='<div style="font-size:10px;color:var(--t3);margin-top:8px">* % คำนวณ Modified Dietz: PnL ÷ (ต้นเดือน + เงินไหลเข้า×0.5) · สี: เขียวเข้ม=บวกมาก แดงเข้ม=ลบมาก</div>';
+  body.innerHTML=html;
+}
+// Rebalance Decision ROI: track each rebalance and compute its outcome
+function renderRebalROI(tx,nav){
+  const body=el('rebal-roi-body');if(!body)return;
+  if(!nav||nav.length<2||!tx||tx.length<1){body.innerHTML='<div style="color:var(--t3);padding:16px">ข้อมูลไม่พอ</div>';return;}
+  const rebalTx=tx.filter(t=>t.type&&(t.type.includes('เปลี่ยนแผน')||t.type.toLowerCase().includes('rebal'))).sort((a,b)=>a.date-b.date);
+  // Pair OUT/IN by date — each rebalance event = 1 row showing transition
+  const events=[];
+  let i=0;
+  while(i<rebalTx.length){
+    const t=rebalTx[i];
+    if(t.type.includes('ออก')){
+      const next=rebalTx[i+1];
+      if(next&&next.type.includes('เข้า')&&next.date.toDateString()===t.date.toDateString()){
+        events.push({date:t.date,from:t.plan,to:next.plan});
+        i+=2;continue;
+      }
+    }
+    if(t.type.includes('เข้า'))events.push({date:t.date,from:'-',to:t.plan});
+    i++;
+  }
+  if(events.length===0){body.innerHTML='<div style="color:var(--t3);padding:16px">ไม่มี rebalance</div>';return;}
+  const txSorted=[...tx].sort((a,b)=>a.date-b.date);
+  // For each event compute portfolio value at: event date, +30d, +90d, current/next event
+  const portValAt=(date)=>{
+    const cutoff=new Date(date.getTime()+0.5*864e5);
+    let n=null;for(const r of nav){if(r.date<=cutoff)n=r;else break;}
+    if(!n)return null;
+    const u={};for(const t of txSorted){if(t.date>cutoff)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;}
+    let v=0;for(const[f,unit]of Object.entries(u)){if(Math.abs(unit)<0.0001)continue;const nv=n.funds[f];if(nv)v+=unit*nv;}
+    return{val:v,date:n.date};
+  };
+  const lnDate=nav[nav.length-1].date;
+  const rows=events.map((ev,idx)=>{
+    const start=portValAt(ev.date);
+    const next=events[idx+1];
+    const endDate=next?new Date(next.date.getTime()-864e5):lnDate;
+    const end=portValAt(endDate);
+    const d30=portValAt(new Date(ev.date.getTime()+30*864e5));
+    const d90=portValAt(new Date(ev.date.getTime()+90*864e5));
+    // Cash flow during event period (deposits)
+    const cashFlow=txSorted.filter(t=>t.date>ev.date&&t.date<=endDate&&t.type==='เงินนำส่ง').reduce((s,t)=>s+(t.total||0),0);
+    const sV=start?.val||0,eV=end?.val||0;
+    const pnl=eV-sV-cashFlow;
+    const days=Math.round((endDate-ev.date)/864e5);
+    const base=Math.abs(sV)+Math.abs(cashFlow)*0.5;
+    const pct=base>0?(pnl/base)*100:0;
+    // 30d and 90d returns (no cash flow adjustment for simplicity)
+    const ret30=(d30&&sV>0)?((d30.val-sV)/sV*100):null;
+    const ret90=(d90&&sV>0)?((d90.val-sV)/sV*100):null;
+    return{date:ev.date,from:ev.from,to:ev.to,startVal:sV,endVal:eV,cashFlow,days,pnl,pct,ret30,ret90,isCurrent:!next};
+  });
+  // Stats
+  const completed=rows.filter(r=>!r.isCurrent);
+  const winCount=completed.filter(r=>r.pnl>0).length;
+  const winRate=completed.length>0?(winCount/completed.length*100):0;
+  const totPnl=completed.reduce((s,r)=>s+r.pnl,0);
+  // Render
+  let html='<div style="display:flex;gap:14px;margin-bottom:12px;flex-wrap:wrap">'
+    +'<div style="font-size:12px;color:var(--t2)">Total rebalances: <b style="color:var(--text)">'+events.length+'</b></div>'
+    +'<div style="font-size:12px;color:var(--t2)">Win rate: <b style="color:'+(winRate>=50?'var(--green)':'var(--red)')+'">'+fmt(winRate,1)+'%</b> ('+winCount+'/'+completed.length+')</div>'
+    +'<div style="font-size:12px;color:var(--t2)">Total Realized PnL: <b style="color:'+(totPnl>=0?'var(--green)':'var(--red)')+'">'+fmtS(totPnl)+' ฿</b></div>'
+    +'</div>';
+  html+='<table style="width:100%;border-collapse:collapse;font-family:var(--mono);font-size:11px">'
+    +'<thead><tr style="border-bottom:1px solid var(--b2);color:var(--t2)">'
+    +'<th style="padding:6px;text-align:left">วันที่</th>'
+    +'<th style="padding:6px;text-align:left">From → To</th>'
+    +'<th style="padding:6px;text-align:right">วัน</th>'
+    +'<th style="padding:6px;text-align:right">ต้นทุน</th>'
+    +'<th style="padding:6px;text-align:right">เงินเข้า</th>'
+    +'<th style="padding:6px;text-align:right">สิ้นสุด</th>'
+    +'<th style="padding:6px;text-align:right">PnL</th>'
+    +'<th style="padding:6px;text-align:right">% ระยะ</th>'
+    +'<th style="padding:6px;text-align:right">+30d</th>'
+    +'<th style="padding:6px;text-align:right">+90d</th>'
+    +'<th style="padding:6px;text-align:center">Decision</th>'
+    +'</tr></thead><tbody>';
+  for(const r of [...rows].reverse()){
+    const cc=r.pnl>=0?'var(--green)':'var(--red)';
+    const decision=r.isCurrent?'<span style="color:var(--gold);font-size:10px">ปัจจุบัน</span>':r.pnl>=0?'<span style="color:var(--green)">✓ ดี</span>':'<span style="color:var(--red)">✗ พลาด</span>';
+    const r30=r.ret30!=null?'<span style="color:'+(r.ret30>=0?'var(--green)':'var(--red)')+'">'+fmtS(r.ret30)+'%</span>':'-';
+    const r90=r.ret90!=null?'<span style="color:'+(r.ret90>=0?'var(--green)':'var(--red)')+'">'+fmtS(r.ret90)+'%</span>':'-';
+    html+='<tr style="border-bottom:1px solid var(--b1)">'
+      +'<td style="padding:6px">'+fDt(r.date)+'</td>'
+      +'<td style="padding:6px;color:var(--t2)">'+esc(r.from)+' → <b style="color:var(--text)">'+esc(r.to)+'</b></td>'
+      +'<td style="padding:6px;text-align:right">'+r.days+'</td>'
+      +'<td style="padding:6px;text-align:right">'+fmt(r.startVal,2)+'</td>'
+      +'<td style="padding:6px;text-align:right;color:var(--acc)">'+(r.cashFlow>0?'+'+fmt(r.cashFlow,2):'0.00')+'</td>'
+      +'<td style="padding:6px;text-align:right">'+fmt(r.endVal,2)+'</td>'
+      +'<td style="padding:6px;text-align:right;color:'+cc+';font-weight:600">'+fmtS(r.pnl)+'</td>'
+      +'<td style="padding:6px;text-align:right;color:'+cc+'">'+fmtS(r.pct)+'%</td>'
+      +'<td style="padding:6px;text-align:right">'+r30+'</td>'
+      +'<td style="padding:6px;text-align:right">'+r90+'</td>'
+      +'<td style="padding:6px;text-align:center">'+decision+'</td>'
+      +'</tr>';
+  }
+  html+='</tbody></table>';
+  html+='<div style="font-size:10px;color:var(--t3);margin-top:8px">* PnL คำนวณจาก endVal − startVal − cashFlow ในช่วง · % ระยะใช้ Modified Dietz · Decision: rebalance ที่จบด้วย PnL บวก</div>';
+  body.innerHTML=html;
+}
 function renderNavTbl(nav,hold){
   const active=Object.keys(hold).filter(f=>FM[f]&&nav.some(n=>n.funds[f]));
   const allNav=[...nav].reverse();
@@ -4976,6 +5394,39 @@ function renderDaily(nav,tx){
 //  CHARTS (from v18)
 // ================================================================
 const CD={responsive:true,maintainAspectRatio:false,resizeDelay:0,animation:{duration:400},plugins:{legend:{labels:{color:'#7888a8',font:{family:'Sarabun',size:11}}}},scales:{x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',maxTicksLimit:8,font:{size:10,family:'IBM Plex Mono'}}},y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:10,family:'IBM Plex Mono'}}}}};
+// Custom plugin: draw % label on each doughnut slice (skips slices < minPct)
+const doughnutPctLabel={id:'doughnutPctLabel',afterDatasetsDraw(chart,args,opts){
+  if(chart.config.type!=='doughnut'&&chart.config.type!=='pie')return;
+  const minPct=opts?.minPct??2;
+  const ctx=chart.ctx;
+  const ds=chart.data.datasets[0];if(!ds)return;
+  const meta=chart.getDatasetMeta(0);
+  const total=ds.data.reduce((a,b)=>a+(+b||0),0);if(total<=0)return;
+  ctx.save();
+  ctx.font='600 12px Sarabun, sans-serif';
+  ctx.textAlign='center';ctx.textBaseline='middle';
+  meta.data.forEach((arc,i)=>{
+    const v=ds.data[i];if(v==null||v<=0)return;
+    const pct=(v/total)*100;if(pct<minPct)return;
+    const a=(arc.startAngle+arc.endAngle)/2;
+    const r=(arc.innerRadius+arc.outerRadius)/2+(arc.outerRadius-arc.innerRadius)*0.15;
+    const x=arc.x+Math.cos(a)*r;
+    const y=arc.y+Math.sin(a)*r;
+    const txt=pct.toFixed(1)+'%';
+    // Pill bg
+    const w=ctx.measureText(txt).width+10,h=18;
+    ctx.fillStyle='rgba(255,255,255,.95)';
+    ctx.beginPath();
+    if(ctx.roundRect)ctx.roundRect(x-w/2,y-h/2,w,h,9);
+    else ctx.rect(x-w/2,y-h/2,w,h);
+    ctx.fill();
+    // Text
+    ctx.fillStyle='#0d1526';
+    ctx.fillText(txt,x,y+1);
+  });
+  ctx.restore();
+}};
+Chart.register(doughnutPctLabel);
 // Smart tooltip positioners: flip to opposite side of cursor
 Chart.Tooltip.positioners.smartFlip = function(elements, eventPosition) {
   const area = this.chart.chartArea;
@@ -5010,6 +5461,25 @@ Chart.Tooltip.positioners.navArea = function(elements, eventPosition) {
 // Sort tooltip items by value descending
 const ttSortDesc = (a,b) => (b.parsed?.y ?? b.parsed ?? 0) - (a.parsed?.y ?? a.parsed ?? 0);
 const fmtDateChart=d=>d.toLocaleDateString('th-TH-u-ca-gregory',{month:'short',day:'numeric'});
+// Emoji-as-canvas pointStyle helper (cached)
+const _emojiCache={};
+function emojiPoint(emoji,size){
+  size=size||18;
+  const k=emoji+'_'+size;
+  if(_emojiCache[k])return _emojiCache[k];
+  const c=document.createElement('canvas');
+  const dpr=(window.devicePixelRatio||1);
+  c.width=size*dpr; c.height=size*dpr;
+  c.style.width=size+'px'; c.style.height=size+'px';
+  const ctx=c.getContext('2d');
+  ctx.scale(dpr,dpr);
+  ctx.font=(size*0.85)+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
+  ctx.textAlign='center';
+  ctx.textBaseline='middle';
+  ctx.fillText(emoji,size/2,size/2);
+  _emojiCache[k]=c;
+  return c;
+}
 const fmtDateTooltip=d=>{const s=d.toLocaleDateString('th-TH-u-ca-gregory',{year:'numeric',month:'short',day:'numeric'});return s;};
 function destroyChart(key){if(portCharts[key]){try{portCharts[key].destroy();}catch(e){}delete portCharts[key];}}
 
@@ -5087,19 +5557,32 @@ function renderPortChart(days){
   if(_portSyncAC){_portSyncAC.abort();_portSyncAC=null;}
   if(l.length<2){const c=ctx.getContext('2d');c.clearRect(0,0,ctx.width,ctx.height);c.fillStyle='#7888a8';c.font='13px Sarabun';c.textAlign='center';c.fillText(TX_PORT.length===0?'ไม่พบ Transaction — โหลด TX Sheet ด้วย':'ข้อมูลน้อยเกินไป ลอง All',ctx.clientWidth/2||200,110);return;}
   const rebalTx=TX_PORT.filter(t=>t.type&&(t.type.includes('เปลี่ยนแผน')||t.type.toLowerCase().includes('rebal')));
-  const rebalDates=new Set(rebalTx.map(t=>t.date.toDateString()));
-  const rebalData=l.map((d,i)=>rebalDates.has(d.toDateString())?v[i]:null);
+  const rebalPlanMap={};
+  for(const t of rebalTx){const k=t.date.toDateString();rebalPlanMap[k]=t.plan||'-';}
+  const rebalData=l.map((d,i)=>rebalPlanMap[d.toDateString()]?v[i]:null);
+  // Deposit markers (เงินนำส่ง)
+  const depositTx=TX_PORT.filter(t=>t.type==='เงินนำส่ง'&&t.total>0);
+  const depositMap={};
+  for(const t of depositTx){const k=t.date.toDateString();depositMap[k]=(depositMap[k]||0)+(t.total||0);}
+  const depositData=l.map((d,i)=>depositMap[d.toDateString()]?v[i]:null);
   const labels=l.map(fmtDateChart);
-  // Compute DD data — adjust peak by deposits so DD isn't inflated by DCA
+  // Compute DD data — running max of portfolio value
+  // → When val is at all-time high, peak = val, DD = 0%
   let peak=0;
-  const ddData=v.map((val,i)=>{const dep=i>0?iv[i]-iv[i-1]:iv[0];if(dep>0)peak+=dep;if(val>peak)peak=val;return peak>0?(val-peak)/peak*100:0;});
+  const ddData=v.map(val=>{
+    if(val>peak)peak=val;
+    return peak>0?(val-peak)/peak*100:0;
+  });
   const datasets=[
-    {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,
+    {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,_isLine:true,
       backgroundColor:c=>{const a=c.chart.chartArea;if(!a)return'rgba(255,193,32,.15)';const g=c.chart.ctx.createLinearGradient(0,a.top,0,a.bottom);g.addColorStop(0,'rgba(255,193,32,.2)');g.addColorStop(1,'rgba(255,193,32,0)');return g;}},
-    {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3},
+    {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3,_isLine:true},
   ];
   if(rebalData.some(v=>v!==null)){
-    datasets.push({label:'📌 Rebalance',data:rebalData,type:'line',fill:false,borderWidth:0,pointRadius:7,pointStyle:'triangle',pointBackgroundColor:'var(--red)',pointBorderColor:'#fff',pointBorderWidth:1.5,showLine:false});
+    datasets.push({label:'Rebalance',data:rebalData,type:'line',fill:false,borderWidth:0,pointRadius:7,pointHoverRadius:9,pointStyle:'triangle',pointBackgroundColor:'var(--red)',pointBorderColor:'#fff',pointBorderWidth:1.5,showLine:false});
+  }
+  if(depositData.some(v=>v!==null)){
+    datasets.push({label:'Deposit',data:depositData,type:'line',fill:false,borderWidth:0,pointRadius:6,pointHoverRadius:8,pointStyle:'circle',pointBackgroundColor:'#22c55e',pointBorderColor:'#fff',pointBorderWidth:1.5,showLine:false});
   }
   // Port chart with combined tooltip (Portfolio + DD)
   // Fixed y-axis width ensures port + DD x-axis alignment
@@ -5112,13 +5595,24 @@ function renderPortChart(days){
         x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'transparent',maxTicksLimit:8,font:{size:9,family:'IBM Plex Mono'}},afterFit(axis){axis.paddingRight=X_PAD_R;axis.paddingLeft=0;}},
         y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:10,family:'IBM Plex Mono'}},afterFit(axis){axis.width=Y_AXIS_W;}}
       },
-      plugins:{legend:{labels:{color:'#7888a8',font:{family:'Sarabun',size:11}}},
+      plugins:{legend:{position:'top',align:'center',labels:{color:'#c8d6f0',font:{family:'Sarabun',size:11,weight:'500'},usePointStyle:true,boxWidth:30,boxHeight:14,padding:14,
+        generateLabels:(chart)=>chart.data.datasets.map((ds,i)=>({
+          text:ds.label,
+          fillStyle:ds._isLine?(ds.borderColor||'#888'):(ds.pointBackgroundColor||ds.borderColor),
+          strokeStyle:ds._isLine?(ds.borderColor||'#888'):(ds.pointBorderColor||'#fff'),
+          lineWidth:ds._isLine?2:1.5,
+          lineDash:ds.borderDash||[],
+          pointStyle:ds._isLine?'line':(ds.pointStyle||'circle'),
+          hidden:!chart.isDatasetVisible(i),
+          datasetIndex:i,
+          fontColor:'#c8d6f0',
+        }))}},
         tooltip:{mode:'index',intersect:false,position:'smartFlip',caretSize:0,
           backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:12,
           titleColor:'#7888a8',titleFont:{family:'Sarabun',size:12},bodyFont:{family:'IBM Plex Mono',size:12},
-          filter:item=>item.dataset.label!=='📌 Rebalance',
+          filter:item=>item.dataset.label!=='Rebalance'&&item.dataset.label!=='Deposit',
           callbacks:{title:items=>{const i=items[0]?.dataIndex;return i!=null&&l[i]?fmtDateTooltip(l[i]):items[0]?.label||'';},label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}),
-            afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const ddIcon=dd>-2?'🟢':dd>-5?'🟡':'🔴';const parts=[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+fmtS(pct)+'%)',' '+ddIcon+' DD: '+dd.toFixed(2)+'%'];if(rebalData[i]!==null)parts.push(' 📌 Rebalance');return parts;}}
+            afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const ddIcon=dd>-2?'🟢':dd>-5?'🟡':'🔴';const parts=[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+fmtS(pct)+'%)',' '+ddIcon+' DD: '+dd.toFixed(2)+'%'];if(rebalData[i]!==null){const plan=rebalPlanMap[l[i].toDateString()]||'-';parts.push(' 📌 เปลี่ยนแผน: '+plan);}if(depositData[i]!==null){const dt=l[i].toDateString();const amt=depositMap[dt]||0;parts.push(' 💰 Deposit: ฿'+amt.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}));}return parts;}}
         }
       }
     }
@@ -5141,11 +5635,133 @@ function renderPortChart(days){
     _portSyncAC=setupPairSync(el('port-chart'),()=>portCharts.port,ddCtx,()=>portCharts.dd);
   }
 }
+// Cash Flow Composition: deposits as filled area + portfolio value as line.
+// Gap between line and area = market gain (or loss if line below area).
+function renderCashFlowComposition(tx,nav){
+  const ctx=el('cashflow-chart');if(!ctx)return;
+  destroyChart('cashflow');
+  const txSorted=[...tx].sort((a,b)=>a.date-b.date);
+  const lbls=[],depositData=[],valueData=[];
+  let txIdx=0,runDeposit=0;
+  for(const n of nav){
+    while(txIdx<txSorted.length&&txSorted[txIdx].date<=n.date){
+      const t=txSorted[txIdx];
+      if(t.type==='เงินนำส่ง')runDeposit+=t.total||0;
+      txIdx++;
+    }
+    const u={};for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;}
+    let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
+    if(val>0||valueData.length>0){
+      lbls.push(fmtDateChart(n.date));
+      depositData.push(runDeposit);
+      valueData.push(val);
+    }
+  }
+  portCharts.cashflow=new Chart(ctx.getContext('2d'),{type:'line',data:{labels:lbls,datasets:[
+    {label:'มูลค่า Portfolio',data:valueData,borderColor:'#ffc120',borderWidth:2.5,pointRadius:0,tension:.3,fill:false,order:1},
+    {label:'เงินลงทุนสะสม (ต้นทุนจริง)',data:depositData,backgroundColor:'rgba(59,130,246,0.35)',borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,3],fill:'origin',pointRadius:0,tension:.3,order:2}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{
+      legend:{position:'top',labels:{color:'#c8d6f0',font:{family:'Sarabun',size:11},usePointStyle:true,boxWidth:14,padding:10}},
+      tooltip:{mode:'index',intersect:false,backgroundColor:'rgba(9,17,31,.95)',padding:10,
+        callbacks:{
+          label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
+          afterBody:items=>{const i=items[0]?.dataIndex;if(i==null)return[];const dep=depositData[i],val=valueData[i];const gain=val-dep;const pct=dep>0?(gain/dep*100):0;const clr=gain>=0?'🟢':'🔴';return[' ─────────',' '+clr+' กำไร: ฿'+gain.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)'];}
+        }}},
+    scales:{
+      x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',maxTicksLimit:10,font:{size:9,family:'IBM Plex Mono'}}},
+      y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:10,family:'IBM Plex Mono'},callback:v=>'฿'+(v/1000).toFixed(0)+'K'}}
+    }
+  }});
+}
 function renderAlloc(hold,nav){
-  const ln=nav[nav.length-1];const ls=[],data=[],cs=[];
-  for(const[f,u]of Object.entries(hold)){const nv=ln?.funds[f];if(!nv||u*nv<=0)continue;const m=FM[f]||{l:f,c:'#888'};ls.push(m.l);data.push(u*nv);cs.push(m.c);}
+  const ln=nav[nav.length-1];const ls=[],data=[],cs=[],fkeys=[];
+  for(const[f,u]of Object.entries(hold)){const nv=ln?.funds[f];if(!nv||u*nv<=0)continue;const m=FM[f]||{l:f,c:'#888'};ls.push(m.l);data.push(u*nv);cs.push(m.c);fkeys.push(f);}
   const ctx=el('alloc-chart').getContext('2d');destroyChart('alloc');
-  portCharts.alloc=new Chart(ctx,{type:'doughnut',data:{labels:ls,datasets:[{data,backgroundColor:cs,borderColor:'#0d1526',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{position:'bottom',labels:{color:'#7888a8',font:{family:'Sarabun',size:11},padding:8}},tooltip:{callbacks:{label:c=>{const total=data.reduce((a,b)=>a+b,0);return' '+c.label+': ฿'+c.parsed.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+((c.parsed/total)*100).toFixed(1)+'%)';}}}}}}); }
+  portCharts.alloc=new Chart(ctx,{type:'doughnut',data:{labels:ls,datasets:[{data,backgroundColor:cs,borderColor:'#0d1526',borderWidth:2}]},options:{responsive:true,maintainAspectRatio:false,cutout:'65%',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{const total=data.reduce((a,b)=>a+b,0);return' '+c.label+': ฿'+c.parsed.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+((c.parsed/total)*100).toFixed(1)+'%)';}}}}}});
+  // Custom legend (outside canvas, like contrib chart)
+  const lg=el('alloc-legend');if(lg){
+    const total=data.reduce((a,b)=>a+b,0);
+    lg.innerHTML=ls.map((l,i)=>{
+      const pct=total>0?(data[i]/total*100):0;
+      return '<div style="display:flex;align-items:center;gap:6px;margin:3px 0;font-size:12px"><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:'+cs[i]+'"></span><span style="flex:1;color:var(--t2)">'+l+'</span><span style="font-family:var(--mono);color:var(--text)">฿'+fmt(data[i],2)+'</span><span style="font-family:var(--mono);color:var(--t3);min-width:50px;text-align:right">'+pct.toFixed(1)+'%</span></div>';
+    }).join('');
+  }
+}
+// Compute member/gov contribution split using time-weighted unit tracking.
+// For each TX row, source ratio (member/gov) is applied to per-fund units.
+// Switches preserve ratios automatically. Cash deposits (เงินนำส่ง) accumulate principal.
+// Then reconcile with actual portfolio value to absorb rounding/typo residuals.
+function calcContribSplit(tx,hold,latestNav){
+  const memberUnits={},govUnits={};
+  let memberCash=0,govCash=0;
+  for(const t of tx){
+    const memberPart=(t.accum||0)+(t.extra||0); // เงินสะสม + เงินสะสมส่วนเพิ่ม
+    const govPart=(t.comp||0)+(t.match||0);     // เงินชดเชย + เงินสมทบ
+    if(t.type==='เงินนำส่ง'){memberCash+=memberPart;govCash+=govPart;}
+    // Use (memberPart+govPart) as denominator (robust against typo in total column)
+    const denom=memberPart+govPart;
+    if(Math.abs(denom)<0.01)continue;
+    const mR=memberPart/denom,gR=govPart/denom;
+    for(const[f,a]of Object.entries(t.amounts)){
+      memberUnits[f]=(memberUnits[f]||0)+a.u*mR;
+      govUnits[f]=(govUnits[f]||0)+a.u*gR;
+    }
+  }
+  // Compute raw values
+  let memberValue=0,govValue=0;
+  for(const f of Object.keys({...memberUnits,...govUnits})){
+    const nv=latestNav?.funds?.[f];if(!nv)continue;
+    memberValue+=(memberUnits[f]||0)*nv;
+    govValue+=(govUnits[f]||0)*nv;
+  }
+  // Reconcile with actual portfolio total (pro-rata adjust for any residual)
+  let actualTotal=0;
+  for(const[f,u]of Object.entries(hold||{})){const nv=latestNav?.funds?.[f];if(nv)actualTotal+=u*nv;}
+  const rawTotal=memberValue+govValue;
+  if(Math.abs(rawTotal-actualTotal)>0.01&&rawTotal>0){
+    const scale=actualTotal/rawTotal;
+    memberValue*=scale;govValue*=scale;
+  }
+  return{memberCash,govCash,memberValue,govValue,
+    memberProfit:memberValue-memberCash,govProfit:govValue-govCash,
+    total:memberValue+govValue};
+}
+function renderContribPie(tx,nav,hold){
+  const ctx=el('contrib-chart');if(!ctx)return;
+  destroyChart('contrib');
+  const ln=nav[nav.length-1];if(!ln)return;
+  const s=calcContribSplit(tx,hold,ln);
+  // Donut: 4 slices (member principal, member profit, gov principal, gov profit)
+  const data=[s.memberCash,s.memberProfit,s.govCash,s.govProfit];
+  const labels=['เงินต้น (สมาชิก)','ผลประโยชน์ (สมาชิก)','เงินต้น (ภาครัฐ)','ผลประโยชน์ (ภาครัฐ)'];
+  const colors=['#22c55e','#86efac','#3b82f6','#7dd3fc'];
+  portCharts.contrib=new Chart(ctx.getContext('2d'),{type:'doughnut',
+    data:{labels,datasets:[{data,backgroundColor:colors,borderColor:'#0d1526',borderWidth:2}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{display:false},
+        tooltip:{callbacks:{label:c=>{const tot=data.reduce((a,b)=>a+b,0);return' '+c.label+': ฿'+c.parsed.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+((c.parsed/tot)*100).toFixed(1)+'%)';}}}}}});
+  // Date label
+  const dEl=el('contrib-date');if(dEl)dEl.textContent='· ณ '+fDt(ln.date);
+  // Legend table below
+  const legend=el('contrib-legend');if(!legend)return;
+  const mPct=(s.memberValue/s.total*100).toFixed(1),gPct=(s.govValue/s.total*100).toFixed(1);
+  const mProfClr=s.memberProfit>=0?'var(--green)':'var(--red)';
+  const gProfClr=s.govProfit>=0?'var(--green)':'var(--red)';
+  // Colored bullet helper: matches slice color in pie chart
+  const dot=c=>'<span style="display:inline-block;width:8px;height:8px;background:'+c+';border-radius:50%;margin-right:6px;vertical-align:middle"></span>';
+  legend.innerHTML=
+    '<table style="width:100%;border-collapse:collapse">'
+    +'<tr style="border-bottom:1px solid var(--b1)"><td style="padding:6px 0;color:#22c55e;font-weight:700">'+dot('#22c55e')+'เงินสะสมของท่าน</td><td style="text-align:right;padding:6px 0;color:#22c55e;font-weight:700">฿'+fmt(s.memberValue,2)+' ('+mPct+'%)</td></tr>'
+    +'<tr><td style="padding:3px 0 3px 18px;color:#22c55e">'+dot('#22c55e')+'เงินต้น</td><td style="text-align:right;padding:3px 0;color:#22c55e">฿'+fmt(s.memberCash,2)+'</td></tr>'
+    +'<tr style="border-bottom:1px solid var(--b1)"><td style="padding:3px 0 3px 18px;color:#86efac">'+dot('#86efac')+'ผลประโยชน์</td><td style="text-align:right;padding:3px 0;color:#86efac">'+fmtS(s.memberProfit)+'</td></tr>'
+    +'<tr><td style="padding:6px 0 3px;color:#3b82f6;font-weight:700">'+dot('#3b82f6')+'เงินจากภาครัฐ</td><td style="text-align:right;padding:6px 0 3px;color:#3b82f6;font-weight:700">฿'+fmt(s.govValue,2)+' ('+gPct+'%)</td></tr>'
+    +'<tr><td style="padding:3px 0 3px 18px;color:#3b82f6">'+dot('#3b82f6')+'เงินต้น</td><td style="text-align:right;padding:3px 0;color:#3b82f6">฿'+fmt(s.govCash,2)+'</td></tr>'
+    +'<tr style="border-bottom:1px solid var(--b2)"><td style="padding:3px 0 3px 18px;color:#7dd3fc">'+dot('#7dd3fc')+'ผลประโยชน์</td><td style="text-align:right;padding:3px 0;color:#7dd3fc">'+fmtS(s.govProfit)+'</td></tr>'
+    +'<tr><td style="padding:6px 0;font-weight:700">รวมทั้งสิ้น</td><td style="text-align:right;padding:6px 0;font-weight:700;color:var(--gold)">฿'+fmt(s.total,2)+'</td></tr>'
+    +'</table>';
+}
 function renderFund(nav, days){
   if(!el('fund-chart'))return;
   if(days===undefined)days=fundPeriod;
@@ -5192,9 +5808,178 @@ function renderNavTab(){
   renderNavScatter(NAV_PORT,navScatPeriod);
   renderNavDrawdown(NAV_PORT,navPerfPeriod);
   renderNavStats(NAV_PORT);
+  renderFundHeatmapToggles(allF);renderFundHeatmap(NAV_PORT);
+  renderCorrPeriodBtns();renderCorrMatrix(NAV_PORT,navCorrPeriod);
+  renderRollingFundToggles(allF);renderRolling(NAV_PORT);
   const last=NAV_PORT[NAV_PORT.length-1];
   const upd=el('nav-last-update');
   if(upd&&last)upd.textContent='ข้อมูลล่าสุด: '+fmtDateTooltip(last.date);
+}
+
+// ===== NAV Analysis: Monthly Heatmap, Correlation, Rolling Returns =====
+let navHeatmapFund=null, navCorrPeriod=365, navRollingFunds=null;
+function renderFundHeatmapToggles(allF){
+  const box=el('nav-heatmap-funds');if(!box)return;
+  if(!navHeatmapFund)navHeatmapFund=allF[0];
+  box.innerHTML='';
+  allF.forEach(f=>{
+    const m=FM[f]||{s:f,c:'#888'};
+    const b=document.createElement('button');
+    b.className='nav-fund-tog'+(navHeatmapFund===f?' on':'');
+    b.textContent=m.s;b.style.borderColor=navHeatmapFund===f?m.c:'';
+    b.onclick=()=>{navHeatmapFund=f;renderFundHeatmapToggles(allF);renderFundHeatmap(NAV_PORT);};
+    box.appendChild(b);
+  });
+}
+function renderFundHeatmap(nav){
+  const body=el('nav-heatmap-body');if(!body||!navHeatmapFund)return;
+  const f=navHeatmapFund;
+  // Monthly returns: last day NAV vs prev month last day NAV
+  const monthEnd={};
+  for(const n of nav){
+    if(n.funds[f]==null)continue;
+    const ym=n.date.getFullYear()+'-'+String(n.date.getMonth()+1).padStart(2,'0');
+    monthEnd[ym]={date:n.date,nav:n.funds[f]};
+  }
+  const months=Object.keys(monthEnd).sort();
+  const monthRet={};
+  for(let i=1;i<months.length;i++){
+    const a=monthEnd[months[i-1]],b=monthEnd[months[i]];
+    monthRet[months[i]]=((b.nav-a.nav)/a.nav)*100;
+  }
+  // Allow first month to compute from start-of-month NAV
+  const allYears=[...new Set(months.map(m=>+m.split('-')[0]))].sort();
+  const monthLbls=['ม.ค.','ก.พ.','มี.ค.','เม.ย.','พ.ค.','มิ.ย.','ก.ค.','ส.ค.','ก.ย.','ต.ค.','พ.ย.','ธ.ค.'];
+  const colorFor=(p)=>{if(p==null)return 'transparent';const x=Math.max(-15,Math.min(15,p))/15;const a=(0.15+Math.abs(x)*0.65).toFixed(2);return p>=0?'rgba(0,230,118,'+a+')':'rgba(255,61,90,'+a+')';};
+  let html='<table style="border-collapse:collapse;font-family:var(--mono);font-size:11px;width:100%">';
+  html+='<thead><tr><th style="padding:6px;text-align:left;color:var(--t2)">ปี</th>';
+  monthLbls.forEach(m=>html+='<th style="padding:6px;text-align:center;color:var(--t2);min-width:60px">'+m+'</th>');
+  html+='<th style="padding:6px;text-align:center;color:var(--t2);background:rgba(255,193,32,.08)">รวม</th></tr></thead><tbody>';
+  for(const yr of allYears){
+    let yrCp=1;let has=false;
+    html+='<tr style="border-top:1px solid var(--b1)"><td style="padding:6px;font-weight:700;color:var(--gold)">'+yr+'</td>';
+    for(let m=1;m<=12;m++){
+      const ym=yr+'-'+String(m).padStart(2,'0');
+      const r=monthRet[ym];
+      if(r!=null){
+        yrCp*=(1+r/100);has=true;
+        html+='<td style="padding:6px;text-align:center;background:'+colorFor(r)+';font-weight:600">'+fmtS(r)+'%</td>';
+      }else html+='<td style="padding:6px;text-align:center;color:var(--t3)">-</td>';
+    }
+    const yrPct=has?(yrCp-1)*100:0;
+    html+='<td style="padding:6px;text-align:center;background:'+colorFor(yrPct)+';font-weight:700">'+fmtS(yrPct)+'%</td></tr>';
+  }
+  html+='</tbody></table>';
+  html+='<div style="font-size:10px;color:var(--t3);margin-top:8px">* รายเดือน = (NAV สิ้นเดือน − NAV สิ้นเดือนก่อน) / NAV สิ้นเดือนก่อน · รวม = compound monthly returns</div>';
+  body.innerHTML=html;
+}
+function renderCorrPeriodBtns(){
+  const box=el('nav-corr-period');if(!box)return;
+  box.innerHTML='';
+  [{l:'3M',d:90},{l:'6M',d:180},{l:'1Y',d:365},{l:'3Y',d:1095},{l:'All',d:0}].forEach(p=>{
+    const b=document.createElement('button');
+    b.className='pbtn'+(p.d===navCorrPeriod?' active':'');b.textContent=p.l;
+    b.onclick=()=>{navCorrPeriod=p.d;renderCorrPeriodBtns();renderCorrMatrix(NAV_PORT,navCorrPeriod);};
+    box.appendChild(b);
+  });
+}
+function renderCorrMatrix(nav,days){
+  const body=el('nav-corr-body');if(!body)return;
+  const rc=navSlice(nav,days);
+  const allF=ALL_PLANS.filter(f=>FM[f]&&rc.some(n=>n.funds[f]!=null));
+  if(allF.length<2||rc.length<10){body.innerHTML='<div style="color:var(--t3);padding:16px">ข้อมูลไม่พอ</div>';return;}
+  // Daily returns per fund
+  const rets={};
+  for(const f of allF){
+    rets[f]=[];
+    for(let i=1;i<rc.length;i++){
+      const a=rc[i-1].funds[f],b=rc[i].funds[f];
+      if(a&&b)rets[f].push((b-a)/a);else rets[f].push(null);
+    }
+  }
+  const corr=(a,b)=>{
+    const pairs=[];for(let i=0;i<a.length;i++)if(a[i]!=null&&b[i]!=null)pairs.push([a[i],b[i]]);
+    if(pairs.length<5)return null;
+    const ma=pairs.reduce((s,p)=>s+p[0],0)/pairs.length;
+    const mb=pairs.reduce((s,p)=>s+p[1],0)/pairs.length;
+    let cov=0,va=0,vb=0;
+    for(const[x,y]of pairs){cov+=(x-ma)*(y-mb);va+=(x-ma)**2;vb+=(y-mb)**2;}
+    return va>0&&vb>0?cov/Math.sqrt(va*vb):null;
+  };
+  const colorFor=(c)=>{if(c==null)return 'transparent';const x=Math.max(-1,Math.min(1,c));const a=(0.15+Math.abs(x)*0.7).toFixed(2);return x>=0?'rgba(0,230,118,'+a+')':'rgba(255,61,90,'+a+')';};
+  let html='<table style="border-collapse:collapse;font-family:var(--mono);font-size:10px;width:100%">';
+  html+='<thead><tr><th style="padding:4px"></th>';
+  allF.forEach(f=>{const m=FM[f]||{s:f};html+='<th style="padding:4px;text-align:center;color:var(--t2);min-width:50px">'+m.s+'</th>';});
+  html+='</tr></thead><tbody>';
+  for(const f1 of allF){
+    const m1=FM[f1]||{s:f1,c:'#888'};
+    html+='<tr><td style="padding:4px;font-weight:600;color:'+m1.c+'">'+m1.s+'</td>';
+    for(const f2 of allF){
+      const c=corr(rets[f1],rets[f2]);
+      const v=c!=null?c.toFixed(2):'-';
+      html+='<td style="padding:4px;text-align:center;background:'+colorFor(c)+'">'+v+'</td>';
+    }
+    html+='</tr>';
+  }
+  html+='</tbody></table>';
+  html+='<div style="font-size:10px;color:var(--t3);margin-top:8px">* +1.00 = sync เคลื่อนไหวพร้อมกัน · 0 = ไม่สัมพันธ์ · -1.00 = ตรงข้าม · ใช้ daily returns</div>';
+  body.innerHTML=html;
+}
+function renderRollingFundToggles(allF){
+  const box=el('nav-rolling-funds');if(!box)return;
+  if(!navRollingFunds)navRollingFunds=new Set([allF[0]]);
+  box.innerHTML='';
+  const ab=document.createElement('button');
+  const allOn=allF.every(f=>navRollingFunds.has(f));
+  ab.className='nav-fund-tog'+(allOn?' on':'');ab.textContent='All';ab.style.borderColor=allOn?'var(--purple)':'';
+  ab.onclick=()=>{if(allOn)navRollingFunds.clear();else allF.forEach(f=>navRollingFunds.add(f));renderRollingFundToggles(allF);renderRolling(NAV_PORT);};
+  box.appendChild(ab);
+  allF.forEach(f=>{
+    const m=FM[f]||{s:f,c:'#888'};
+    const b=document.createElement('button');
+    b.className='nav-fund-tog'+(navRollingFunds.has(f)?' on':'');
+    b.textContent=m.s;b.style.borderColor=navRollingFunds.has(f)?m.c:'';
+    b.onclick=()=>{if(navRollingFunds.has(f))navRollingFunds.delete(f);else navRollingFunds.add(f);renderRollingFundToggles(allF);renderRolling(NAV_PORT);};
+    box.appendChild(b);
+  });
+}
+function renderRolling(nav){
+  const ctx=el('nav-rolling-chart');if(!ctx)return;
+  destroyChart('rolling');
+  const fs=[...(navRollingFunds||[])].filter(f=>FM[f]&&nav.some(n=>n.funds[f]!=null));
+  if(fs.length===0)return;
+  const lbls=nav.map(n=>fmtDateChart(n.date));
+  const ds=[];
+  for(const f of fs){
+    const m=FM[f]||{l:f,c:'#888'};
+    // 30-day return % (point-to-point)
+    const ret30=nav.map((n,i)=>{
+      if(i<30)return null;const a=nav[i-30].funds[f],b=n.funds[f];
+      return(a&&b)?((b-a)/a)*100:null;
+    });
+    // 90-day annualized vol %
+    const vol90=nav.map((n,i)=>{
+      if(i<90)return null;
+      const rets=[];for(let j=i-89;j<=i;j++){const p=nav[j-1]?.funds[f],q=nav[j].funds[f];if(p&&q)rets.push((q-p)/p);}
+      if(rets.length<30)return null;
+      const avg=rets.reduce((s,x)=>s+x,0)/rets.length;
+      const v=rets.reduce((s,x)=>s+(x-avg)**2,0)/(rets.length-1);
+      return Math.sqrt(v)*Math.sqrt(252)*100;
+    });
+    ds.push({label:m.l+' (Ret 30d)',data:ret30,borderColor:m.c,borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true,yAxisID:'y'});
+    ds.push({label:m.l+' (Vol 90d)',data:vol90,borderColor:m.c,borderDash:[5,3],borderWidth:1,pointRadius:0,tension:.3,fill:false,spanGaps:true,yAxisID:'y1'});
+  }
+  portCharts.rolling=new Chart(ctx.getContext('2d'),{type:'line',data:{labels:lbls,datasets:ds},
+    options:{...CD,interaction:{mode:'index',intersect:false},
+      plugins:{...CD.plugins,
+        legend:{position:'top',labels:{color:'#7888a8',font:{family:'Sarabun',size:10},boxWidth:20,padding:6}},
+        tooltip:{mode:'index',intersect:false,callbacks:{label:c=>{if(c.parsed.y==null)return null;return' '+c.dataset.label+': '+c.parsed.y.toFixed(2)+'%';}},filter:c=>c.parsed.y!=null}},
+      scales:{
+        x:{...CD.scales.x,ticks:{...CD.scales.x.ticks,maxTicksLimit:10}},
+        y:{position:'left',grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#22c55e',font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'},title:{display:true,text:'Ret 30d (%)',color:'#22c55e',font:{size:10}}},
+        y1:{position:'right',grid:{display:false},ticks:{color:'#a78bfa',font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'},title:{display:true,text:'Vol 90d (%)',color:'#a78bfa',font:{size:10}}}
+      }
+    }});
 }
 
 // --- helpers ---
@@ -5253,12 +6038,12 @@ function renderNavPerf(nav,days){
     const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;
     const data=rc.map(n=>n.funds[f]!=null?((n.funds[f]-fv)/fv)*100:null);
     const m=FM[f]||{l:f,c:'#888'};
-    return{label:m.l,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};
+    return{label:m.l,_fund:f,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};
   }).filter(Boolean);
   const ctx=el('nav-perf-chart').getContext('2d');destroyChart('navperf');
   portCharts.navperf=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:{...CD,interaction:{mode:'index',intersect:false},plugins:{...CD.plugins,tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{
     title:items=>{const i=items[0]?.dataIndex;if(i==null)return'';const d=rc[i]?fmtDateTooltip(rc[i].date):(items[0]?.label||'');return d+(_navTTSource==='DD'?' (DD)':' (NAV)');},
-    label:c=>{const i=c.dataIndex;if(_navTTSource==='DD'&&_navDdDs){const dd=_navDdDs[c.datasetIndex];if(!dd||dd.data[i]==null)return null;return' '+dd.label+': '+dd.data[i].toFixed(2)+'%';}if(c.parsed.y==null)return null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%';}
+    label:c=>{const i=c.dataIndex;if(_navTTSource==='DD'&&_navDdDs){const dd=_navDdDs[c.datasetIndex];if(!dd||dd.data[i]==null)return null;return' '+dd.label+': '+dd.data[i].toFixed(2)+'%';}if(c.parsed.y==null)return null;const nav=rc[i]?.funds?.[c.dataset._fund];const navStr=nav!=null?'฿'+nav.toFixed(4):'-';return' '+c.dataset.label+': '+navStr+' ('+fmtS(c.parsed.y)+'%)';}
   },filter:c=>{if(_navTTSource==='DD'&&_navDdDs){const dd=_navDdDs[c.datasetIndex];return dd&&dd.data[c.dataIndex]!=null;}return c.parsed.y!=null;}}},scales:{...CD.scales,y:{...CD.scales.y,ticks:{...CD.scales.y.ticks,callback:v=>v.toFixed(1)+'%'}}}}});
 }
 function setNavPeriod(btn,days){document.querySelectorAll('.navpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');navPerfPeriod=days;if(NAV_PORT.length>0){destroyChart('navperf');renderNavPerf(NAV_PORT,days);destroyChart('navdd');renderNavDrawdown(NAV_PORT,days);}}
@@ -5273,7 +6058,8 @@ function renderScatToggles(targetId){
   const allOn=allF.every(f=>navPerfFunds.has(f));
   const ab=document.createElement('button');
   ab.className='nav-fund-tog'+(allOn?' on':'');ab.textContent='All';ab.style.borderColor=allOn?'var(--purple)':'';
-  ab.onclick=()=>{if(allOn)allF.forEach(f=>navPerfFunds.delete(f));else allF.forEach(f=>navPerfFunds.add(f));renderNavPerfToggles(allF);renderScatToggles(targetId);scatRefresh();};
+  // Call navPerfRefresh() to sync both NAV Performance + Risk/Return scatter charts
+  ab.onclick=()=>{if(allOn)allF.forEach(f=>navPerfFunds.delete(f));else allF.forEach(f=>navPerfFunds.add(f));navPerfRefresh();};
   box.appendChild(ab);
   allF.forEach(f=>{
     const m=FM[f]||{s:f,c:'#888'};
@@ -5281,7 +6067,7 @@ function renderScatToggles(targetId){
     b.className='nav-fund-tog'+(navPerfFunds.has(f)?' on':'');
     b.textContent=m.s;
     b.style.borderColor=navPerfFunds.has(f)?m.c:'';
-    b.onclick=()=>{if(navPerfFunds.has(f))navPerfFunds.delete(f);else navPerfFunds.add(f);renderNavPerfToggles(allF);renderScatToggles(targetId);scatRefresh();};
+    b.onclick=()=>{if(navPerfFunds.has(f))navPerfFunds.delete(f);else navPerfFunds.add(f);navPerfRefresh();};
     box.appendChild(b);
   });
 }
@@ -5421,16 +6207,26 @@ function renderYearlySummary(nav,tx){
   // Group by year
   const years=new Map();
   const allYears=[...new Set(nav.map(n=>n.date.getFullYear()))].sort();
-  allYears.forEach(yr=>{
+  // Chain years: use prev year's endVal as next year's startVal (matches กบข annual report
+  // method). Prevents year-boundary gap (returns from 30 ธ.ค. → 5 ม.ค. would otherwise be
+  // lost in neither year). After fix: sum(yearly PnL) === total PnL.
+  let prevEndVal=null, prevEndNav=null;
+  allYears.forEach((yr,idx)=>{
     const yrNav=nav.filter(n=>n.date.getFullYear()===yr);
     const yrTx=tx.filter(t=>t.date.getFullYear()===yr);
-    // Start/end portfolio values — use <= for start to include carry-in on day 1
+    // Start/end portfolio values
     const yrEnd=yrNav[yrNav.length-1];
-    const yrStart=yrNav[0];
     const hold=calcHold(tx.filter(t=>t.date<=yrEnd.date));
     let endVal=0;for(const[f,u]of Object.entries(hold)){const nv=yrEnd?.funds[f];if(nv)endVal+=u*nv;}
-    const holdStart=calcHold(tx.filter(t=>t.date<=yrStart.date));
-    let startVal=0;for(const[f,u]of Object.entries(holdStart)){const nv=yrStart?.funds[f];if(nv)startVal+=u*nv;}
+    // For non-first year: chain from prev year's endVal (avoids year-boundary gap)
+    let yrStart,startVal;
+    if(idx===0||prevEndNav===null){
+      yrStart=yrNav[0];
+      const holdStart=calcHold(tx.filter(t=>t.date<=yrStart.date));
+      startVal=0;for(const[f,u]of Object.entries(holdStart)){const nv=yrStart?.funds[f];if(nv)startVal+=u*nv;}
+    }else{
+      yrStart=prevEndNav;startVal=prevEndVal;
+    }
     // Deposits = net new capital AFTER yrStart (tx after yrStart that add money)
     // startVal already accounts for capital present at start of year
     const postStartTx=yrTx.filter(t=>t.date>yrStart.date);
@@ -5457,6 +6253,8 @@ function renderYearlySummary(nav,tx){
     const base=startVal+deposits*0.5;
     const pct=base>0?(pnl/base)*100:0;
     years.set(yr,{startVal,endVal,deposits,pnl,pct,maxDD,rebalCount,days:yrNav.length});
+    // Track for next iteration's chained startVal
+    prevEndVal=endVal;prevEndNav=yrEnd;
   });
   // Render table
   let html='<table style="width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono)">';
@@ -5579,9 +6377,10 @@ function buildFsPeriodBtns(type){
   if(!wrap) return;
   wrap.innerHTML = '';
   wrap.classList.remove('show');
+  // Standard period set used by all charts
+  const STD_PERIODS=[{l:'1M',d:30},{l:'3M',d:90},{l:'6M',d:180},{l:'1Y',d:365},{l:'5Y',d:1825},{l:'All',d:0}];
   if(type==='port'){
-    const periods=[{l:'1M',d:30},{l:'3M',d:90},{l:'6M',d:180},{l:'1Y',d:365},{l:'All',d:0}];
-    periods.forEach(p=>{
+    STD_PERIODS.forEach(p=>{
       const b=document.createElement('button');
       b.className='pbtn'+(p.d===curPeriod?' active':'');
       b.textContent=p.l;
@@ -5595,8 +6394,7 @@ function buildFsPeriodBtns(type){
     });
     wrap.classList.add('show');
   } else if(type==='fund'){
-    const periods=[{l:'1M',d:30},{l:'3M',d:90},{l:'6M',d:180},{l:'1Y',d:365},{l:'All',d:0}];
-    periods.forEach(p=>{
+    STD_PERIODS.forEach(p=>{
       const b=document.createElement('button');
       b.className='fpbtn'+(p.d===fundPeriod?' active':'');
       b.textContent=p.l;
@@ -5610,8 +6408,7 @@ function buildFsPeriodBtns(type){
     });
     wrap.classList.add('show');
   } else if(type==='navperf'){
-    const periods=[{l:'1M',d:30},{l:'3M',d:90},{l:'6M',d:180},{l:'1Y',d:365},{l:'All',d:0}];
-    periods.forEach(p=>{
+    STD_PERIODS.forEach(p=>{
       const b=document.createElement('button');
       b.className='navpbtn'+(p.d===navPerfPeriod?' active':'');
       b.textContent=p.l;
@@ -5625,8 +6422,7 @@ function buildFsPeriodBtns(type){
     });
     wrap.classList.add('show');
   } else if(type==='navscat'){
-    const periods=[{l:'3M',d:90},{l:'6M',d:180},{l:'1Y',d:365},{l:'All',d:0}];
-    periods.forEach(p=>{
+    STD_PERIODS.forEach(p=>{
       const b=document.createElement('button');
       b.className='scatpbtn'+(p.d===navScatPeriod?' active':'');
       b.textContent=p.l;
@@ -5654,18 +6450,29 @@ function renderFsChart(chartKey){
     const{l,v,iv}=calcPort(NAV_PORT,TX_PORT,days);
     if(l.length<2) return;
     const rebalTx=TX_PORT.filter(t=>t.type&&(t.type.includes('เปลี่ยนแผน')||t.type.toLowerCase().includes('rebal')));
-    const rebalDates=new Set(rebalTx.map(t=>t.date.toDateString()));
-    const rebalData=l.map((d,i)=>rebalDates.has(d.toDateString())?v[i]:null);
+    const rebalPlanMap={};
+    for(const t of rebalTx){const k=t.date.toDateString();rebalPlanMap[k]=t.plan||'-';}
+    const rebalData=l.map((d,i)=>rebalPlanMap[d.toDateString()]?v[i]:null);
+    const depositTx=TX_PORT.filter(t=>t.type==='เงินนำส่ง'&&t.total>0);
+    const depositMap={};
+    for(const t of depositTx){const k=t.date.toDateString();depositMap[k]=(depositMap[k]||0)+(t.total||0);}
+    const depositData=l.map((d,i)=>depositMap[d.toDateString()]?v[i]:null);
     const labels=l.map(fmtDateChart);
-    // Compute DD data — adjust peak by deposits so DD isn't inflated by DCA
+    // Compute DD data — running max of portfolio value
     let peak=0;
-    const ddData=v.map((val,i)=>{const dep=i>0?iv[i]-iv[i-1]:iv[0];if(dep>0)peak+=dep;if(val>peak)peak=val;return peak>0?(val-peak)/peak*100:0;});
+    const ddData=v.map(val=>{
+      if(val>peak)peak=val;
+      return peak>0?(val-peak)/peak*100:0;
+    });
     const datasets=[
-      {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,backgroundColor:'rgba(255,193,32,.12)'},
-      {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3}
+      {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,backgroundColor:'rgba(255,193,32,.12)',_isLine:true},
+      {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3,_isLine:true}
     ];
     if(rebalData.some(v=>v!==null)){
-      datasets.push({label:'📌 Rebalance',data:rebalData,type:'line',fill:false,borderWidth:0,pointRadius:9,pointStyle:'triangle',pointBackgroundColor:'var(--red)',pointBorderColor:'#fff',pointBorderWidth:2,showLine:false});
+      datasets.push({label:'Rebalance',data:rebalData,type:'line',fill:false,borderWidth:0,pointRadius:9,pointHoverRadius:11,pointStyle:'triangle',pointBackgroundColor:'var(--red)',pointBorderColor:'#fff',pointBorderWidth:2,showLine:false});
+    }
+    if(depositData.some(v=>v!==null)){
+      datasets.push({label:'Deposit',data:depositData,type:'line',fill:false,borderWidth:0,pointRadius:8,pointHoverRadius:10,pointStyle:'circle',pointBackgroundColor:'#22c55e',pointBorderColor:'#fff',pointBorderWidth:2,showLine:false});
     }
     // Port chart with combined tooltip (Portfolio + DD)
     // Fixed y-axis width ensures port + DD x-axis alignment
@@ -5674,10 +6481,21 @@ function renderFsChart(chartKey){
     fsChart=new Chart(ctx,{type:'line',data:{labels,datasets},options:{responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
       scales:{x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'transparent',maxTicksLimit:12,font:{size:10,family:'IBM Plex Mono'}},afterFit(axis){axis.paddingRight=FS_X_PAD_R;axis.paddingLeft=0;}},y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:11,family:'IBM Plex Mono'}},afterFit(axis){axis.width=FS_Y_W;}}},
-      plugins:{legend:{labels:{color:'#7888a8',font:{family:'Sarabun',size:12}}},
+      plugins:{legend:{position:'top',align:'center',labels:{color:'#c8d6f0',font:{family:'Sarabun',size:13,weight:'500'},usePointStyle:true,boxWidth:38,boxHeight:18,padding:18,
+        generateLabels:(chart)=>chart.data.datasets.map((ds,i)=>({
+          text:ds.label,
+          fillStyle:ds._isLine?(ds.borderColor||'#888'):(ds.pointBackgroundColor||ds.borderColor),
+          strokeStyle:ds._isLine?(ds.borderColor||'#888'):(ds.pointBorderColor||'#fff'),
+          lineWidth:ds._isLine?2.5:2,
+          lineDash:ds.borderDash||[],
+          pointStyle:ds._isLine?'line':(ds.pointStyle||'circle'),
+          hidden:!chart.isDatasetVisible(i),
+          datasetIndex:i,
+          fontColor:'#c8d6f0',
+        }))}},
         tooltip:{...fsTTOpts({title:items=>{const i=items[0]?.dataIndex;return i!=null&&l[i]?fmtDateTooltip(l[i]):items[0]?.label||'';},label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
-          afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const ddIcon=dd>-2?'🟢':dd>-5?'🟡':'🔴';const parts=[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)',' '+ddIcon+' DD: '+dd.toFixed(2)+'%'];if(rebalData[i]!==null)parts.push(' 📌 Rebalance');return parts;}
-        }),filter:item=>item.dataset.label!=='📌 Rebalance'}
+          afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const ddIcon=dd>-2?'🟢':dd>-5?'🟡':'🔴';const parts=[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)',' '+ddIcon+' DD: '+dd.toFixed(2)+'%'];if(rebalData[i]!==null){const plan=rebalPlanMap[l[i].toDateString()]||'-';parts.push(' 📌 เปลี่ยนแผน: '+plan);}if(depositData[i]!==null){const dt=l[i].toDateString();const amt=depositMap[dt]||0;parts.push(' 💰 Deposit: ฿'+amt.toLocaleString('th-TH',{maximumFractionDigits:0}));}return parts;}
+        }),filter:item=>item.dataset.label!=='Rebalance'&&item.dataset.label!=='Deposit'}
       }
     }});
     // DD chart below (no tooltip — data shown in port tooltip above)
@@ -5702,6 +6520,17 @@ function renderFsChart(chartKey){
       options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
         plugins:{legend:{position:'right',labels:{color:'#7888a8',font:{family:'Sarabun',size:14},padding:14}},
           tooltip:{callbacks:{label:c=>{const total=data.reduce((a,b)=>a+b,0);return' '+c.label+': ฿'+c.parsed.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+((c.parsed/total)*100).toFixed(1)+'%)';}}}}
+      }});
+  } else if(chartKey === 'contrib'){
+    const hold=calcHold(TX_PORT);const ln=NAV_PORT[NAV_PORT.length-1];
+    const s=calcContribSplit(TX_PORT,hold,ln);
+    const data=[s.memberCash,s.memberProfit,s.govCash,s.govProfit];
+    const labels=['เงินต้น (สมาชิก)','ผลประโยชน์ (สมาชิก)','เงินต้น (ภาครัฐ)','ผลประโยชน์ (ภาครัฐ)'];
+    const colors=['#22c55e','#86efac','#3b82f6','#7dd3fc'];
+    fsChart=new Chart(ctx,{type:'doughnut',data:{labels,datasets:[{data,backgroundColor:colors,borderColor:'#0d1526',borderWidth:2}]},
+      options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+        plugins:{legend:{position:'right',labels:{color:'#7888a8',font:{family:'Sarabun',size:14},padding:14}},
+          tooltip:{callbacks:{label:c=>{const tot=data.reduce((a,b)=>a+b,0);return' '+c.label+': ฿'+c.parsed.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+((c.parsed/tot)*100).toFixed(1)+'%)';}}}}
       }});
   } else if(chartKey === 'fund'){
     const days = fsPeriod;
@@ -5753,7 +6582,7 @@ function renderFsChart(chartKey){
       const fv=rc.find(n=>n.funds[f]!=null).funds[f];
       const data=rc.map(n=>n.funds[f]!=null?((n.funds[f]-fv)/fv)*100:null);
       const m=FM[f]||{l:f,c:'#888'};
-      return{label:m.l,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};
+      return{label:m.l,_fund:f,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};
     });
     const ddDs=validFunds.map(f=>{
       let peak=0;
@@ -5771,7 +6600,7 @@ function renderFsChart(chartKey){
           legend:{display:false},
           tooltip:{...fsTTOpts({
             title:items=>{const i=items[0]?.dataIndex;if(i==null)return'';const d=rc[i]?fmtDateTooltip(rc[i].date):(items[0]?.label||'');return d+(_navTTSource==='DD'?' (DD)':' (NAV)');},
-            label:c=>{const i=c.dataIndex;if(_navTTSource==='DD'&&_navDdDs){const dd=_navDdDs[c.datasetIndex];if(!dd||dd.data[i]==null)return null;return' '+dd.label+': '+dd.data[i].toFixed(2)+'%';}if(c.parsed.y==null)return null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%';}
+            label:c=>{const i=c.dataIndex;if(_navTTSource==='DD'&&_navDdDs){const dd=_navDdDs[c.datasetIndex];if(!dd||dd.data[i]==null)return null;return' '+dd.label+': '+dd.data[i].toFixed(2)+'%';}if(c.parsed.y==null)return null;const nav=rc[i]?.funds?.[c.dataset._fund];const navStr=nav!=null?'฿'+nav.toFixed(4):'-';return' '+c.dataset.label+': '+navStr+' ('+fmtS(c.parsed.y)+'%)';}
           }),filter:c=>{if(_navTTSource==='DD'&&_navDdDs){const dd=_navDdDs[c.datasetIndex];return dd&&dd.data[c.dataIndex]!=null;}return c.parsed.y!=null;}}
         }
       }});
@@ -5824,6 +6653,300 @@ function renderFsChart(chartKey){
       }});
   }
 }
+
+// ===== Changelog =====
+// Structure: tab → versions[] → version{ ver, algo, releases[] } → release{ date, groups[] }
+// "date" can be YYYY-MM-DD or null (for releases without tracked date)
+const CHANGELOG_DATA = {
+  port: [
+    {date:'2026-05-04 · v29', groups:[
+      {title:'Bug fixes', items:[
+        'Fix tooltip กราฟ Portfolio Value แสดง "Deposit/Rebalance" ซ้ำกับ afterBody (filter compare emoji label ไม่ตรง dataset label)',
+        'Fix tooltip กล่องไม่ขึ้นเมื่อ cursor อยู่บน DD chart (root cause เดียวกับด้านบน)',
+        'Fix P&L Annual: year boundary gap ทำให้ผลตอบแทนช่วง 31 ธ.ค.→4 ม.ค. หาย → chained method ใช้ <code>endVal ปีก่อน</code> เป็น <code>startVal ปีถัดไป</code>'
+      ]},
+      {title:'Tooltip enhancements', items:[
+        'เปลี่ยน "📌 Rebalance" → "📌 เปลี่ยนแผน: &lt;plan&gt;" ใน Portfolio Value chart',
+        'แสดง deposit amount จริง (จาก t.total) ไม่ใช่ portfolio value'
+      ]},
+      {title:'Cards (Analytics)', items:[
+        'เพิ่ม <b>IRR (Money-weighted Return)</b> — DCA-aware (~+17.65% vs CAGR +8.69%)',
+        'เพิ่ม <b>Sortino Ratio</b> — downside-only deviation',
+        'เพิ่ม <b>Calmar Ratio</b> — CAGR ÷ |Max DD|',
+        'เพิ่ม <b>ภาษีประหยัด</b> — สมมติ 20% PIT × member contribution',
+        'เปลี่ยน "Annualized Return" → "CAGR (Simple)" + ระบุข้อจำกัด'
+      ]},
+      {title:'New tabs (sub-tabs ใน tcrd)', items:[
+        'เพิ่ม <b>P&L by Asset Month</b> — P&L แยกแต่ละกอง ในแต่ละเดือน (Modified Dietz)',
+        'เพิ่ม <b>Monthly Heatmap</b> — year × month grid สีเขียว/แดง + compound year total',
+        'เพิ่ม <b>Rebalance ROI</b> — track ทุก rebalance event, win rate, +30d/+90d return, decision good/bad'
+      ]},
+      {title:'Tab renames', items:[
+        '"ผลรายปี" → <b>P&L Annual</b>',
+        '"P&L แต่ละกอง" → <b>P&L by Asset ALL</b>'
+      ]},
+      {title:'Pie charts (donut)', items:[
+        'เพิ่ม <b>ยอดเงินปัจจุบัน</b> donut — แยก สมาชิก/ภาครัฐ × เงินต้น/ผลประโยชน์ (4 slices)',
+        'ใช้ time-weighted unit allocation จาก source ratio + pro-rata reconciliation',
+        'เพิ่ม fullscreen support',
+        'ย้าย Allocation legend ออกนอก canvas → donut size เท่ากันทั้ง 2 chart',
+        'จัดวางใหม่: Portfolio Value (full width) + 2 pie charts side-by-side',
+        'ลบ Cash Flow Composition chart (ซ้ำกับ Portfolio Value)'
+      ]},
+      {title:'Period selectors', items:[
+        'เพิ่ม <b>5Y</b> ในกราฟ Portfolio Value'
+      ]},
+      {title:'Custom Chart.js plugin', items:[
+        '<code>doughnutPctLabel</code> — แสดง % บน slice (white pill bubble) ทุก doughnut chart'
+      ]},
+      {title:'Data Validation (Sheet vs PDF กบข)', items:[
+        '✅ 2024: 5/5 ตรง · ✅ 2025: 18/18 ตรง · ✅ 2026: 16/16 ตรง',
+        '⚠️ ค้าง typo: 24/4/2026 IN extra=22,535.48 ควรเป็น 22,532.48 (ส่วนต่าง 3 บาท · ไม่กระทบ total)'
+      ]}
+    ]},
+    {date:'v28 · ALGO v6.28', groups:[
+      {title:'Online Learning Dashboard', items:[
+        'เพิ่ม <code>renderLearningDashboard</code> — แสดง parameter adaptation, win rate convergence, recent transactions',
+        'Position tracking แสดง adaptive param state'
+      ]}
+    ]},
+    {date:'v27 · ALGO v6.27', groups:[
+      {title:'MDP Card', items:['เพิ่ม <code>renderMdpCard()</code> — แสดง MDP policy']}
+    ]},
+    {date:'v26 · ALGO v6.26', groups:[
+      {title:'Dynamic Optimizer UI', items:[
+        '<code>renderAccelTable</code> ใหม่ — dynamic scoring across all menus',
+        'Adaptive trailing stop visualization'
+      ]}
+    ]},
+    {date:'v22 · ALGO v6.22', groups:[
+      {title:'Fund Filter UI', items:['<code>renderDecision</code> + <code>renderAccelTable</code> ขยายให้แสดง fund filter status']}
+    ]},
+    {date:'v21 · ALGO v6.21', groups:[
+      {title:'Acceleration Engine UI', items:[
+        'เพิ่ม <code>renderRegimeBar()</code> — regime badge',
+        'เพิ่ม <code>renderAccelTable()</code> — acceleration dashboard',
+        'Position tracking ออกแบบใหม่สำหรับ acceleration metrics'
+      ]}
+    ]},
+    {date:'v19 · ALGO v5.19', groups:[
+      {title:'Menu-centric UI', items:[
+        '<code>renderResults</code>, <code>renderDecision</code>, <code>renderFundScores</code>, <code>renderMenuRanking</code> refactored',
+        'Decision UI menu-centric'
+      ]}
+    ]},
+    {date:'v18 · ALGO v4.7.18', groups:[
+      {title:'Position Tracking', items:[
+        'Entry value auto-fill (portfolio value at last rebalance date)',
+        'Position tracking สำหรับ TP4/EXIT_DD events'
+      ]}
+    ]},
+    {date:'v15 · ALGO v4.7.15', groups:[
+      {title:'PR Cap', items:['PR cap (real estate ≤20%) enforced in allocation + display']}
+    ]},
+    {date:'v14 · ALGO v4.7.14', groups:[
+      {title:'Portfolio Chart', items:['เพิ่ม <code>renderPortChart()</code> — portfolio performance charting']}
+    ]},
+    {date:'v13 · ALGO v4.7.13', groups:[
+      {title:'Portfolio System (Foundation)', items:[
+        'Full portfolio rendering: <code>renderPortAll</code>, <code>renderPortCards</code>',
+        'Multi-tab architecture'
+      ]}
+    ]},
+    {date:'v12 · ALGO v4.7.12', groups:[
+      {title:'EXIT_DD Tracker UI', items:[
+        '<code>renderDDBar()</code> — DD progress bar',
+        '<code>renderExitTracker()</code> — exit event logging'
+      ]}
+    ]},
+    {date:'v8-v11 · ALGO v4.4-v4.7 (Foundation)', groups:[
+      {title:'Initial Portfolio UI', items:[
+        'v8: render framework (decision, target allocation, top scores)',
+        'v10: <code>renderHistoryResults</code> — historical signal analysis'
+      ]}
+    ]}
+  ],
+  nav: [
+    {date:'2026-05-04 · v29', groups:[
+      {title:'Bug fixes', items:[
+        'Fix toggle ใน Risk/Return scatter ไม่ trigger update ของ NAV Performance — ใช้ <code>navPerfRefresh()</code> sync ทั้ง 2 chart'
+      ]},
+      {title:'Tooltip enhancements', items:[
+        'NAV Performance — Normalized: tooltip แสดง <b>NAV price (฿X.XXXX) + % change</b> แทน % เดียว',
+        'ใช้ทั้ง regular view และ fullscreen'
+      ]},
+      {title:'New sections', items:[
+        'เพิ่ม <b>Monthly Returns Heatmap (per Fund)</b> — เลือกกองได้ ดูผลรายเดือน 16 ปี',
+        'เพิ่ม <b>Correlation Matrix</b> — 12×12 daily returns correlation',
+        'เพิ่ม <b>Rolling Returns &amp; Volatility</b> — dual-axis: Ret 30d + Vol 90d annualized'
+      ]},
+      {title:'Period selectors', items:[
+        'เพิ่ม <b>5Y</b> ใน NAV Performance',
+        'เพิ่ม <b>1M และ 5Y</b> ใน Risk/Return scatter',
+        'Refactor <code>buildFsPeriodBtns</code> ใช้ <code>STD_PERIODS</code> array เดียว'
+      ]}
+    ]},
+    {date:'v13 · ALGO v4.7.13', groups:[
+      {title:'NAV System Foundation', items:['เพิ่ม <code>renderNavTbl</code> + <code>NAV_PORT</code> array — basic NAV table']}
+    ]},
+    {date:'v14 · ALGO v4.7.14', groups:[
+      {title:'NAV Change Visualization', items:['เพิ่ม <code>renderNavCh()</code>']}
+    ]}
+  ],
+  signal: [
+    {date:'2026-05-04 · v29 · ALGO v7.29', groups:[
+      {title:'FRED Hierarchical Regime Engine', items:[
+        '12 macro factors จาก FRED (DGS10, HY OAS, DXY, T10Y3M, WALCL, NFCI, ฯลฯ)',
+        '<b>3-tier hierarchy</b>: Bond (DGS10) → Credit (HY OAS) → Confirm (DXY+QE+RealYield)',
+        '<b>Decision logic</b>: HOLD same / SWITCH changed+>10% / EXIT HY>6 / HOLD quota exhausted',
+        'ลบ Online Learning + MDP + Veto (จาก v28)',
+        'เพิ่ม <code>renderFredDashboard</code> + <code>renderRegimeFlow</code>'
+      ]}
+    ]},
+    {date:'v28 · ALGO v6.28', groups:[
+      {title:'Online Learning + Bayesian + MDP', items:[
+        'Adaptive parameters: VEL_FAST/SLOW/TRAIL_MIN เป็น <code>let</code> (ปรับตาม online learning)',
+        'MIN_HOLD_DAYS: 15 → 30',
+        'MDP re-solved every load',
+        'FIX C1-C5: raw 60d return cached, menu generation cached, staleness check (90d), convergence verification (≥5 trades), conservative threshold (winRate&lt;0.3)'
+      ]}
+    ]},
+    {date:'v27 · ALGO v6.27', groups:[
+      {title:'Bayesian Optimized Parameters', items:[
+        'VEL_FAST 5→3, VEL_SLOW 15→10, ACCEL_SPAN 3→5',
+        'ACCEL_TP_THRESHOLD 0.03→0.05, TRAIL_MIN 0.03→0.045',
+        'MONTHLY_CAP 1→2, MIN_HOLD_DAYS 10→15'
+      ]},
+      {title:'New systems', items:[
+        '<b>MDP Quota Planner</b> — regime-aware quota allocation',
+        '<b>Strategy D Veto</b> — 2.5x vol ratio blocks entry',
+        '<b>Crash Shield</b> regime thresholds'
+      ]}
+    ]},
+    {date:'v26 · ALGO v6.26', groups:[
+      {title:'Dual Velocity + Dynamic Optimizer', items:[
+        'Dual-timeframe velocity: 5d fast + 15d slow',
+        'Realized vol (20d) → adaptive trailing stop (TRAIL_MIN=0.03)',
+        'Exit params: MAX_HOLD_DAYS=60, STALE_PROFIT_TH=1%, STALE_VEL_DAYS=20',
+        'Quota: MONTHLY_CAP=1',
+        'Score ALL 217 menu allocations dynamically',
+        'Walk-forward: Sharpe=2.1+'
+      ]}
+    ]},
+    {date:'v22 · ALGO v6.22', groups:[
+      {title:'V22B Fund Filter', items:[
+        'Acceleration ranking ตรวจ underlying equity fund health',
+        'Reject allocation ถ้ามี underlying fund decelerating',
+        'Cooldown blocks both entry and exit (ลด over-trading)'
+      ]}
+    ]},
+    {date:'v21 · ALGO v6.21', groups:[
+      {title:'Acceleration Engine', items:[
+        'Dual-velocity framework: vel_fast=5, vel_slow=15',
+        'Acceleration = diff of velocity',
+        'Regime detection (60d avg equity return)',
+        'Ranked menu allocation by acceleration score',
+        'Walk-forward: Sharpe=2.055, TWR=+68.9%, MaxDD=-3.9%'
+      ]}
+    ]},
+    {date:'v19 · ALGO v5.19', groups:[
+      {title:'Major overhaul: 3-Momentum Z-score', items:[
+        '3-momentum Z-score engine (replace simple momentum)',
+        'Cooldown enforced at 30 days',
+        'เพิ่ม Shariah plan',
+        'Menu-based decision engine'
+      ]}
+    ]},
+    {date:'v18 · ALGO v4.7.18', groups:[
+      {title:'TP4 + EXIT_DD_FREE', items:[
+        '<b>TP4</b>: Take Profit ≥4% return, ≥3 business days hold',
+        '<b>EXIT_DD_FREE</b>: drawdown exit ไม่กิน quota',
+        '<b>MIN_HOLD_REENTRY=3</b>: guard against rapid re-entries'
+      ]}
+    ]},
+    {date:'v15 · ALGO v4.7.15', groups:[
+      {title:'PR_CAP', items:['Real estate/infrastructure capped at 20%']}
+    ]},
+    {date:'v14 · ALGO v4.7.14', groups:[
+      {title:'Reference Date Fix', items:['Bug fix: histDateVal ใช้วันในอดีต ไม่ใช่วันนี้']}
+    ]},
+    {date:'v13 · ALGO v4.7.13', groups:[
+      {title:'Foundation', items:[
+        'เพิ่ม transaction parser (v6)',
+        'Portfolio analytics engine'
+      ]}
+    ]},
+    {date:'v12 · ALGO v4.7.12', groups:[
+      {title:'EXIT_DD Tracker', items:[
+        'Drawdown monitor with -6% threshold',
+        'localStorage key: <code>gpf_exit_log_v12</code>'
+      ]}
+    ]},
+    {date:'v8-v11 · ALGO v4.4-v4.7 (Foundation)', groups:[
+      {title:'Signal Engine', items:[
+        'v8: Port signal engine จาก GAS backtest (v4.3 baseline)',
+        'v8: Momentum scoring (5d=0.5, 20d=0.3, 60d=0.2)',
+        'v9: ALGO v4.6 — version structure',
+        'v10: ALGO v4.7 — constants align กับ backtest, external signal plan mapping (GC, F, TH)',
+        'v11: checkpoint release'
+      ]}
+    ]}
+  ]
+};
+let _clCurrent='cl-signal';
+// Parse legacy date string into {version, algo, date}
+function _parseClDate(s){
+  const parts=s.split('·').map(p=>p.trim());
+  let version=null,algo=null,date=null,extra=[];
+  for(const p of parts){
+    if(/^\d{4}-\d{2}-\d{2}$/.test(p))date=p;
+    else if(/^ALGO\b/i.test(p))algo=p.replace(/^ALGO\s*/i,'');
+    else if(/^v\d/i.test(p))version=p;
+    else extra.push(p);
+  }
+  if(!version&&extra.length)version=extra[0];
+  return{version:version||'?',algo,date,extra:extra.filter(e=>e!==version)};
+}
+function renderClSection(key){
+  const arr=CHANGELOG_DATA[key.replace('cl-','')];
+  if(!arr)return '';
+  // Group entries by version (preserve order)
+  const grouped=new Map();
+  for(const entry of arr){
+    const{version,algo,date,extra}=_parseClDate(entry.date);
+    if(!grouped.has(version))grouped.set(version,{algo,extra,releases:[]});
+    if(algo&&!grouped.get(version).algo)grouped.get(version).algo=algo;
+    grouped.get(version).releases.push({date,groups:entry.groups});
+  }
+  let html='';
+  for(const[ver,v] of grouped){
+    const algoStr=v.algo?' <span class="cl-algo">ALGO '+v.algo+'</span>':'';
+    const extraStr=v.extra.length?' <span class="cl-extra">'+v.extra.join(' · ')+'</span>':'';
+    html+='<div class="cl-version">'+ver.toUpperCase()+algoStr+extraStr+'</div>';
+    html+='<div class="cl-version-body">';
+    for(const rel of v.releases){
+      const dateLbl=rel.date||'(release date ไม่ถูก track)';
+      html+='<div class="cl-date">📅 '+dateLbl+'</div>';
+      for(const g of rel.groups){
+        html+='<div class="cl-group">'+g.title+'</div><ul>'+g.items.map(i=>'<li>'+i+'</li>').join('')+'</ul>';
+      }
+    }
+    html+='</div>';
+  }
+  return html;
+}
+function openChangelog(){
+  el('cl-overlay').classList.add('show');
+  el('cl-body').innerHTML=renderClSection(_clCurrent);
+}
+function closeChangelog(){el('cl-overlay').classList.remove('show');}
+function switchClTab(btn,key){
+  document.querySelectorAll('.cl-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  _clCurrent=key;
+  el('cl-body').innerHTML=renderClSection(key);
+}
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&el('cl-overlay').classList.contains('show'))closeChangelog();});
 
 function openFullscreen(chartKey, title){
   const overlay = el('fs-overlay');
