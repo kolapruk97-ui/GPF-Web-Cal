@@ -718,13 +718,21 @@ input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { po
 .navpbtn, .scatpbtn, .ddpbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 7px; font-size: 10px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
 .navpbtn.active, .navpbtn:hover, .scatpbtn.active, .scatpbtn:hover, .ddpbtn.active, .ddpbtn:hover { background: rgba(139,92,246,.1); border-color: rgba(139,92,246,.4); color: var(--purple); }
 .tcrd { background: var(--bg-1); border: 1px solid var(--b1); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
-.ttabs { display: flex; border-bottom: 1px solid var(--b1); padding: 0 4px; }
+.ttabs {
+  display: flex; flex-wrap: nowrap;
+  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  border-bottom: 1px solid var(--b1); padding: 0 4px;
+}
+.ttabs::-webkit-scrollbar { height: 4px; }
+.ttabs::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 2px; }
 .ttbtn {
   background: none; border: none;
   border-bottom: 2px solid transparent;
   color: var(--t3); padding: 9px 16px;
   font-size: 13px; font-family: var(--sans); cursor: pointer;
   transition: all .15s; margin-bottom: -1px;
+  flex-shrink: 0; white-space: nowrap;
 }
 .ttbtn.active { color: var(--gold); border-bottom-color: var(--gold); }
 .ttbtn:hover:not(.active) { color: var(--t2); }
@@ -6659,6 +6667,11 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
+    {date:'2026-05-05 · v29', groups:[
+      {title:'Mobile UX', items:[
+        'Fix Portfolio sub-tabs (10 tabs) เลื่อนแนวราบไม่ได้บน smartphone — เพิ่ม <code>overflow-x:auto</code> + <code>flex-wrap:nowrap</code> ที่ <code>.ttabs</code>, <code>flex-shrink:0</code> + <code>white-space:nowrap</code> ที่ <code>.ttbtn</code>, custom scrollbar 4px'
+      ]}
+    ]},
     {date:'2026-05-04 · v29', groups:[
       {title:'Bug fixes', items:[
         'Fix tooltip กราฟ Portfolio Value แสดง "Deposit/Rebalance" ซ้ำกับ afterBody (filter compare emoji label ไม่ตรง dataset label)',
