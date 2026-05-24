@@ -713,6 +713,10 @@ input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { po
 .pbtns { display: flex; gap: 3px; }
 .pbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 8px; font-size: 11px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
 .pbtn.active, .pbtn:hover { background: var(--gold-glow); border-color: rgba(255,193,32,.4); color: var(--gold); }
+.bh-select { background: var(--bg-2); border: 1px solid var(--b1); color: var(--t2); border-radius: 5px; padding: 3px 6px; font-size: 11px; font-family: var(--sans); letter-spacing: normal; text-transform: none; cursor: pointer; transition: all .15s; max-width: 185px; }
+.bh-select:hover, .bh-select:focus { border-color: #a855f7; color: #c8d6f0; outline: none; }
+.bh-select option { background: var(--bg-2); color: #c8d6f0; }
+#fs-bh-select { font-size: 12px; padding: 4px 8px; max-width: 210px; }
 .fpbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 7px; font-size: 10px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
 .fpbtn.active, .fpbtn:hover { background: rgba(0,200,240,.1); border-color: rgba(0,200,240,.4); color: var(--acc); }
 .navpbtn, .scatpbtn, .ddpbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 7px; font-size: 10px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
@@ -720,7 +724,7 @@ input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { po
 .tcrd { background: var(--bg-1); border: 1px solid var(--b1); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
 .ttabs {
   display: flex; flex-wrap: nowrap;
-  overflow-x: auto; -webkit-overflow-scrolling: touch;
+  overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch;
   scrollbar-width: thin;
   border-bottom: 1px solid var(--b1); padding: 0 4px;
 }
@@ -932,6 +936,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   .ctitle { font-size: 9px; flex-wrap: wrap; gap: 4px; }
   .pbtns { gap: 2px; flex-wrap: wrap; }
   .pbtn { padding: 2px 6px; font-size: 10px; }
+  .bh-select { font-size: 10px; max-width: 150px; padding: 2px 4px; }
   .fpbtn { padding: 2px 5px; font-size: 9px; }
 
   /* TRANSACTION TABLES */
@@ -1372,24 +1377,6 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div class="pcards pcards5" id="cards-row2"></div>
     <div class="pcards pcards4" id="cards-row3" style="margin-top:10px"></div>
     <div class="sec">📉 กราฟ</div>
-    <div class="ccrd" style="margin-bottom:12px">
-      <div class="ctitle">
-        Portfolio Value
-        <div style="display:flex;align-items:center">
-          <div class="pbtns">
-            <button class="pbtn active" onclick="setPeriod(this,30)">1M</button>
-            <button class="pbtn"        onclick="setPeriod(this,90)">3M</button>
-            <button class="pbtn"        onclick="setPeriod(this,180)">6M</button>
-            <button class="pbtn"        onclick="setPeriod(this,365)">1Y</button>
-            <button class="pbtn"        onclick="setPeriod(this,1825)">5Y</button>
-            <button class="pbtn"        onclick="setPeriod(this,0)">All</button>
-          </div>
-          <button class="expand-btn" onclick="openFullscreen('port','Portfolio Value')" title="ขยายเต็มจอ">⛶</button>
-        </div>
-      </div>
-      <div class="chart-box" style="height:280px"><canvas id="port-chart"></canvas></div>
-      <div class="chart-box" style="height:80px"><canvas id="dd-chart"></canvas></div>
-    </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px" class="pie-grid">
       <div class="ccrd">
         <div class="ctitle">ยอดเงินปัจจุบัน <span id="contrib-date" style="font-size:10px;color:var(--t3);font-weight:normal;margin-left:4px"></span>
@@ -1404,6 +1391,61 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
         </div>
         <div class="chart-box h220"><canvas id="alloc-chart"></canvas></div>
         <div id="alloc-legend" style="margin-top:10px"></div>
+      </div>
+    </div>
+    <div class="ccrd" style="margin-bottom:12px">
+      <div class="ctitle">
+        Portfolio Value
+        <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;justify-content:flex-end">
+          <div class="pbtns">
+            <button class="pbtn active" onclick="setPeriod(this,30)">1M</button>
+            <button class="pbtn"        onclick="setPeriod(this,90)">3M</button>
+            <button class="pbtn"        onclick="setPeriod(this,180)">6M</button>
+            <button class="pbtn"        onclick="setPeriod(this,365)">1Y</button>
+            <button class="pbtn"        onclick="setPeriod(this,1825)">5Y</button>
+            <button class="pbtn"        onclick="setPeriod(this,0)">All</button>
+          </div>
+          <button class="expand-btn" onclick="openFullscreen('port','Portfolio Value')" title="ขยายเต็มจอ">⛶</button>
+        </div>
+      </div>
+      <div class="chart-box" style="height:280px"><canvas id="port-chart"></canvas></div>
+      <div class="chart-box" style="height:80px"><canvas id="dd-chart"></canvas></div>
+      <!-- V29: BH Sim Builder — Mixed Plans buttons + DIY % per fund (mirrors Signal sim panel) -->
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--b1)">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div id="bh-sim-header" style="font-family:var(--mono);font-size:12px;color:#a855f7;font-weight:700;letter-spacing:.10em;text-transform:uppercase">🔬 Portfolio Sim</div>
+            <div style="display:flex;gap:4px">
+              <button type="button" id="bh-sim-tab-0" onclick="switchBhSim(0)" style="padding:4px 12px;border-radius:5px;font-size:11px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.18);color:#a855f7">🟣 Sim 1</button>
+              <button type="button" id="bh-sim-tab-1" onclick="switchBhSim(1)" style="padding:4px 12px;border-radius:5px;font-size:11px;font-family:var(--sans);font-weight:500;cursor:pointer;border:1px solid rgba(255,20,147,.3);background:transparent;color:#ff1493"><span style="display:inline-block;width:.7em;height:.7em;border-radius:50%;background:#ff1493;vertical-align:middle;margin-right:4px"></span>Sim 2</button>
+              <button type="button" id="bh-sim-tab-2" onclick="switchBhSim(2)" style="padding:4px 12px;border-radius:5px;font-size:11px;font-family:var(--sans);font-weight:500;cursor:pointer;border:1px solid rgba(37,99,235,.3);background:transparent;color:#2563eb">🔵 Sim 3</button>
+            </div>
+          </div>
+          <button type="button" id="bh-sim-clear-btn" onclick="bhSimClear()" style="padding:4px 10px;border-radius:5px;font-size:10px;font-family:var(--sans);cursor:pointer;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.08);color:#a855f7" title="ล้าง sim ที่ active อยู่">⌫ ล้างอันนี้</button>
+        </div>
+        <div style="font-size:11px;color:var(--t2);margin-bottom:10px">เลือก Mixed Plan (กดปุ่ม 1 แผน 100%) <b>หรือ</b> กรอก DIY % เอง — เส้น BH จะอัปเดตในกราฟด้านบน · <span style="color:var(--t3);font-size:10px">โหมด "วันแรก" = Inception · "เลือกวันที่" = Rebalance ทั้งพอร์ตเป็นแผนนี้ ณ วันนั้น</span></div>
+        <div id="bh-sim-mix-panel" style="border:1px solid rgba(168,85,247,.15);border-radius:8px;padding:10px 12px;margin-bottom:10px">
+          <div id="bh-sim-mix-lbl" style="font-size:10px;color:#a855f7;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">Mixed Plans — เลือก 1 แผน (100%)</div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px" id="bh-sim-mix"></div>
+        </div>
+        <div id="bh-sim-diy-panel" style="border:1px solid rgba(168,85,247,.15);border-radius:8px;padding:10px 12px">
+          <div id="bh-sim-diy-lbl" style="font-size:10px;color:#a855f7;font-weight:600;letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">DIY Plans — กรอกสัดส่วนเอง (รวม 100%)</div>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px" id="bh-sim-diy"></div>
+          <div style="margin-top:10px;display:flex;align-items:center;gap:10px">
+            <span style="font-size:11px;color:var(--t2)">ผลรวม:</span>
+            <span id="bh-sim-sum" style="font-family:var(--mono);font-weight:700;font-size:15px;color:var(--t2)">0%</span>
+          </div>
+        </div>
+        <!-- Entry date — เลือกระหว่าง "วันแรก" หรือ "เลือกวันที่" -->
+        <div id="bh-sim-entry-panel" style="margin-top:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 12px;background:rgba(168,85,247,.04);border:1px solid rgba(168,85,247,.15);border-radius:8px">
+          <span style="font-size:11px;color:var(--t2)">📅 วันที่เข้าแผน:</span>
+          <div style="display:flex;gap:4px">
+            <button type="button" id="bh-entry-mode-first" onclick="setBhEntryMode('first')" style="padding:4px 12px;border-radius:5px;font-size:11px;font-family:var(--sans);cursor:pointer;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.15);color:#a855f7;font-weight:600">วันแรก</button>
+            <button type="button" id="bh-entry-mode-custom" onclick="setBhEntryMode('custom')" style="padding:4px 12px;border-radius:5px;font-size:11px;font-family:var(--sans);cursor:pointer;border:1px solid rgba(168,85,247,.3);background:transparent;color:var(--t2);font-weight:500">เลือกวันที่</button>
+          </div>
+          <input type="date" id="bh-sim-entry-date" lang="en" style="display:none;background:var(--bg-3);border:1px solid rgba(168,85,247,.3);color:#a855f7;padding:4px 8px;border-radius:6px;font-size:12px;font-family:var(--mono);outline:none" onchange="onBhSimEntryChange()">
+          <span style="font-size:10px;color:var(--t3)" id="bh-entry-hint">Inception — ถ้าเลือกแผนนี้ตั้งแต่เงินนำส่งงวดแรก จะได้เท่าไหร่</span>
+        </div>
       </div>
     </div>
     <div class="tcrd">
@@ -1569,7 +1611,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 <div class="fs-overlay" id="fs-overlay">
   <div class="fs-header">
     <div class="fs-title" id="fs-title">—</div>
-    <div style="display:flex;align-items:center;gap:8px">
+    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end">
       <div id="fs-period-btns"></div>
       <button class="fs-close" onclick="closeFullscreen()">✕ ปิด (Esc)</button>
     </div>
@@ -1693,7 +1735,7 @@ const FM = {
   A75:{l:'แผนเชิงรุก 75',c:'#ec4899',s:'A75',dash:[10,4]},
   A35:{l:'แผนเชิงรุก 35',c:'#a3e635',s:'A35',dash:[6,3]},
   A20:{l:'แผนเชิงรุก 20',c:'#2dd4bf',s:'A20',dash:[6,3]},
-  Money_Market:{l:'ตราสารหนี้ (MM)',c:'#e879f9',s:'MM',dash:[2,2]},
+  Money_Market:{l:'เงินฝากและตราสารหนี้ระยะสั้น (MM)',c:'#e879f9',s:'MM',dash:[2,2]},
   B:{l:'ตราสารหนี้ (B)',c:'#818cf8',s:'B',dash:[2,2]},
   TH:{l:'หุ้นไทย (TH)',c:'#00e676',s:'TH',dash:[]},
   PR:{l:'อสังหาฯ ไทย (PR)',c:'#fb7185',s:'PR',dash:[8,4]},
@@ -1714,6 +1756,19 @@ let FRED_DATA  = null;
 let NAV_PORT   = [];
 let TX_PORT    = [];
 let portCharts = {};
+// V29: Portfolio Sim — up to 3 sims compared side-by-side
+let bhSimActive = 0;
+let bhSims = [
+  {alloc:null, lbl:'', entry:null, entryMode:'first', mixKey:'', diyVals:{}},
+  {alloc:null, lbl:'', entry:null, entryMode:'first', mixKey:'', diyVals:{}},
+  {alloc:null, lbl:'', entry:null, entryMode:'first', mixKey:'', diyVals:{}}
+];
+// Theme per sim — Sim 1 purple, Sim 2 hot-pink (deeppink), Sim 3 blue — used by _applyBhSimTheme
+const BH_THEMES = [
+  {main:'#a855f7', bg18:'rgba(168,85,247,.18)', bg15:'rgba(168,85,247,.15)', bg08:'rgba(168,85,247,.08)', bg04:'rgba(168,85,247,.04)', brd40:'rgba(168,85,247,.4)', brd30:'rgba(168,85,247,.3)', brd15:'rgba(168,85,247,.15)'},
+  {main:'#ff1493', bg18:'rgba(255,20,147,.18)', bg15:'rgba(255,20,147,.15)', bg08:'rgba(255,20,147,.08)', bg04:'rgba(255,20,147,.04)', brd40:'rgba(255,20,147,.4)', brd30:'rgba(255,20,147,.3)', brd15:'rgba(255,20,147,.15)'},
+  {main:'#2563eb', bg18:'rgba(37,99,235,.18)', bg15:'rgba(37,99,235,.15)', bg08:'rgba(37,99,235,.08)', bg04:'rgba(37,99,235,.04)', brd40:'rgba(37,99,235,.4)', brd30:'rgba(37,99,235,.3)', brd15:'rgba(37,99,235,.15)'}
+];
 let curPeriod  = 30;
 let fundPeriod = 365;
 let viewMode   = 'today';
@@ -1726,6 +1781,10 @@ const el  = id => document.getElementById(id);
 const esc = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const fmt = (n,d=2) => n==null||isNaN(n)?'-':n.toLocaleString('th-TH',{minimumFractionDigits:d,maximumFractionDigits:d});
 const fmtS = n => { if(n==null||isNaN(n))return'-'; return(n>=0?'+':'')+n.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}); };
+// Drawdown severity icon: 🟢 ตื้น (>-2%) · 🟡 ปานกลาง (>-5%) · 🔴 ลึก
+const ddIco = x => (x>-2?'🟢':x>-5?'🟡':'🔴');
+// Short display for fund keys (Money_Market → MM; อื่นๆ ใช้ key เดิม)
+const _dispKey = k => (k==='Money_Market' ? 'MM' : k);
 const pNum = s => { if(!s||!String(s).trim())return null; const v=parseFloat(String(s).replace(/,/g,'')); return isNaN(v)?null:v; };
 const pDt  = s => {
   if(!s)return null;
@@ -3201,7 +3260,7 @@ function buildGrid(gridId,plans){
       btn.type='button';
       btn.id='mix_'+p.key;
       btn.className='mix-plan-btn';
-      btn.textContent=p.name+' ('+p.key+')';
+      btn.textContent=p.name+' ('+_dispKey(p.key)+')';
       btn.onclick=function(){selectMixPlan(p.key);};
       grid.appendChild(btn);
       // Only create hidden input if not already in DIY grid
@@ -3217,7 +3276,7 @@ function buildGrid(gridId,plans){
       const maxVal=p.cap||100;
       let opts='<option value="">—</option>';
       for(let i=0;i<=maxVal;i++) opts+='<option value="'+i+'">'+i+'%</option>';
-      div.innerHTML='<label style="font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name+' <span class="alloc-key-span" style="font-family:var(--mono)">('+p.key+')</span></label>'
+      div.innerHTML='<label style="font-size:11px;color:var(--t2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+p.name+' <span class="alloc-key-span" style="font-family:var(--mono)">('+_dispKey(p.key)+')</span></label>'
         +'<select id="a_'+p.key+'" class="alloc-grid-input" style="background:var(--bg-3)" onchange="onAllocChange()">'+opts+'</select>';
       grid.appendChild(div);
     }
@@ -3656,7 +3715,7 @@ function buildSimAllocGrid(){
       const btn=document.createElement('button');
       btn.type='button';btn.id='sim_mix_'+p.key;
       btn.className='mix-plan-btn';
-      btn.textContent=p.name+' ('+p.key+')';
+      btn.textContent=p.name+' ('+_dispKey(p.key)+')';
       btn.onclick=function(){selectSimMixPlan(p.key);};
       mixGrid.appendChild(btn);
     });
@@ -3670,7 +3729,7 @@ function buildSimAllocGrid(){
       for(let i=0;i<=maxVal;i++) opts+='<option value="'+i+'">'+i+'%</option>';
       const div=document.createElement('div');
       div.style.cssText='display:flex;flex-direction:column;gap:3px';
-      div.innerHTML='<label style="font-size:11px;color:var(--t2)">'+p.name+' <span style="font-family:var(--mono);color:var(--purple)">('+p.key+')</span></label>'
+      div.innerHTML='<label style="font-size:11px;color:var(--t2)">'+p.name+' <span style="font-family:var(--mono);color:var(--purple)">('+_dispKey(p.key)+')</span></label>'
         +'<select id="sim_a_'+p.key+'" style="background:var(--bg-3);border:1px solid rgba(139,92,246,.3);color:var(--purple);padding:4px 6px;border-radius:6px;font-size:12px;font-family:var(--mono);width:100%;outline:none" onchange="onSimAllocChange()">'+opts+'</select>';
       diyGrid.appendChild(div);
     });
@@ -4713,6 +4772,104 @@ function calcPort(nav,tx,days){
   }
   return{l,v,iv};
 }
+// V29: Buy & Hold benchmark — simulate every monthly contribution (เงินนำส่ง)
+//      buying a fixed allocation (กองเดียว หรือ แผนผสม) and holding.
+//      Sim ALWAYS runs from first investment day (เงินนำส่งทุกครั้งเข้าแผน).
+//      Optional entryDate: clips DISPLAY to null before that date (calc stays inception-based).
+//      Returns {value, invested} aligned to `l`.
+function _navOnOrBefore(rows,fund,d){
+  let lo=0,hi=rows.length-1,res=null;
+  while(lo<=hi){const mid=(lo+hi)>>1;
+    if(rows[mid].date<=d){const x=rows[mid].funds[fund];if(x!=null)res=x;lo=mid+1;}
+    else hi=mid-1;}
+  return res;
+}
+// alloc = {fundKey: weight} — กองเดียว {F:1} หรือ แผนผสม {F:0.75,G:0.25}
+function calcBHSeries(alloc,l,entryDate){
+  if(!alloc||!l||l.length<2)return null;
+  const funds=Object.keys(alloc);
+  if(!funds.length)return null;
+  const navByFund={};
+  for(const f of funds){
+    const rows=NAV_PORT.filter(n=>n.funds[f]!=null);
+    if(rows.length<2)return null;
+    navByFund[f]=rows;
+  }
+  const deps=TX_PORT.filter(t=>t.type==='เงินนำส่ง'&&t.total>0).sort((a,b)=>a.date-b.date);
+  if(!deps.length)return null;
+  // Cumulative deposit totals across full history (used as `invested` base — same denominator as Port)
+  const depCumTotal=[];{let s=0;for(const t of deps){s+=t.total;depCumTotal.push({date:t.date,s});}}
+  const _depTotalAtOrBefore=(d)=>{let s=0;for(const x of depCumTotal){if(x.date>d)break;s=x.s;}return s;};
+  // Mode: "from-port-value" when entryDate is set AFTER first deposit (simulates a full rebalance at entry, kept holding from then)
+  //       Otherwise: "inception" — every deposit from day 1 goes into the chosen plan
+  const useFromPort = entryDate instanceof Date && entryDate>deps[0].date;
+  let depCum,startDate=null;
+  if(useFromPort){
+    // 1. Compute actual port value at entryDate (using ALL TX_PORT funds up to entry)
+    const entryNavRow = NAV_PORT.slice().reverse().find(n=>n.date<=entryDate);
+    if(!entryNavRow)return null;
+    const txSorted=[...TX_PORT].sort((a,b)=>a.date-b.date);
+    const allUnits={};
+    for(const t of txSorted){
+      if(t.date>entryNavRow.date)break;
+      for(const[f,a] of Object.entries(t.amounts||{})){allUnits[f]=(allUnits[f]||0)+a.u;}
+    }
+    let preEntryValue=0;
+    for(const[f,un] of Object.entries(allUnits)){
+      if(Math.abs(un)<0.0001)continue;
+      const nv=entryNavRow.funds[f];
+      if(nv)preEntryValue+=un*nv;
+    }
+    if(preEntryValue<=0)return null;
+    // 2. Convert preEntryValue to units in chosen alloc at entry-date NAVs (rebalance at entry)
+    const cumU={};funds.forEach(f=>cumU[f]=0);
+    for(const f of funds){
+      const w=alloc[f];if(!w)continue;
+      const nv=_navOnOrBefore(navByFund[f],f,entryNavRow.date);
+      if(nv&&nv>0)cumU[f]=preEntryValue*w/nv;
+    }
+    depCum=[{date:entryNavRow.date,u:Object.assign({},cumU)}];
+    startDate=entryNavRow.date;
+    // 3. Continue with deposits AFTER entry (add new units in chosen alloc)
+    for(const t of deps){
+      if(t.date<=entryNavRow.date)continue;
+      for(const f of funds){
+        const w=alloc[f];if(!w)continue;
+        const nv=_navOnOrBefore(navByFund[f],f,t.date);
+        if(nv&&nv>0)cumU[f]+=t.total*w/nv;
+      }
+      depCum.push({date:t.date,u:Object.assign({},cumU)});
+    }
+  } else {
+    // Inception mode — original behavior
+    const cumU={};funds.forEach(f=>cumU[f]=0);
+    depCum=[];
+    for(const t of deps){
+      for(const f of funds){
+        const w=alloc[f];if(!w)continue;
+        const nv=_navOnOrBefore(navByFund[f],f,t.date);
+        if(nv&&nv>0)cumU[f]+=t.total*w/nv;
+      }
+      depCum.push({date:t.date,u:Object.assign({},cumU)});
+    }
+  }
+  // Build series — clip before entry/inception startDate; invested always uses cumulative deposit total (same as Port)
+  const value=[],invested=[];let di=0;
+  for(const d of l){
+    if(useFromPort && d<startDate){value.push(null);invested.push(null);continue;}
+    while(di<depCum.length&&depCum[di].date<=d)di++;
+    if(di<=0){value.push(null);invested.push(null);continue;}
+    const snap=depCum[di-1];let val=0,ok=false;
+    for(const f of funds){
+      const u=snap.u[f]||0;if(u<=0)continue;
+      const nv=_navOnOrBefore(navByFund[f],f,d);
+      if(nv&&nv>0){val+=u*nv;ok=true;}
+    }
+    value.push(ok?val:null);
+    invested.push(_depTotalAtOrBefore(d));
+  }
+  return {value,invested};
+}
 function calcAnalytics(hold,nav,tx){
   const ln=nav[nav.length-1],pn=nav[nav.length-2];
   const portSeries=[];
@@ -4836,6 +4993,7 @@ function renderPortAll(){
   renderDaily(NAV_PORT,TX_PORT);renderTxTbl(TX_PORT);renderMon(TX_PORT);
   showPortDash();
   requestAnimationFrame(()=>{requestAnimationFrame(()=>{
+    buildChartSimGrid();
     renderPortChart(curPeriod);renderAlloc(hold,NAV_PORT);
     renderContribPie(TX_PORT,NAV_PORT,hold);
     renderYearlySummary(NAV_PORT,TX_PORT);
@@ -5513,14 +5671,19 @@ function setupPairSync(canvas1,getChart1,canvas2,getChart2,ddToNavTooltip){
       const els=chart.data.datasets.map((_,di)=>({datasetIndex:di,index:idx}));
       const xPx=chart.scales.x.getPixelForValue(idx);
       const yPx=chart.chartArea?(chart.chartArea.top+chart.chartArea.bottom)/2:0;
-      if(!skipTooltip)chart.tooltip.setActiveElements(els,{x:xPx,y:yPx});
+      if(!skipTooltip){
+        chart.tooltip.setActiveElements(els,{x:xPx,y:yPx});
+        // Chart.js v4 quirk: setActiveElements alone leaves opacity=0 (no fade-in animation triggered)
+        // Force opacity=1 so tooltip is actually visible when sync-triggered from another chart
+        chart.tooltip.opacity=1;
+      }
       chart.setActiveElements(els);
       chart.update('none');
     }catch(ex){}
   }
   function clear(chart){
     if(!chart)return;
-    try{chart.tooltip.setActiveElements([],{x:0,y:0});chart.setActiveElements([]);chart.update('none');}catch(ex){}
+    try{chart.tooltip.setActiveElements([],{x:0,y:0});chart.tooltip.opacity=0;chart.setActiveElements([]);chart.update('none');}catch(ex){}
   }
   // canvas1 = NAV chart, canvas2 = DD chart
   function onNav(e){
@@ -5581,6 +5744,9 @@ function renderPortChart(days){
     if(val>peak)peak=val;
     return peak>0?(val-peak)/peak*100:0;
   });
+  // V29: Compute BH results for both Portfolio Sims (Sim 1 + Sim 2)
+  const bhResults=[_calcBhForSim(0,l), _calcBhForSim(1,l), _calcBhForSim(2,l)];
+  const SIM_COLORS=['#a855f7','#ff1493','#2563eb'];
   const datasets=[
     {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,_isLine:true,
       backgroundColor:c=>{const a=c.chart.chartArea;if(!a)return'rgba(255,193,32,.15)';const g=c.chart.ctx.createLinearGradient(0,a.top,0,a.bottom);g.addColorStop(0,'rgba(255,193,32,.2)');g.addColorStop(1,'rgba(255,193,32,0)');return g;}},
@@ -5591,6 +5757,11 @@ function renderPortChart(days){
   }
   if(depositData.some(v=>v!==null)){
     datasets.push({label:'Deposit',data:depositData,type:'line',fill:false,borderWidth:0,pointRadius:6,pointHoverRadius:8,pointStyle:'circle',pointBackgroundColor:'#22c55e',pointBorderColor:'#fff',pointBorderWidth:1.5,showLine:false});
+  }
+  // V29: Portfolio Sim lines (up to 2 — Sim 1 purple, Sim 2 orange)
+  for(let si=0;si<3;si++){
+    if(!bhResults[si])continue;
+    datasets.push({label:'Sim'+(si+1)+': '+bhResults[si].lbl,data:bhResults[si].value,fill:false,borderColor:SIM_COLORS[si],borderWidth:1.8,borderDash:[6,3],pointRadius:0,tension:.3,_isLine:true,spanGaps:true});
   }
   // Port chart with combined tooltip (Portfolio + DD)
   // Fixed y-axis width ensures port + DD x-axis alignment
@@ -5620,7 +5791,7 @@ function renderPortChart(days){
           titleColor:'#7888a8',titleFont:{family:'Sarabun',size:12},bodyFont:{family:'IBM Plex Mono',size:12},
           filter:item=>item.dataset.label!=='Rebalance'&&item.dataset.label!=='Deposit',
           callbacks:{title:items=>{const i=items[0]?.dataIndex;return i!=null&&l[i]?fmtDateTooltip(l[i]):items[0]?.label||'';},label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}),
-            afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const ddIcon=dd>-2?'🟢':dd>-5?'🟡':'🔴';const parts=[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+fmtS(pct)+'%)',' '+ddIcon+' DD: '+dd.toFixed(2)+'%'];if(rebalData[i]!==null){const plan=rebalPlanMap[l[i].toDateString()]||'-';parts.push(' 📌 เปลี่ยนแผน: '+plan);}if(depositData[i]!==null){const dt=l[i].toDateString();const amt=depositMap[dt]||0;parts.push(' 💰 Deposit: ฿'+amt.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}));}return parts;}}
+            afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const _SIM_E=['🟣','🔴','🔵'];const parts=[' ─────────','🟢 Port P&L : ฿'+pnl.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+fmtS(pct)+'%)'];for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0)continue;const bp=bd.value[i]-bd.invested[i];parts.push(_SIM_E[si]+' Sim'+(si+1)+' P&L : ฿'+bp.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+fmtS(bp/bd.invested[i]*100)+'%)');}parts.push(ddIco(dd)+' Port  DD : '+dd.toFixed(2)+'%');for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.ddData[i]==null)continue;parts.push(ddIco(bd.ddData[i])+' Sim'+(si+1)+' DD : '+bd.ddData[i].toFixed(2)+'%');}for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0||bd.ddData[i]==null)continue;const bp=bd.value[i]-bd.invested[i],dpP=pnl-bp,dpD=dd-bd.ddData[i];const eP=dpP>0?'🟢':dpP<0?'🔴':'⚪';const eD=dpD>0?'🟢':dpD<0?'🔴':'⚪';parts.push(eP+' Diff(Sim'+(si+1)+') Profit '+(dpP>=0?'+':'-')+'฿'+Math.abs(dpP).toLocaleString('th-TH',{maximumFractionDigits:0})+' : '+eD+' DD '+fmtS(dpD)+'%');}if(rebalData[i]!==null){const plan=rebalPlanMap[l[i].toDateString()]||'-';parts.push('📌 เปลี่ยนแผน: '+plan);}if(depositData[i]!==null){const dt=l[i].toDateString();const amt=depositMap[dt]||0;parts.push('💰 Deposit: ฿'+amt.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}));}return parts;}}
         }
       }
     }
@@ -5628,8 +5799,10 @@ function renderPortChart(days){
   // DD chart below (no tooltip — data shown in port tooltip above)
   const ddCtx=el('dd-chart');
   if(ddCtx){
+    const ddDatasets=[{data:ddData,fill:'origin',borderColor:'#ff3d5a',borderWidth:1.2,pointRadius:0,tension:.3,backgroundColor:'rgba(255,61,90,.18)'}];
+    for(let si=0;si<3;si++){if(!bhResults[si])continue;ddDatasets.push({data:bhResults[si].ddData,fill:false,borderColor:SIM_COLORS[si],borderWidth:1.2,borderDash:[5,3],pointRadius:0,tension:.3,spanGaps:true});}
     portCharts.dd=new Chart(ddCtx.getContext('2d'),{type:'line',
-      data:{labels,datasets:[{data:ddData,fill:'origin',borderColor:'#ff3d5a',borderWidth:1.2,pointRadius:0,tension:.3,backgroundColor:'rgba(255,61,90,.18)'}]},
+      data:{labels,datasets:ddDatasets},
       options:{responsive:true,maintainAspectRatio:false,animation:{duration:400},
         interaction:{mode:'index',intersect:false},
         plugins:{legend:{display:false},tooltip:{enabled:false}},
@@ -5795,6 +5968,221 @@ function renderNavCh(nav,hold){
   portCharts.navchart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{title:items=>{const i=items[0]?.dataIndex;return i!=null&&rc[i]?fmtDateTooltip(rc[i].date):items[0]?.label||'';},label:c=>{if(c.parsed.y==null)return null;const f=active[c.datasetIndex];const navVal=rc[c.dataIndex]?.funds[f];return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'+(navVal?' (NAV '+fmt(navVal,4)+')':'')}},filter:c=>c.parsed.y!=null}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
 }
 function setPeriod(btn,days){document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');curPeriod=days;destroyChart('port');renderPortChart(days);}
+// V29: BH Sim Builder — Mixed Plans buttons + DIY % per fund (mirrors Signal sim panel)
+let _bhSimFromMix=false;
+function buildChartSimGrid(){
+  const mix=el('bh-sim-mix');
+  if(mix){
+    mix.innerHTML='';
+    MIX_BUTTONS.forEach(p=>{
+      const btn=document.createElement('button');
+      btn.type='button';btn.id='bh_sim_mix_'+p.key;
+      btn.className='mix-plan-btn';
+      btn.textContent=p.name+' ('+_dispKey(p.key)+')';
+      btn.onclick=function(){selectBhSimMix(p.key);};
+      mix.appendChild(btn);
+    });
+  }
+  const diy=el('bh-sim-diy');
+  if(diy){
+    diy.innerHTML='';
+    DIY.forEach(p=>{
+      const maxVal=p.cap||100;
+      let opts='<option value="">—</option>';
+      for(let i=0;i<=maxVal;i++) opts+='<option value="'+i+'">'+i+'%</option>';
+      const div=document.createElement('div');
+      div.style.cssText='display:flex;flex-direction:column;gap:6px';
+      const lbl=(FM[p.key]&&FM[p.key].l)||p.name;
+      const capNote=p.cap?' <span style="color:var(--t3);font-size:9px;font-weight:normal">(สูงสุด '+p.cap+'%)</span>':'';
+      const th=BH_THEMES[bhSimActive];
+      div.innerHTML='<label style="font-size:11px;color:var(--t2);font-weight:500;line-height:1.4">'+lbl+capNote+'</label>'
+        +'<select id="bh_sim_diy_'+p.key+'" style="background:var(--bg-3);border:1px solid '+th.brd30+';color:'+th.main+';padding:6px 8px;border-radius:6px;font-size:12px;font-family:var(--mono);outline:none;cursor:pointer;width:100%" onchange="onBhSimDiyChange()">'+opts+'</select>';
+      diy.appendChild(div);
+    });
+  }
+  _bhSimSumRefresh();
+  _bhSimSetDefaultEntry();
+}
+// Apply theme of sim `idx` to all Portfolio Sim UI elements (header/panels/labels/buttons/inputs)
+function _applyBhSimTheme(idx){
+  const t=BH_THEMES[idx]; if(!t) return;
+  const setS=(id,prop,val)=>{const e=el(id); if(e) e.style[prop]=val;};
+  // Header "🔬 Portfolio Sim"
+  setS('bh-sim-header','color',t.main);
+  // Mixed Plans panel + label
+  setS('bh-sim-mix-panel','borderColor',t.brd15);
+  setS('bh-sim-mix-lbl','color',t.main);
+  // DIY Plans panel + label
+  setS('bh-sim-diy-panel','borderColor',t.brd15);
+  setS('bh-sim-diy-lbl','color',t.main);
+  // Entry date panel
+  const ent=el('bh-sim-entry-panel');
+  if(ent){ent.style.background=t.bg04; ent.style.borderColor=t.brd15;}
+  // Date input
+  const dinp=el('bh-sim-entry-date');
+  if(dinp){dinp.style.borderColor=t.brd30; dinp.style.color=t.main;}
+  // Clear button "⌫ ล้างอันนี้"
+  const clr=el('bh-sim-clear-btn');
+  if(clr){clr.style.borderColor=t.brd30; clr.style.background=t.bg08; clr.style.color=t.main;}
+  // DIY dropdowns (dynamically generated)
+  if(typeof DIY!=='undefined'){
+    DIY.forEach(p=>{const inp=el('bh_sim_diy_'+p.key); if(inp){inp.style.borderColor=t.brd30; inp.style.color=t.main;}});
+  }
+  // Entry mode buttons — recolor according to active state
+  const cur=bhSims[idx]||{entryMode:'first'};
+  const b1=el('bh-entry-mode-first'), b2=el('bh-entry-mode-custom');
+  if(b1){b1.style.borderColor=t.brd30;}
+  if(b2){b2.style.borderColor=t.brd30;}
+  if(cur.entryMode==='first'){
+    if(b1){b1.style.background=t.bg15; b1.style.color=t.main; b1.style.fontWeight='600';}
+    if(b2){b2.style.background='transparent'; b2.style.color='var(--t2)'; b2.style.fontWeight='500';}
+  } else {
+    if(b2){b2.style.background=t.bg15; b2.style.color=t.main; b2.style.fontWeight='600';}
+    if(b1){b1.style.background='transparent'; b1.style.color='var(--t2)'; b1.style.fontWeight='500';}
+  }
+}
+function activeSim(){return bhSims[bhSimActive];}
+function selectBhSimMix(key){
+  const sim=activeSim();
+  _bhSimFromMix=true;
+  DIY.forEach(p=>{const inp=el('bh_sim_diy_'+p.key);if(inp)inp.value='';});
+  sim.diyVals={};
+  const btn=el('bh_sim_mix_'+key);
+  const wasActive=btn&&btn.classList.contains('active');
+  document.querySelectorAll('#bh-sim-mix .mix-plan-btn').forEach(b=>b.classList.remove('active'));
+  if(wasActive){sim.alloc=null;sim.lbl='';sim.mixKey='';_bhSimFromMix=false;_bhSimSumRefresh();_renderBHCharts();return;}
+  if(btn)btn.classList.add('active');
+  const diyInp=el('bh_sim_diy_'+key);
+  if(diyInp){diyInp.value='100';sim.diyVals[key]='100';}
+  sim.alloc=SIM_ALLOCS[key]||{[key]:1.0};sim.lbl=key;sim.mixKey=key;
+  _bhSimSumRefresh();_renderBHCharts();
+  _bhSimFromMix=false;
+}
+function onBhSimDiyChange(){
+  const sim=activeSim();
+  if(!_bhSimFromMix){
+    document.querySelectorAll('#bh-sim-mix .mix-plan-btn').forEach(b=>b.classList.remove('active'));
+    sim.mixKey='';
+  }
+  let total=0;const alloc={};sim.diyVals={};
+  DIY.forEach(p=>{
+    const v=parseFloat(el('bh_sim_diy_'+p.key)?.value||'0');
+    if(v>0){alloc[p.key]=v/100;total+=v;sim.diyVals[p.key]=String(v);}
+  });
+  if(Math.abs(total-100)<0.01&&Object.keys(alloc).length>0){sim.alloc=alloc;sim.lbl='DIY';}
+  else{sim.alloc=null;sim.lbl='';}
+  _bhSimSumRefresh();_renderBHCharts();
+}
+function bhSimClear(){
+  const sim=activeSim();
+  document.querySelectorAll('#bh-sim-mix .mix-plan-btn').forEach(b=>b.classList.remove('active'));
+  DIY.forEach(p=>{const inp=el('bh_sim_diy_'+p.key);if(inp)inp.value='';});
+  sim.alloc=null;sim.lbl='';sim.mixKey='';sim.diyVals={};
+  _bhSimSumRefresh();_renderBHCharts();
+}
+function _bhSimSumRefresh(){
+  let total=0;
+  DIY.forEach(p=>{const v=parseFloat(el('bh_sim_diy_'+p.key)?.value||'0');if(v>0)total+=v;});
+  const sum=el('bh-sim-sum');
+  if(sum){sum.textContent=total.toFixed(0)+'%';sum.style.color=Math.abs(total-100)<0.01?'var(--green)':total>100?'var(--red)':'var(--t2)';}
+}
+function _renderBHCharts(){
+  destroyChart('port');destroyChart('dd');
+  renderPortChart(curPeriod);
+  if(el('fs-overlay')?.classList.contains('show')&&typeof fsCurrentKey!=='undefined'&&fsCurrentKey==='port')renderFsChart('port');
+}
+// Entry date — เริ่มจำลองจากวันที่นี้ per active sim
+function onBhSimEntryChange(){
+  const sim=activeSim();
+  const v=el('bh-sim-entry-date')?.value||'';
+  sim.entry = v ? new Date(v+'T00:00:00') : null;
+  _renderBHCharts();
+}
+function _bhSimSetDefaultEntry(){
+  for(let i=0;i<3;i++){bhSims[i].entryMode='first';bhSims[i].entry=null;bhSims[i].alloc=null;bhSims[i].lbl='';bhSims[i].mixKey='';bhSims[i].diyVals={};}
+  bhSimActive=0;
+  if(el('bh-entry-mode-first'))setBhEntryMode('first');
+}
+// Toggle between "วันแรก" (first TX day) and "เลือกวันที่" (user-picked date) — per active sim
+function setBhEntryMode(mode){
+  const sim=activeSim();
+  sim.entryMode=mode;
+  const t=BH_THEMES[bhSimActive]||BH_THEMES[0];
+  const b1=el('bh-entry-mode-first'), b2=el('bh-entry-mode-custom');
+  const inp=el('bh-sim-entry-date'), hint=el('bh-entry-hint');
+  const firstTx=(TX_PORT||[]).slice().sort((a,b)=>a.date-b.date)[0];
+  if(mode==='first'){
+    if(b1){b1.style.background=t.bg15;b1.style.color=t.main;b1.style.borderColor=t.brd30;b1.style.fontWeight='600';}
+    if(b2){b2.style.background='transparent';b2.style.color='var(--t2)';b2.style.borderColor=t.brd30;b2.style.fontWeight='500';}
+    if(inp)inp.style.display='none';
+    if(hint)hint.textContent='Inception — ถ้าเลือกแผนนี้ตั้งแต่เงินนำส่งงวดแรก จะได้เท่าไหร่';
+    sim.entry=firstTx?firstTx.date:null;
+  } else {
+    if(b2){b2.style.background=t.bg15;b2.style.color=t.main;b2.style.borderColor=t.brd30;b2.style.fontWeight='600';}
+    if(b1){b1.style.background='transparent';b1.style.color='var(--t2)';b1.style.borderColor=t.brd30;b1.style.fontWeight='500';}
+    if(inp){
+      inp.style.display='';
+      if(!inp.value){
+        const dt=new Date();
+        inp.value=dt.getFullYear()+'-'+String(dt.getMonth()+1).padStart(2,'0')+'-'+String(dt.getDate()).padStart(2,'0');
+      }
+      sim.entry=inp.value?new Date(inp.value+'T00:00:00'):null;
+    }
+    if(hint)hint.textContent='From-Port — ถ้าวันที่นี้ rebalance พอร์ตทั้งก้อนเป็นแผนนี้ ผลจะเป็นอย่างไร (จำลอง กบข Major Change)';
+  }
+  _renderBHCharts();
+}
+// Switch Sim 1 ↔ Sim 2 tab — save current UI to active sim, restore from target sim
+function switchBhSim(idx){
+  if(idx===bhSimActive)return;
+  // Save current sim's entry date from input if custom mode
+  const cur=activeSim();
+  if(cur.entryMode==='custom'){
+    const v=el('bh-sim-entry-date')?.value||'';
+    if(v)cur.entry=new Date(v+'T00:00:00');
+  }
+  // Switch active
+  bhSimActive=idx;
+  const next=activeSim();
+  // Update tab button styles — Sim 1 purple / Sim 2 hot-pink / Sim 3 blue
+  const tabs=[
+    {el:el('bh-sim-tab-0'), main:'#a855f7', bg18:'rgba(168,85,247,.18)', brd40:'rgba(168,85,247,.4)', brd30:'rgba(168,85,247,.3)'},
+    {el:el('bh-sim-tab-1'), main:'#ff1493', bg18:'rgba(255,20,147,.18)', brd40:'rgba(255,20,147,.4)', brd30:'rgba(255,20,147,.3)'},
+    {el:el('bh-sim-tab-2'), main:'#2563eb', bg18:'rgba(37,99,235,.18)',  brd40:'rgba(37,99,235,.4)',  brd30:'rgba(37,99,235,.3)'}
+  ];
+  for(let i=0;i<tabs.length;i++){
+    const t=tabs[i]; if(!t.el)continue;
+    if(i===idx){t.el.style.background=t.bg18; t.el.style.borderColor=t.brd40; t.el.style.color=t.main; t.el.style.fontWeight='600';}
+    else      {t.el.style.background='transparent'; t.el.style.borderColor=t.brd30; t.el.style.color=t.main; t.el.style.fontWeight='500';}
+  }
+  // Restore UI: Mixed buttons
+  document.querySelectorAll('#bh-sim-mix .mix-plan-btn').forEach(b=>b.classList.remove('active'));
+  if(next.mixKey){const btn=el('bh_sim_mix_'+next.mixKey);if(btn)btn.classList.add('active');}
+  // Restore UI: DIY values
+  DIY.forEach(p=>{const inp=el('bh_sim_diy_'+p.key);if(inp)inp.value=next.diyVals[p.key]||'';});
+  // Restore UI: Entry mode + date input visibility (theme applied separately below)
+  const inp=el('bh-sim-entry-date'), hint=el('bh-entry-hint');
+  if(next.entryMode==='first'){
+    if(inp)inp.style.display='none';
+    if(hint)hint.textContent='Inception — ถ้าเลือกแผนนี้ตั้งแต่เงินนำส่งงวดแรก จะได้เท่าไหร่';
+  } else {
+    if(inp){inp.style.display='';inp.value=next.entry?(next.entry.getFullYear()+'-'+String(next.entry.getMonth()+1).padStart(2,'0')+'-'+String(next.entry.getDate()).padStart(2,'0')):'';}
+    if(hint)hint.textContent='From-Port — ถ้าวันที่นี้ rebalance พอร์ตทั้งก้อนเป็นแผนนี้ ผลจะเป็นอย่างไร (จำลอง กบข Major Change)';
+  }
+  // Apply theme (header, panels, labels, DIY dropdowns, clear button, entry buttons, date input)
+  _applyBhSimTheme(idx);
+  _bhSimSumRefresh();
+}
+// Compute BH result for one sim — value/invested/dd/lbl (returns null if sim has no alloc)
+function _calcBhForSim(simIdx, l){
+  const sim=bhSims[simIdx];
+  if(!sim||!sim.alloc)return null;
+  const s=calcBHSeries(sim.alloc, l, sim.entry);
+  if(!s||!s.value.some(x=>x!=null))return null;
+  let peak=0;
+  const dd=s.value.map(v=>{if(v==null)return null;if(v>peak)peak=v;return peak>0?(v-peak)/peak*100:0;});
+  return {value:s.value, invested:s.invested, ddData:dd, lbl:sim.lbl};
+}
 function setFundPeriod(btn,days){document.querySelectorAll('.fpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');fundPeriod=days;if(NAV_PORT.length>0){destroyChart('fund');renderFund(NAV_PORT,days);}}
 
 // ================================================================
@@ -6472,6 +6860,9 @@ function renderFsChart(chartKey){
       if(val>peak)peak=val;
       return peak>0?(val-peak)/peak*100:0;
     });
+    // V29: Compute BH results for both Portfolio Sims
+    const bhResults=[_calcBhForSim(0,l), _calcBhForSim(1,l), _calcBhForSim(2,l)];
+    const SIM_COLORS=['#a855f7','#ff1493','#2563eb'];
     const datasets=[
       {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,backgroundColor:'rgba(255,193,32,.12)',_isLine:true},
       {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3,_isLine:true}
@@ -6481,6 +6872,11 @@ function renderFsChart(chartKey){
     }
     if(depositData.some(v=>v!==null)){
       datasets.push({label:'Deposit',data:depositData,type:'line',fill:false,borderWidth:0,pointRadius:8,pointHoverRadius:10,pointStyle:'circle',pointBackgroundColor:'#22c55e',pointBorderColor:'#fff',pointBorderWidth:2,showLine:false});
+    }
+    // V29: Portfolio Sim lines (up to 2)
+    for(let si=0;si<3;si++){
+      if(!bhResults[si])continue;
+      datasets.push({label:'Sim'+(si+1)+': '+bhResults[si].lbl,data:bhResults[si].value,fill:false,borderColor:SIM_COLORS[si],borderWidth:2,borderDash:[6,3],pointRadius:0,tension:.3,_isLine:true,spanGaps:true});
     }
     // Port chart with combined tooltip (Portfolio + DD)
     // Fixed y-axis width ensures port + DD x-axis alignment
@@ -6502,15 +6898,17 @@ function renderFsChart(chartKey){
           fontColor:'#c8d6f0',
         }))}},
         tooltip:{...fsTTOpts({title:items=>{const i=items[0]?.dataIndex;return i!=null&&l[i]?fmtDateTooltip(l[i]):items[0]?.label||'';},label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
-          afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const ddIcon=dd>-2?'🟢':dd>-5?'🟡':'🔴';const parts=[' ─────────',' P&L: ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)',' '+ddIcon+' DD: '+dd.toFixed(2)+'%'];if(rebalData[i]!==null){const plan=rebalPlanMap[l[i].toDateString()]||'-';parts.push(' 📌 เปลี่ยนแผน: '+plan);}if(depositData[i]!==null){const dt=l[i].toDateString();const amt=depositMap[dt]||0;parts.push(' 💰 Deposit: ฿'+amt.toLocaleString('th-TH',{maximumFractionDigits:0}));}return parts;}
+          afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const _SIM_E=['🟣','🔴','🔵'];const parts=[' ─────────','🟢 Port P&L : ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)'];for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0)continue;const bp=bd.value[i]-bd.invested[i];parts.push(_SIM_E[si]+' Sim'+(si+1)+' P&L : ฿'+bp.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(bp/bd.invested[i]*100)+'%)');}parts.push(ddIco(dd)+' Port  DD : '+dd.toFixed(2)+'%');for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.ddData[i]==null)continue;parts.push(ddIco(bd.ddData[i])+' Sim'+(si+1)+' DD : '+bd.ddData[i].toFixed(2)+'%');}for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0||bd.ddData[i]==null)continue;const bp=bd.value[i]-bd.invested[i],dpP=pnl-bp,dpD=dd-bd.ddData[i];const eP=dpP>0?'🟢':dpP<0?'🔴':'⚪';const eD=dpD>0?'🟢':dpD<0?'🔴':'⚪';parts.push(eP+' Diff(Sim'+(si+1)+') Profit '+(dpP>=0?'+':'-')+'฿'+Math.abs(dpP).toLocaleString('th-TH',{maximumFractionDigits:0})+' : '+eD+' DD '+fmtS(dpD)+'%');}if(rebalData[i]!==null){const plan=rebalPlanMap[l[i].toDateString()]||'-';parts.push('📌 เปลี่ยนแผน: '+plan);}if(depositData[i]!==null){const dt=l[i].toDateString();const amt=depositMap[dt]||0;parts.push('💰 Deposit: ฿'+amt.toLocaleString('th-TH',{maximumFractionDigits:0}));}return parts;}
         }),filter:item=>item.dataset.label!=='Rebalance'&&item.dataset.label!=='Deposit'}
       }
     }});
     // DD chart below (no tooltip — data shown in port tooltip above)
     const ddWrap=el('fs-dd-wrap');ddWrap.style.display='flex';
     const ddCtx=el('fs-dd-canvas');
+    const fsDdDatasets=[{data:ddData,fill:'origin',borderColor:'#ff3d5a',borderWidth:1.5,pointRadius:0,tension:.3,backgroundColor:'rgba(255,61,90,.18)'}];
+    for(let si=0;si<3;si++){if(!bhResults[si])continue;fsDdDatasets.push({data:bhResults[si].ddData,fill:false,borderColor:SIM_COLORS[si],borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:.3,spanGaps:true});}
     fsDDChart=new Chart(ddCtx.getContext('2d'),{type:'line',
-      data:{labels,datasets:[{data:ddData,fill:'origin',borderColor:'#ff3d5a',borderWidth:1.5,pointRadius:0,tension:.3,backgroundColor:'rgba(255,61,90,.18)'}]},
+      data:{labels,datasets:fsDdDatasets},
       options:{responsive:true,maintainAspectRatio:false,
         interaction:{mode:'index',intersect:false},
         plugins:{legend:{display:false},tooltip:{enabled:false}},
@@ -6667,9 +7065,35 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
-    {date:'2026-05-05 · v29', groups:[
+    {date:'2026-05-24 · v29', groups:[
+      {title:'Polish + Multi-Sim', items:[
+        'Polish UI ใน <b>Portfolio Sim</b> (เปลี่ยนชื่อ section จาก "🔬 เทียบ BH / Sim — เลือกแผนจำลอง" → "🔬 Portfolio Sim") — DIY ใช้ label สั้นจาก <code>FM[].l</code> + cap note สำหรับ G + grid 3 คอลัมน์ · fix <b>Money_Market display</b> = "(MM)" ทุกที่ผ่าน <code>_dispKey()</code> helper (5 จุด: chart sim mix button, signal manual mix button + DIY label, signal sim mix button + DIY label) · แก้ <code>FM[Money_Market].l</code> = "เงินฝากและตราสารหนี้ระยะสั้น (MM)" (เดิม "ตราสารหนี้ (MM)" ซึ่งไม่ตรงเพราะ MM = Money Market ไม่ใช่ Bond) · tooltip ตัด space นำหน้าทุกบรรทัด P&amp;L/DD + rebal/Deposit markers ให้ชิดคอลัมน์เดียวกัน',
+        'เพิ่มบรรทัด <b>Diff Profit / DD</b> ใน tooltip (วางก่อน 📌 เปลี่ยนแผน และ 💰 Deposit) — แสดงผลต่างระหว่าง Port กับ BH (Port P&amp;L − BH P&amp;L · Port DD − BH DD) พร้อม emoji 🟢 (Port วิน) / 🔴 (BH วิน) / ⚪ (เสมอ) แยกกันสำหรับ Profit และ DD',
+        'เปลี่ยนสีหัวข้อ <b>🔬 Portfolio Sim</b> จาก purple → <code>var(--acc)</code> (cyan) + bump font-size 10px → 12px ให้อ่านได้ชัดขึ้น',
+        'เพิ่ม Sub-tabs <b>🟣 Sim 1 / 🟠 Sim 2</b> ใน Portfolio Sim — เทียบ 2 sim พร้อมกันบนกราฟเดียว · แต่ละ sim มี alloc/entry date/UI state แยกกัน (เก็บใน <code>bhSims[]</code> array) · เส้น BH สีต่างกัน Sim 1 = ม่วง <code>#a855f7</code>, Sim 2 = ส้ม <code>#f59e0b</code> · ปุ่ม tab ใช้สี theme เสมอ (ม่วง/ส้ม) ทั้ง active/inactive — active = bg เข้ม+bold, inactive = bg ใส+regular · tooltip แสดง Port + Sim1 + Sim2 + Diff per sim · <code>switchBhSim(idx)</code> save/restore UI · <code>_calcBhForSim(idx,l)</code> helper',
+        '<b>Theme sync ตาม active sim</b> — เมื่อกด tab Sim 2 (ส้ม) ตัวอักษร/border/bg ทุกที่ใน Portfolio Sim ที่เคยเป็นม่วง+ฟ้า เปลี่ยนเป็นส้มตาม theme ของ active sim · ครอบคลุม: หัวข้อ "🔬 Portfolio Sim" (เดิม cyan), Mixed Plans panel + label, DIY Plans panel + label, Entry date panel (bg + border), ปุ่ม วันแรก/เลือกวันที่ + date input, DIY dropdowns ทั้ง 7 ตัว, ปุ่ม ⌫ ล้างอันนี้ · เพิ่ม <code>BH_THEMES[]</code> constant (purple/orange) + <code>_applyBhSimTheme(idx)</code> hooked เข้า <code>switchBhSim()</code> / <code>setBhEntryMode()</code> / <code>buildChartSimGrid()</code>',
+        '<b>★ Sim "เลือกวันที่" ใช้ From-Port-Value model แทน clip display</b> — เดิม entry date แค่ตัดเส้นด้านซ้าย calc ยังเป็น inception ทำให้ Sim plan เดียวกับ Port ก็ไม่ทับกัน (BH สูงกว่าเพราะมีกำไรสะสมจาก pre-entry) · เปลี่ยน <code>calcBHSeries()</code> ให้: ที่ entry date คำนวณ Port value (ALL units × NAV ณ วันนั้น) → convert เป็น units ของแผนที่เลือก (จำลอง <b>กบข Major Change rebalance</b>) → เงินนำส่งหลัง entry ลงใหม่ตามแผน · ผลทดสอบ: Sim F75:G25 + entry=วันที่ port เปลี่ยนเป็น F75:G25 → เส้น Sim ทับ Port เป๊ะ (diff &lt; 0.01%) · โหมด "วันแรก" ยังเป็น inception เหมือนเดิม · <code>invested[]</code> เปลี่ยนเป็น cumulative deposits total (เทียบ apples-to-apples กับ Port) · update hint text + section blurb อธิบาย 2 โหมด',
+'เปลี่ยน <b>Sim 2 theme ทั้งหมด</b> จากส้ม (<code>#f59e0b</code> amber-500) → ชมพู Hot Pink (<code>#ff1493</code> deeppink CSS) — รอบแรกลอง <code>#fb7185</code> rose-400 แต่ออกส้มเกินไป, สุดท้าย user เลือก deeppink เพราะจี๊ดและตัดกับ theme อื่นชัดสุด · เปลี่ยนพร้อมกัน: <b>tab button + เส้นกราฟ + DD line + tooltip marker</b> ครอบคลุม BH_THEMES[1], SIM_COLORS (renderPortChart + renderFsChart), tooltip <code>_SIM_E</code> (2 จุด → 🔴 วงกลมแดง emoji เพราะ Unicode ไม่มี pink circle), tab button HTML inline + switchBhSim hardcoded fallbacks ทั้งหมด · <b>Tab button label</b> เปลี่ยนจาก emoji (🟠 → 🩷 → วงกลม) เป็น <b>CSS-styled span</b> (วงกลม 0.7em สี <code>#ff1493</code> เป๊ะ) เพราะไม่มี pink circle emoji — แก้ปัญหาตัวอักษร UI กลืนกับเส้นกราฟ และทำให้สี theme สอดคล้องกันทุกจุด',
+        '<b>★ เพิ่ม Sim 3 (🔵 น้ำเงิน <code>#2563eb</code>)</b> — Portfolio Sim รองรับเปรียบเทียบพร้อมกัน 3 sims ในกราฟเดียว · ขยาย <code>bhSims[]</code> → 3 entries, <code>BH_THEMES[]</code> + Sim 3 theme (blue-600), <code>SIM_COLORS</code> (renderPortChart + renderFsChart), tooltip <code>_SIM_E</code> เพิ่ม 🔵, <code>bhResults</code> array เพิ่ม <code>_calcBhForSim(2,l)</code>, ทุก <code>for(si=0;si&lt;2)</code> loop → <code>si&lt;3</code> (6 จุด: chart datasets, dd datasets, tooltip P&amp;L/DD/Diff 3 loops, fullscreen versions), <code>_bhSimSetDefaultEntry</code> loop, refactor <code>switchBhSim()</code> tab style update เป็น loop-driven (รองรับ N tabs) · เพิ่มปุ่ม <code>bh-sim-tab-2</code> "🔵 Sim 3" ใน HTML inline · State isolation ทำงานครบ (alloc/entry/UI แยกกันทั้ง 3 sims)',
+        'สลับลำดับใน <b>📉 กราฟ</b> — Pie charts (ยอดเงินปัจจุบัน + Allocation ปัจจุบัน) ย้ายขึ้นมาก่อน Portfolio Value chart (เดิม: Portfolio Value → Pies, ใหม่: Pies → Portfolio Value)',
+        '<b>Fix: hover กราฟ DD ไม่แสดง tooltip</b> — ปกติ hover ที่ DD chart ต้องโชว์ tooltip ของ Portfolio Value chart ผ่าน <code>setupPairSync()</code> (sync ระหว่าง 2 charts), แต่ Chart.js v4 quirk: <code>setActiveElements()</code> ตั้ง <code>_active</code> และ <code>body</code> ครบแต่ <code>opacity</code> ค้างที่ 0 → tooltip ไม่ปรากฏ · Fix: force <code>chart.tooltip.opacity = 1</code> ใน <code>showOnChart()</code> หลัง <code>setActiveElements()</code>, และ reset เป็น 0 ใน <code>clear()</code> เมื่อ mouseleave · กระทบทุก paired chart sync: Portfolio Value↔DD, NAV Performance↔NAV DD, Fullscreen versions'
+      ]}
+    ]},
+    {date:'2026-05-23 · v29', groups:[
+      {title:'New feature — กราฟ Portfolio Value (Portfolio Sim Foundation)', items:[
+        'เพิ่ม dropdown <b>เทียบ Buy &amp; Hold</b> ในกราฟ Portfolio Value — เลือกกองทุนเดียวมาจำลองว่า ถ้าเอาเงินนำส่งรายเดือนทุกบาทไปลงกองนั้นกองเดียวแล้วถือไว้ จะได้มูลค่าเท่าไหร่ เทียบกับพอร์ตจริง',
+        'เส้น BH (ม่วงประ) สะสม units จากเงินนำส่งทุกครั้งตั้งแต่เริ่มลงทุน → แสดงทั้งกราฟปกติและ fullscreen',
+        'รองรับทุกกองที่มี NAV history (F, G, A65, A75, TH, PR, ฯลฯ) — <code>calcBHSeries()</code> + <code>_navOnOrBefore()</code> binary search',
+        'เพิ่ม dropdown เทียบ BH ในโหมด <b>fullscreen</b> ด้วย — เลือก/เปลี่ยนกองได้จาก fullscreen, sync สองทางกับ dropdown ปกติ',
+        'เพิ่มเส้น <b>DD ของ BH</b> ในกราฟ Drawdown — เทียบ drawdown ของ buy &amp; hold (ม่วงประ) กับ DD พอร์ตจริง (แดง), โชว์ค่าใน tooltip — ทั้งกราฟปกติและ fullscreen',
+        'เพิ่ม <b>BH P&L</b> ใน tooltip — กำไร/ขาดทุนของ buy &amp; hold (มูลค่า BH − เงินนำส่งสะสม) พร้อม % — <code>calcBHSeries()</code> คืน {value, invested}',
+        'จัดรูปแบบ tooltip P&L/DD ใหม่ — เรียงเป็นกลุ่ม Port P&L → BH P&L → Port DD → BH DD, จัดคอลัมน์ให้ตรงกัน; P&L ใช้ prefix 🟢 (Port) / 🟣 (BH), DD ใช้ไอคอนแปรผันตามความรุนแรง 🟢/🟡/🔴',
+        'ขยาย BH benchmark ในกราฟ → <b>Auto sync sim</b> เหมือน Signal tab — มี <b>Mixed Plans</b> ปุ่ม (Money_Market, B, Global_Bond, A20–A75, Base_Plan, Shariah) + <b>DIY %-per-fund</b> dropdowns (F, G, TH, B, PR, MM, Global_Bond) ในกราฟ Portfolio Value · ปุ่ม "⌫ ล้าง" + indicator ผลรวม · <code>calcBHSeries()</code> รับ allocation object หลายกอง',
+        'เพิ่ม <b>วันที่เข้าแผน (Entry date)</b> ใน Sim Builder — toggle 2 ตัวเลือก: <b>วันแรก</b> (default) / <b>เลือกวันที่</b> (default = วันปัจจุบัน) · entryDate <b>clip display เท่านั้น</b> ไม่กระทบการคำนวณ — BH simulation รันจากวันแรกของการลงทุนเสมอ (เงินนำส่งทุกครั้งเข้าแผน) ค่า BH P&amp;L/DD ใน tooltip คำนวณจาก inception data; entryDate แค่ซ่อนเส้นก่อนวันนั้นเพื่อ focus visual · <code>calcBHSeries(alloc,l,entryDate)</code>'
+      ]},
       {title:'Mobile UX', items:[
-        'Fix Portfolio sub-tabs (10 tabs) เลื่อนแนวราบไม่ได้บน smartphone — เพิ่ม <code>overflow-x:auto</code> + <code>flex-wrap:nowrap</code> ที่ <code>.ttabs</code>, <code>flex-shrink:0</code> + <code>white-space:nowrap</code> ที่ <code>.ttbtn</code>, custom scrollbar 4px'
+        'Fix Portfolio sub-tabs (10 tabs) เลื่อนแนวราบไม่ได้บน smartphone — เพิ่ม <code>overflow-x:auto</code> + <code>flex-wrap:nowrap</code> ที่ <code>.ttabs</code>, <code>flex-shrink:0</code> + <code>white-space:nowrap</code> ที่ <code>.ttbtn</code>, custom scrollbar 4px',
+        'Fix แถบชื่อ sub-tabs โผล่ scrollbar แนวตั้งไม่พึงประสงค์ — เพิ่ม <code>overflow-y:hidden</code> ที่ <code>.ttabs</code> (CSS gotcha: เมื่อ overflow แกนหนึ่งเป็น auto อีกแกนที่เป็น visible จะถูกบังคับเป็น auto)'
       ]}
     ]},
     {date:'2026-05-04 · v29', groups:[
