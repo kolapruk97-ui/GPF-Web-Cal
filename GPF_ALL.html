@@ -5750,7 +5750,7 @@ function renderPortChart(days){
   const datasets=[
     {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,_isLine:true,
       backgroundColor:c=>{const a=c.chart.chartArea;if(!a)return'rgba(255,193,32,.15)';const g=c.chart.ctx.createLinearGradient(0,a.top,0,a.bottom);g.addColorStop(0,'rgba(255,193,32,.2)');g.addColorStop(1,'rgba(255,193,32,0)');return g;}},
-    {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3,_isLine:true},
+    {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#e879f9',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3,_isLine:true},
   ];
   if(rebalData.some(v=>v!==null)){
     datasets.push({label:'Rebalance',data:rebalData,type:'line',fill:false,borderWidth:0,pointRadius:7,pointHoverRadius:9,pointStyle:'triangle',pointBackgroundColor:'var(--red)',pointBorderColor:'#fff',pointBorderWidth:1.5,showLine:false});
@@ -5799,7 +5799,7 @@ function renderPortChart(days){
   // DD chart below (no tooltip — data shown in port tooltip above)
   const ddCtx=el('dd-chart');
   if(ddCtx){
-    const ddDatasets=[{data:ddData,fill:false,borderColor:'#ff3d5a',borderWidth:1.2,pointRadius:0,tension:.3}];
+    const ddDatasets=[{data:ddData,fill:false,borderColor:'#ffc120',borderWidth:1.2,pointRadius:0,tension:.3}];
     for(let si=0;si<3;si++){if(!bhResults[si])continue;ddDatasets.push({data:bhResults[si].ddData,fill:false,borderColor:SIM_COLORS[si],borderWidth:1.2,borderDash:[5,3],pointRadius:0,tension:.3,spanGaps:true});}
     portCharts.dd=new Chart(ddCtx.getContext('2d'),{type:'line',
       data:{labels,datasets:ddDatasets},
@@ -5808,7 +5808,7 @@ function renderPortChart(days){
         plugins:{legend:{display:false},tooltip:{enabled:false}},
         scales:{
           x:{grid:{color:'rgba(26,32,48,.3)'},ticks:{color:'#4e6a8a',maxTicksLimit:8,font:{size:9,family:'IBM Plex Mono'}},afterFit(axis){axis.paddingRight=X_PAD_R;axis.paddingLeft=0;}},
-          y:{max:0,grid:{color:'rgba(255,61,90,.06)'},ticks:{color:'rgba(255,61,90,.4)',font:{size:8,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'},afterFit(axis){axis.width=Y_AXIS_W;}}
+          y:{max:0,grid:{color:'rgba(255,193,32,.06)'},ticks:{color:'rgba(255,193,32,.4)',font:{size:8,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'},afterFit(axis){axis.width=Y_AXIS_W;}}
         }
       }
     });
@@ -6933,7 +6933,7 @@ function renderFsChart(chartKey){
     const SIM_COLORS=['#a855f7','#ff1493','#2563eb'];
     const datasets=[
       {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,backgroundColor:'rgba(255,193,32,.12)',_isLine:true},
-      {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3,_isLine:true}
+      {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#e879f9',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3,_isLine:true}
     ];
     if(rebalData.some(v=>v!==null)){
       datasets.push({label:'Rebalance',data:rebalData,type:'line',fill:false,borderWidth:0,pointRadius:9,pointHoverRadius:11,pointStyle:'triangle',pointBackgroundColor:'var(--red)',pointBorderColor:'#fff',pointBorderWidth:2,showLine:false});
@@ -6973,7 +6973,7 @@ function renderFsChart(chartKey){
     // DD chart below (no tooltip — data shown in port tooltip above)
     const ddWrap=el('fs-dd-wrap');ddWrap.style.display='flex';
     const ddCtx=el('fs-dd-canvas');
-    const fsDdDatasets=[{data:ddData,fill:false,borderColor:'#ff3d5a',borderWidth:1.5,pointRadius:0,tension:.3}];
+    const fsDdDatasets=[{data:ddData,fill:false,borderColor:'#ffc120',borderWidth:1.5,pointRadius:0,tension:.3}];
     for(let si=0;si<3;si++){if(!bhResults[si])continue;fsDdDatasets.push({data:bhResults[si].ddData,fill:false,borderColor:SIM_COLORS[si],borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:.3,spanGaps:true});}
     fsDDChart=new Chart(ddCtx.getContext('2d'),{type:'line',
       data:{labels,datasets:fsDdDatasets},
@@ -6981,7 +6981,7 @@ function renderFsChart(chartKey){
         interaction:{mode:'index',intersect:false},
         plugins:{legend:{display:false},tooltip:{enabled:false}},
         scales:{x:{grid:{color:'rgba(26,32,48,.3)'},ticks:{color:'#4e6a8a',maxTicksLimit:12,font:{size:10,family:'IBM Plex Mono'}},afterFit(axis){axis.paddingRight=FS_X_PAD_R;axis.paddingLeft=0;}},
-          y:{max:0,grid:{color:'rgba(255,61,90,.06)'},ticks:{color:'rgba(255,61,90,.4)',font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'},afterFit(axis){axis.width=FS_Y_W;}}}
+          y:{max:0,grid:{color:'rgba(255,193,32,.06)'},ticks:{color:'rgba(255,193,32,.4)',font:{size:10,family:'IBM Plex Mono'},callback:v=>v.toFixed(0)+'%'},afterFit(axis){axis.width=FS_Y_W;}}}
       }
     });
     // Sync hover between port chart and DD chart
@@ -7144,7 +7144,9 @@ const CHANGELOG_DATA = {
         '<b>Tooltip Portfolio Value: จัดลำดับ + เพิ่ม separator</b> — เพิ่ม <code>itemSort: ttSortDesc</code> ทำให้ tooltip อันบน (รายการดาตาเซ็ตแต่ละบรรทัด) เรียงตาม <b>มูลค่ามาก→น้อย</b> (เดิมเรียงตาม dataset order) · เปลี่ยน divider เดิม <code>─────────</code> 9 ตัว (1 จุด) → <code>─────────────────────────</code> box-drawing 25 ตัว (ยาวกว่า แต่ยังเป็นเส้นทึบเดียวกัน) · เพิ่ม divider เป็น <b>3 จุด</b>: ก่อน P&L section, ก่อน DD section, ก่อน Diff section — แบ่งกลุ่มชัดเจน 4 ระดับ (Values → P&L → DD → Diff)',
         'เอาการเติมสีพื้นใน <b>กราฟ DD ของ Port</b> ออก — เปลี่ยน <code>fill:\'origin\'</code> + <code>backgroundColor:rgba(255,61,90,.18)</code> → <code>fill:false</code> (ไม่มี backgroundColor) เหลือแค่เส้นแดง <code>#ff3d5a</code> · กระทบทั้ง DD chart ปกติและ Fullscreen — ให้เส้น DD ของ Sim 1/2/3 (ม่วง/ชมพู/น้ำเงิน) เห็นชัดขึ้น ไม่ถูกพื้นแดงบดบัง',
         'เพิ่ม separator 3 จุดใน <b>Fullscreen Portfolio Value tooltip</b> — เดิมมีแค่ 1 จุด (ก่อน P&L) ตอนนี้เพิ่มก่อน DD + ก่อน Diff section + เปลี่ยนเป็น box-drawing 25 ตัวให้ตรงกับ tooltip ปกติ (itemSort DESC ใช้ <code>fsTTOpts</code> มีอยู่แล้ว — เลยไม่ต้องแก้ส่วนนั้น)',
-        '<b>★ Portfolio Sim จำค่า 3 sims ผ่าน localStorage</b> — เก็บ state ของทั้ง 3 sims (<code>alloc</code>, <code>lbl</code>, <code>entry</code> ISO date, <code>entryMode</code>, <code>mixKey</code>, <code>diyVals</code>) + <code>bhSimActive</code> ลง <code>localStorage[\'gpf_bhSims_v29\']</code> ทุกครั้งที่ user แก้ · เพิ่ม <code>_saveBhSims()</code> + <code>_loadBhSims()</code> + <code>_restoreActiveSimUI()</code> · <code>_bhSimSetDefaultEntry()</code> ลอง load ก่อน, ถ้ามี state เดิม → restore (tab buttons, mix button active class, DIY dropdown values, entry mode buttons, date input value, theme, charts re-render) · Save hooked เข้า: <code>selectBhSimMix</code>, <code>onBhSimDiyChange</code>, <code>bhSimClear</code>, <code>setBhEntryMode</code>, <code>onBhSimEntryChange</code>, <code>switchBhSim</code> · ทดสอบ reload แล้ว: bhSimActive, ทุก sims alloc/DIY/entry date/entry mode คืนค่าครบ'
+        '<b>★ Portfolio Sim จำค่า 3 sims ผ่าน localStorage</b> — เก็บ state ของทั้ง 3 sims (<code>alloc</code>, <code>lbl</code>, <code>entry</code> ISO date, <code>entryMode</code>, <code>mixKey</code>, <code>diyVals</code>) + <code>bhSimActive</code> ลง <code>localStorage[\'gpf_bhSims_v29\']</code> ทุกครั้งที่ user แก้ · เพิ่ม <code>_saveBhSims()</code> + <code>_loadBhSims()</code> + <code>_restoreActiveSimUI()</code> · <code>_bhSimSetDefaultEntry()</code> ลอง load ก่อน, ถ้ามี state เดิม → restore (tab buttons, mix button active class, DIY dropdown values, entry mode buttons, date input value, theme, charts re-render) · Save hooked เข้า: <code>selectBhSimMix</code>, <code>onBhSimDiyChange</code>, <code>bhSimClear</code>, <code>setBhEntryMode</code>, <code>onBhSimEntryChange</code>, <code>switchBhSim</code> · ทดสอบ reload แล้ว: bhSimActive, ทุก sims alloc/DIY/entry date/entry mode คืนค่าครบ',
+        'เปลี่ยนสีเส้น <b>DD ของ Port</b> จากแดง <code>#ff3d5a</code> → ทอง <code>#ffc120</code> ให้ตรงกับเส้น Portfolio Value (สื่อว่าเป็นพอร์ตจริงเส้นเดียวกัน) · ปรับ y-axis grid + ticks ของกราฟ DD เป็นทอง <code>rgba(255,193,32,...)</code> ตามด้วย · กระทบทั้ง DD chart ปกติและ Fullscreen',
+        'เปลี่ยนสีเส้น <b>เงินลงทุนสะสม</b> ในกราฟ Portfolio Value จากฟ้า <code>#3b82f6</code> → ชมพู <code>#e879f9</code> ให้ตรงกับสี pie chart ของ <b>เงินฝากและตราสารหนี้ระยะสั้น (MM)</b> (<code>FM[Money_Market].c</code>) · กระทบทั้งกราฟปกติและ Fullscreen'
       ]}
     ]},
     {date:'2026-05-24 · v29', groups:[
