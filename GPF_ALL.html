@@ -4738,24 +4738,49 @@ function calcHold(tx){
 }
 // Shared: transaction cost helper (handles carry-in where a.b=null → NAV×units fallback)
 function _txCostOf(a){const ab=a.b!=null?Math.abs(a.b):0;if(ab>0)return ab;if(a.n!=null&&a.u!=null)return Math.abs(a.n*a.u);return 0;}
-// Shared: compute effective invested capital up to a set of TX using average-cost method
+// Shared: per-fund cost basis via MOVING (weighted) average — walk TX chronologically.
+//   On buy  → heldUnits += u, heldCost += cost (avg recomputed)
+//   On sell → costOfSold = avgAtTime × sellUnits; realized += proceeds − costOfSold; held reduced
+// This is the correct accounting: realized cost uses the average AT TIME OF SALE, so a later
+// (higher/lower priced) buy cannot retroactively change the cost basis of already-sold units.
+// Returns map {fund: {heldUnits, heldCost, soldUnits, realizedCost, realizedProceeds, realizedPnL}}
+function _fundCostBasis(txList){
+  const sorted=[...txList].sort((a,b)=>a.date-b.date);
+  const m={};
+  const get=f=>{if(!m[f])m[f]={heldUnits:0,heldCost:0,soldUnits:0,realizedCost:0,realizedProceeds:0,realizedPnL:0};return m[f];};
+  for(const t of sorted){
+    for(const[f,a]of Object.entries(t.amounts)){
+      if(!a||!a.u)continue;
+      const cost=_txCostOf(a),r=get(f);
+      if(a.u>0){ r.heldUnits+=a.u; r.heldCost+=cost; }
+      else{
+        const su=Math.abs(a.u);
+        // avg at time of sale; if no prior buys recorded (carry-in), treat cost = proceeds → realized 0
+        const avg=r.heldUnits>0.0001?r.heldCost/r.heldUnits:(su>0?cost/su:0);
+        const costOfSold=avg*su;
+        r.soldUnits+=su; r.realizedCost+=costOfSold; r.realizedProceeds+=cost; r.realizedPnL+=cost-costOfSold;
+        r.heldUnits-=su; r.heldCost-=costOfSold;
+        if(r.heldUnits<0.0001){r.heldUnits=0;r.heldCost=0;} // flush float residue when flat
+      }
+    }
+  }
+  return m;
+}
+// Shared: compute effective invested capital using moving-average cost basis
 // Returns the "effective deposits" — what the investor actually put in (cash + carry-in cost)
 function calcEffectiveCost(txList, holdObj, latestNav) {
-  const bB={},bU={},sB={},sU={};
-  for(const t of txList){for(const[f,a]of Object.entries(t.amounts)){
-    const c=_txCostOf(a);
-    if(a.u>0){bB[f]=(bB[f]||0)+c;bU[f]=(bU[f]||0)+a.u;}
-    else if(a.u<0){sB[f]=(sB[f]||0)+c;sU[f]=(sU[f]||0)+Math.abs(a.u);}
-  }}
+  const cb=_fundCostBasis(txList);
   let costBasis=0,realized=0;
-  const allF=new Set([...Object.keys(bB),...Object.keys(sB),...Object.keys(holdObj||{})]);
+  const allF=new Set([...Object.keys(cb),...Object.keys(holdObj||{})]);
   for(const f of allF){
-    let avgBuy=bU[f]>0?bB[f]/bU[f]:0;
+    const r=cb[f]||{heldUnits:0,heldCost:0,realizedPnL:0};
     const cu=(holdObj&&holdObj[f])||0;
     const nv=latestNav?.funds?.[f];
-    if(avgBuy<=0&&cu>0.0001&&nv)avgBuy=nv;
-    if(cu>0.0001)costBasis+=avgBuy*cu;
-    if((sU[f]||0)>0.0001&&avgBuy>0)realized+=(sB[f]||0)-avgBuy*(sU[f]||0);
+    // Fallback: holding units but no recorded cost (carry-in) → use current NAV as basis (unrealized PnL≈0)
+    let basis=r.heldCost;
+    if(basis<=0&&cu>0.0001&&nv)basis=nv*cu;
+    if(cu>0.0001)costBasis+=basis;
+    realized+=r.realizedPnL;
   }
   return{costBasis,realized,effectiveDeposits:costBasis-realized};
 }
@@ -5138,53 +5163,38 @@ function renderHold(hold,nav){
 function renderPerfAttrib(hold,nav,tx){
   const sec=el('perf-attrib-section'),body=el('perf-attrib-body');if(!sec||!body)return;
   const ln=nav[nav.length-1];if(!ln)return;
-  // Aggregate buys/sells per fund using AVERAGE COST method
-  //   buyBaht / buyUnits = avg buy price per unit
-  //   held cost basis    = avgBuy * currentUnits  (NOT net cash — avoids bleeding realized into unrealized)
-  //   realized P&L       = sellProceeds - avgBuy * sellUnits
-  // Uses shared _txCostOf: prefer |a.b|; fall back to |a.n × a.u| for carry-in rows
-  const buyBaht={}, buyUnits={}, sellBaht={}, sellUnits={};
-  for(const t of tx){
-    for(const[f,a]of Object.entries(t.amounts)){
-      const cost=_txCostOf(a);
-      if(a.u>0){buyBaht[f]=(buyBaht[f]||0)+cost;buyUnits[f]=(buyUnits[f]||0)+a.u;}
-      else if(a.u<0){sellBaht[f]=(sellBaht[f]||0)+cost;sellUnits[f]=(sellUnits[f]||0)+Math.abs(a.u);}
-    }
-  }
-
-  // Every fund with any activity OR any current holding
-  const allFunds=new Set([...Object.keys(buyBaht),...Object.keys(sellBaht),...Object.keys(hold||{})]);
+  // Per-fund cost basis via MOVING AVERAGE (chronological) — see _fundCostBasis.
+  //   held cost basis = moving-avg cost of units still held (only buys up to now)
+  //   realized P&L    = Σ (proceeds − avgAtTimeOfSale × sellUnits)
+  // A later high/low-priced buy does NOT retroactively change the cost of already-sold units.
+  const cb=_fundCostBasis(tx);
+  const allFunds=new Set([...Object.keys(cb),...Object.keys(hold||{})]);
   const unrealizedRows=[], realizedRows=[];
   let totalUnrealized=0, totalRealized=0, totalVal=0, totalCostBasis=0, totalProceeds=0;
   for(const f of allFunds){
-    const bU=buyUnits[f]||0, bB=buyBaht[f]||0;
-    const sU=sellUnits[f]||0, sB=sellBaht[f]||0;
+    const r=cb[f]||{heldUnits:0,heldCost:0,soldUnits:0,realizedCost:0,realizedProceeds:0,realizedPnL:0};
     const curUnits=hold[f]||0;
-    let avgBuy=bU>0?bB/bU:0;
     const nv=ln.funds[f];
     const m=FM[f]||{l:f,c:'#888'};
-    // Sanity: if avgBuy is 0 but we have units (no cost basis in Tx sheet),
-    // fall back to current NAV → unrealized P&L = 0 instead of pnl = full value
-    if(avgBuy<=0&&curUnits>0.0001&&nv){
-      avgBuy=nv;
-      console.warn('[renderPerfAttrib] No cost basis for '+f+' — using current NAV as basis. units='+curUnits+' nav='+nv);
-    }
-    // Unrealized (currently held)
+    // Unrealized (currently held) — use moving-avg held cost as basis
     if(curUnits>0.0001&&nv){
       const curVal=curUnits*nv;
-      const basis=avgBuy*curUnits;
+      let basis=r.heldCost;
+      // Fallback: holding units but no recorded cost (carry-in) → current NAV as basis (unrealized PnL≈0)
+      if(basis<=0){basis=nv*curUnits;console.warn('[renderPerfAttrib] No cost basis for '+f+' — using current NAV. units='+curUnits+' nav='+nv);}
+      const avgBuy=curUnits>0?basis/curUnits:0;
       const pnl=curVal-basis;
       const pnlPct=basis>0?(pnl/basis)*100:0;
       totalUnrealized+=pnl; totalVal+=curVal; totalCostBasis+=basis;
       unrealizedRows.push({f,name:m.l,color:m.c,val:curVal,basis,pnl,pnlPct,units:curUnits,avgBuy,curNav:nv});
     }
     // Realized (any sells — includes partial sells from still-held funds)
-    if(sU>0.0001&&avgBuy>0){
-      const costOfSold=avgBuy*sU;
-      const realPnl=sB-costOfSold;
+    if(r.soldUnits>0.0001){
+      const costOfSold=r.realizedCost, sB=r.realizedProceeds;
+      const realPnl=r.realizedPnL;
       const realPct=costOfSold>0?(realPnl/costOfSold)*100:0;
       totalRealized+=realPnl; totalProceeds+=sB;
-      realizedRows.push({f,name:m.l,color:m.c,basis:costOfSold,proceeds:sB,pnl:realPnl,pnlPct:realPct,units:sU,avgBuy,avgSell:sU>0?sB/sU:0});
+      realizedRows.push({f,name:m.l,color:m.c,basis:costOfSold,proceeds:sB,pnl:realPnl,pnlPct:realPct,units:r.soldUnits,avgBuy:r.soldUnits>0?costOfSold/r.soldUnits:0,avgSell:r.soldUnits>0?sB/r.soldUnits:0});
     }
   }
   if(unrealizedRows.length===0&&realizedRows.length===0){sec.style.display='none';return;}
@@ -7133,6 +7143,11 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
+    {date:'2026-06-17 · v29', groups:[
+      {title:'Bug fix — Cost basis (Moving Average)', items:[
+        '<b>★ แก้การแบ่ง Realized / Unrealized ใน P&L by Asset ALL ให้ถูกต้อง</b> — เดิมใช้ <b>global average</b> (<code>avgBuy = ต้นทุนซื้อทั้งหมด ÷ units ซื้อทั้งหมด</code> ตลอดประวัติ) ทำให้การ <b>ซื้อกองคืนทีหลังในราคาต่างกัน</b> ไปดึงต้นทุนเฉลี่ยของ units ที่<b>ขายไปก่อนหน้า</b>ผิด เช่น F: ทุกครั้งที่ขายเป็นกำไรจริง (+5,643) แต่การซื้อ F คืน 12/6 ที่ NAV 37.88 (แพงสุด) ดึง global avg ขึ้นเป็น 34.91 → realized กลายเป็นขาดทุนปลอม −3,392 · เปลี่ยนเป็น <b>moving average ตามลำดับเวลา</b> (<code>_fundCostBasis()</code> helper ใหม่): ต้นทุนของ unit ที่ขาย = ค่าเฉลี่ย ณ เวลาที่ขาย, การซื้อในอนาคตไม่ย้อนมาเปลี่ยนต้นทุนของ unit ที่ขายไปแล้ว · ผลทดสอบ F: realized <code>−3,392 → +5,643</code>, unrealized <code>+11,457 → +2,421</code>, <b>ผลรวม +8,064 เท่าเดิม (invariant)</b> · กระทบ <code>renderPerfAttrib()</code> + <code>calcEffectiveCost()</code> (ใช้ใน Analytics cards: IRR, realized P&L) — ทั้ง 2 ฟังก์ชัน refactor มาใช้ helper เดียวกัน · grand total P&L +17,970.76 (+12.92%) และ effectiveDeposits 139,073.00 ไม่เปลี่ยน · กองอื่นที่ขายออกหมดแล้วซื้อคืน (เช่น G) ก็ถูกแก้ตามไปด้วย'
+      ]}
+    ]},
     {date:'2026-05-27 · v29', groups:[
       {title:'Portfolio Sim — From-Port + Sim 3 + Theme + Tooltip Polish', items:[
         '<b>Theme sync ตาม active sim</b> — เมื่อกด tab Sim 2 (ส้ม) ตัวอักษร/border/bg ทุกที่ใน Portfolio Sim ที่เคยเป็นม่วง+ฟ้า เปลี่ยนเป็นส้มตาม theme ของ active sim · ครอบคลุม: หัวข้อ "🔬 Portfolio Sim" (เดิม cyan), Mixed Plans panel + label, DIY Plans panel + label, Entry date panel (bg + border), ปุ่ม วันแรก/เลือกวันที่ + date input, DIY dropdowns ทั้ง 7 ตัว, ปุ่ม ⌫ ล้างอันนี้ · เพิ่ม <code>BH_THEMES[]</code> constant (purple/orange) + <code>_applyBhSimTheme(idx)</code> hooked เข้า <code>switchBhSim()</code> / <code>setBhEntryMode()</code> / <code>buildChartSimGrid()</code>',
