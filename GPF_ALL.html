@@ -4769,6 +4769,25 @@ function calcHold(tx){
   for(const k of Object.keys(u))if(Math.abs(u[k])<0.0001){console.warn('[calcHold] tiny units deleted:',k,u[k]);delete u[k];}
   return u;
 }
+// Derive current plan string from ACTUAL holdings (value-weighted %), e.g. "F40:G25:MM20:TH15".
+// More reliable than the last transaction's plan label, which can be mislabeled in the sheet.
+// Uses fund short code (FM[f].s) to match the sheet's plan-label format. Returns '' if not derivable.
+function _currentPlanFromHold(hold, ln){
+  if(!hold||!ln||!ln.funds)return '';
+  const vals={}; let tot=0;
+  for(const[f,u]of Object.entries(hold)){
+    if(Math.abs(u)<0.0001)continue;
+    const nv=ln.funds[f];
+    if(nv){vals[f]=u*nv; tot+=u*nv;}
+  }
+  if(tot<=0)return '';
+  const parts=Object.entries(vals)
+    .map(([f,v])=>({f,pct:Math.round(v/tot*100)}))
+    .filter(x=>x.pct>0)
+    .sort((a,b)=>b.pct-a.pct);
+  if(!parts.length)return '';
+  return parts.map(x=>((FM[x.f]&&FM[x.f].s)||x.f)+x.pct).join(':');
+}
 // Shared: transaction cost helper (handles carry-in where a.b=null → NAV×units fallback)
 function _txCostOf(a){const ab=a.b!=null?Math.abs(a.b):0;if(ab>0)return ab;if(a.n!=null&&a.u!=null)return Math.abs(a.n*a.u);return 0;}
 // Shared: per-fund cost basis via MOVING (weighted) average — walk TX chronologically.
@@ -5009,7 +5028,7 @@ function calcAnalytics(hold,nav,tx){
   // Assume 20% marginal rate as approximation. taxSaved = sum of member contributions × 20%
   const memberDeductible=txDeposits.reduce((s,t)=>s+(t.accum||0)+(t.extra||0),0);
   const taxSaved=memberDeductible*0.20;
-  return{tot,prev,cost,pnl,pp,dc,dp,navDt:ln?.date?fDt(ln.date):'-',maxDD,ddEnd,peakValue,peakDate,peakProfit,peakProfitDate,peakProfitValue,peakProfitCost,cagr,yearsHeld,daysHeld,annVol,sharpe,sortino,calmar,irr,taxSaved,memberDeductible,winRate,winDays,totalDays:rets.length,bestDay,worstDay,avgMonthly,txCount:txDeposits.length,currentPlan:lastTx?.plan||'-',startDate,portSeries};
+  return{tot,prev,cost,pnl,pp,dc,dp,navDt:ln?.date?fDt(ln.date):'-',maxDD,ddEnd,peakValue,peakDate,peakProfit,peakProfitDate,peakProfitValue,peakProfitCost,cagr,yearsHeld,daysHeld,annVol,sharpe,sortino,calmar,irr,taxSaved,memberDeductible,winRate,winDays,totalDays:rets.length,bestDay,worstDay,avgMonthly,txCount:txDeposits.length,currentPlan:_currentPlanFromHold(hold,ln)||lastTx?.plan||'-',startDate,portSeries};
 }
 // IRR via Newton-Raphson with bisection fallback. cashFlows: [{date, amount}] (deposits negative).
 // Returns annualized %, or null if no convergence.
@@ -5156,7 +5175,7 @@ function renderPortCards(hold,a){
     {l:'กำไร/ขาดทุน (฿)',v:fmtS(a.pnl),s:fmtS(a.pp)+'%',c:a.pnl>=0?'cG':'cr',clr:co(a.pnl)},
     {l:'% ผลตอบแทน',v:fmtS(a.pp)+'%',s:'เทียบต้นทุนรวม',c:a.pp>=0?'cG':'cr',clr:co(a.pp)},
     {l:'เปลี่ยนแปลง 1 วัน',v:fmtS(a.dc),s:fmtS(a.dp)+'%',c:a.dc>=0?'cG':'cr',clr:co(a.dc)},
-    {l:'แผนลงทุนปัจจุบัน',v:esc(a.currentPlan),s:'Transaction ล่าสุด',c:'cb',clr:'var(--blue)'},
+    {l:'แผนลงทุนปัจจุบัน',v:esc(a.currentPlan),s:'จากสัดส่วนที่ถือจริง',c:'cb',clr:'var(--blue)'},
   ];
   const row2=[
     {l:'Peak Value',v:'฿'+fmt(a.peakValue,2),s:'ณ '+fDt(a.peakDate),c:'ca',clr:'var(--amber)'},
@@ -7178,7 +7197,8 @@ const CHANGELOG_DATA = {
   port: [
     {date:'2026-07-14 · v29', groups:[
       {title:'Bug fix — Dynamic TX column mapping', items:[
-        '<b>★ Fetch Transaction ผิดเมื่อ column ในชีตเปลี่ยน</b> — เดิม <code>parseTx()</code> ใช้ <code>TX_COLS</code> ที่ <b>hardcode ตำแหน่ง column ตายตัว</b> (F=9-11, G=12-14, A65=15-17, MM=18-20, A75=21-23) · พอ user <b>แทรกกอง TH (col 12-14) ระหว่าง F กับ G</b> ทำให้ G/A65/MM/A75 เลื่อนไป 3 ช่อง → แอปอ่าน G เป็นค่า TH, A65 เป็น G, MM เป็น A65, A75 เป็น MM และ<b>ไม่เห็นกอง TH เลย</b> · แก้เป็น <b>อ่าน column map จาก header อัตโนมัติ</b> (<code>_buildTxColMap()</code> helper ใหม่): scan แถว header หา <code>"NAV (X)"/"Unit (X)"/"Bath (X)"</code> แล้ว resolve code → FM key (direct key หรือ short code <code>FM[k].s</code> เช่น "MM" → Money_Market) · detect <b>Total column</b> ด้วย header name ด้วย (กัน column แทรกก่อน Total) · fallback ไป <code>TX_COLS</code> เดิมถ้า parse header ไม่ได้ · ทดสอบชีตจริง: ตรวจเจอ F/TH/G/A65/MM/A75 ครบ ตำแหน่งถูกทุกกอง, held units อ่านถูก (รวม TH 816 หน่วยที่เดิมหาย), ไม่มี error · <b>ทนต่อการเพิ่ม/ย้าย column ในอนาคต</b>'
+        '<b>★ Fetch Transaction ผิดเมื่อ column ในชีตเปลี่ยน</b> — เดิม <code>parseTx()</code> ใช้ <code>TX_COLS</code> ที่ <b>hardcode ตำแหน่ง column ตายตัว</b> (F=9-11, G=12-14, A65=15-17, MM=18-20, A75=21-23) · พอ user <b>แทรกกอง TH (col 12-14) ระหว่าง F กับ G</b> ทำให้ G/A65/MM/A75 เลื่อนไป 3 ช่อง → แอปอ่าน G เป็นค่า TH, A65 เป็น G, MM เป็น A65, A75 เป็น MM และ<b>ไม่เห็นกอง TH เลย</b> · แก้เป็น <b>อ่าน column map จาก header อัตโนมัติ</b> (<code>_buildTxColMap()</code> helper ใหม่): scan แถว header หา <code>"NAV (X)"/"Unit (X)"/"Bath (X)"</code> แล้ว resolve code → FM key (direct key หรือ short code <code>FM[k].s</code> เช่น "MM" → Money_Market) · detect <b>Total column</b> ด้วย header name ด้วย (กัน column แทรกก่อน Total) · fallback ไป <code>TX_COLS</code> เดิมถ้า parse header ไม่ได้ · ทดสอบชีตจริง: ตรวจเจอ F/TH/G/A65/MM/A75 ครบ ตำแหน่งถูกทุกกอง, held units อ่านถูก (รวม TH 816 หน่วยที่เดิมหาย), ไม่มี error · <b>ทนต่อการเพิ่ม/ย้าย column ในอนาคต</b>',
+        '<b>★ แก้การ์ด "แผนลงทุนปัจจุบัน" แสดงผิด</b> — เดิมอ่าน <code>plan</code> label ของ transaction ล่าสุดตรงๆ (<code>lastTx.plan</code>) · แต่ transaction 10/7 ติดป้าย "เปลี่ยนแผนเข้า MM100" ทั้งที่จริงซื้อ TH+G+MM (label ผิด) → การ์ดเลยโชว์ "MM100" ผิด ทั้งที่ถือ F40:G25:MM20:TH15 จริง · เพิ่ม <code>_currentPlanFromHold(hold,ln)</code> helper คำนวณแผนจาก <b>สัดส่วนมูลค่าที่ถือจริง</b> (value-weighted %, เรียงมาก→น้อย, ใช้ short code <code>FM[f].s</code> ให้ตรงรูปแบบ label ในชีต) → ได้ "F40:G25:MM20:TH15" ตรงกับความจริง · เปลี่ยน subtitle การ์ดจาก "Transaction ล่าสุด" → "จากสัดส่วนที่ถือจริง" · fallback ไป <code>lastTx.plan</code> ถ้าคำนวณจาก holdings ไม่ได้'
       ]}
     ]},
     {date:'2026-06-17 · v29', groups:[
