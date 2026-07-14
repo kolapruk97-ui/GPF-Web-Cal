@@ -1743,10 +1743,36 @@ const FM = {
   Base_Plan:{l:'แผนพื้นฐาน (BP)',c:'#94a3b8',s:'BP',dash:[4,4]},
   Shariah:{l:'ชะรีอะฮ์ (Shr)',c:'#fbbf24',s:'Shr',dash:[4,4]},
 };
+// Fallback column layout (used only if header auto-detect fails). Real mapping is built
+// dynamically from the sheet header by _buildTxColMap so inserting/reordering fund columns
+// (e.g. adding TH between F and G) doesn't break parsing.
 const TX_COLS = {
   F:{n:9,u:10,b:11},G:{n:12,u:13,b:14},A65:{n:15,u:16,b:17},
   Money_Market:{n:18,u:19,b:20},A75:{n:21,u:22,b:23},
 };
+// Build {fundKey:{n,u,b}} from the Date-header row. Cells look like "NAV (F)", "Unit (TH)",
+// "Bath (MM)"; the code in parens resolves to an FM key (direct key match, or via short code
+// FM[k].s — e.g. "MM" → Money_Market). Robust to added/moved fund columns.
+function _buildTxColMap(headerRow){
+  const codeToKey={};
+  for(const k of Object.keys(FM)){
+    codeToKey[k.toUpperCase()]=k;
+    if(FM[k].s)codeToKey[FM[k].s.toUpperCase()]=k;
+  }
+  const map={};
+  headerRow.forEach((cell,i)=>{
+    const m=(cell||'').match(/(NAV|Unit|Bath)\s*\(\s*ฺ?\s*(.+?)\s*\)/i);
+    if(!m)return;
+    const field=m[1].toLowerCase();
+    // code may be "MM" or "Money_Market : MM" — take the last token after any ':'
+    const raw=m[2].split(':').pop().trim().toUpperCase();
+    const key=codeToKey[raw];
+    if(!key)return;
+    if(!map[key])map[key]={};
+    if(field==='nav')map[key].n=i; else if(field==='unit')map[key].u=i; else map[key].b=i;
+  });
+  return map;
+}
 
 // ================================================================
 //  SHARED STATE
@@ -2015,15 +2041,22 @@ function parseTx(csv){
   const rows=parseCSV(csv);let hi=-1;
   for(let i=0;i<rows.length;i++)if(rows[i][0]==='Date'){hi=i;break;}
   if(hi<0)return[];
+  const hdr=rows[hi];
+  // Fund columns: auto-detect from header (robust to inserted/moved columns); fall back to TX_COLS
+  const cols=_buildTxColMap(hdr);
+  const fundCols=Object.keys(cols).length?cols:TX_COLS;
+  // Total column: detect by header name (guards against a column inserted before it)
+  let totalCol=hdr.findIndex(c=>(c||'').trim()==='Total');
+  if(totalCol<0)totalCol=8;
   const res=[];
   for(let i=hi+1;i<rows.length;i++){
     const r=rows[i];const d=pDt(r[0]);if(!d)continue;
     const amounts={};
-    for(const[f,c]of Object.entries(TX_COLS)){
+    for(const[f,c]of Object.entries(fundCols)){
       const u=pNum(r[c.u]);if(u!=null&&u!==0)amounts[f]={n:pNum(r[c.n]),u,b:pNum(r[c.b])};
     }
     res.push({date:d,type:r[1]?.trim()||'',note:r[2]?.trim()||'',plan:r[3]?.trim()||'',
-      comp:pNum(r[4]),accum:pNum(r[5]),match:pNum(r[6]),extra:pNum(r[7]),total:pNum(r[8]),amounts});
+      comp:pNum(r[4]),accum:pNum(r[5]),match:pNum(r[6]),extra:pNum(r[7]),total:pNum(r[totalCol]),amounts});
   }
   return res.sort((a,b)=>a.date-b.date);
 }
@@ -7143,6 +7176,11 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
+    {date:'2026-07-14 · v29', groups:[
+      {title:'Bug fix — Dynamic TX column mapping', items:[
+        '<b>★ Fetch Transaction ผิดเมื่อ column ในชีตเปลี่ยน</b> — เดิม <code>parseTx()</code> ใช้ <code>TX_COLS</code> ที่ <b>hardcode ตำแหน่ง column ตายตัว</b> (F=9-11, G=12-14, A65=15-17, MM=18-20, A75=21-23) · พอ user <b>แทรกกอง TH (col 12-14) ระหว่าง F กับ G</b> ทำให้ G/A65/MM/A75 เลื่อนไป 3 ช่อง → แอปอ่าน G เป็นค่า TH, A65 เป็น G, MM เป็น A65, A75 เป็น MM และ<b>ไม่เห็นกอง TH เลย</b> · แก้เป็น <b>อ่าน column map จาก header อัตโนมัติ</b> (<code>_buildTxColMap()</code> helper ใหม่): scan แถว header หา <code>"NAV (X)"/"Unit (X)"/"Bath (X)"</code> แล้ว resolve code → FM key (direct key หรือ short code <code>FM[k].s</code> เช่น "MM" → Money_Market) · detect <b>Total column</b> ด้วย header name ด้วย (กัน column แทรกก่อน Total) · fallback ไป <code>TX_COLS</code> เดิมถ้า parse header ไม่ได้ · ทดสอบชีตจริง: ตรวจเจอ F/TH/G/A65/MM/A75 ครบ ตำแหน่งถูกทุกกอง, held units อ่านถูก (รวม TH 816 หน่วยที่เดิมหาย), ไม่มี error · <b>ทนต่อการเพิ่ม/ย้าย column ในอนาคต</b>'
+      ]}
+    ]},
     {date:'2026-06-17 · v29', groups:[
       {title:'Bug fix — Cost basis (Moving Average)', items:[
         '<b>★ แก้การแบ่ง Realized / Unrealized ใน P&L by Asset ALL ให้ถูกต้อง</b> — เดิมใช้ <b>global average</b> (<code>avgBuy = ต้นทุนซื้อทั้งหมด ÷ units ซื้อทั้งหมด</code> ตลอดประวัติ) ทำให้การ <b>ซื้อกองคืนทีหลังในราคาต่างกัน</b> ไปดึงต้นทุนเฉลี่ยของ units ที่<b>ขายไปก่อนหน้า</b>ผิด เช่น F: ทุกครั้งที่ขายเป็นกำไรจริง (+5,643) แต่การซื้อ F คืน 12/6 ที่ NAV 37.88 (แพงสุด) ดึง global avg ขึ้นเป็น 34.91 → realized กลายเป็นขาดทุนปลอม −3,392 · เปลี่ยนเป็น <b>moving average ตามลำดับเวลา</b> (<code>_fundCostBasis()</code> helper ใหม่): ต้นทุนของ unit ที่ขาย = ค่าเฉลี่ย ณ เวลาที่ขาย, การซื้อในอนาคตไม่ย้อนมาเปลี่ยนต้นทุนของ unit ที่ขายไปแล้ว · ผลทดสอบ F: realized <code>−3,392 → +5,643</code>, unrealized <code>+11,457 → +2,421</code>, <b>ผลรวม +8,064 เท่าเดิม (invariant)</b> · กระทบ <code>renderPerfAttrib()</code> + <code>calcEffectiveCost()</code> (ใช้ใน Analytics cards: IRR, realized P&L) — ทั้ง 2 ฟังก์ชัน refactor มาใช้ helper เดียวกัน · grand total P&L +17,970.76 (+12.92%) และ effectiveDeposits 139,073.00 ไม่เปลี่ยน · กองอื่นที่ขายออกหมดแล้วซื้อคืน (เช่น G) ก็ถูกแก้ตามไปด้วย'
