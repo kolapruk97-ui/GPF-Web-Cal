@@ -1868,7 +1868,7 @@ async function tryFetch(url){
     const r=await fetch(url,{mode:'cors'});
     if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.trim().startsWith('<'))return t;}
   }catch(e){}
-  for(const proxy of['https://api.allorigins.win/raw?url=','https://corsproxy.io/?','https://api.codetabs.com/v1/proxy?quest=']){
+  for(const proxy of['https://corsproxy.io/?url=','https://api.allorigins.win/raw?url=','https://api.codetabs.com/v1/proxy?quest=']){
     try{
       const r=await fetch(proxy+encodeURIComponent(url));
       if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.trim().startsWith('<')&&!t.includes('"error"'))return t;}
@@ -1960,7 +1960,7 @@ async function fetchFredSeries(seriesId) {
   // Use FRED API via CORS proxies — key='demo' gives last 2 years of public data
   const fredUrl = 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=' + seriesId;
   const proxies = [
-    'https://corsproxy.io/?' + encodeURIComponent(fredUrl),
+    'https://corsproxy.io/?url=' + encodeURIComponent(fredUrl),
     'https://api.allorigins.win/raw?url=' + encodeURIComponent(fredUrl),
     'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(fredUrl),
   ];
@@ -7195,6 +7195,11 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
+    {date:'2026-07-22 · v29', groups:[
+      {title:'Bug fix — โหลดข้อมูลไม่ได้ (CORS proxy)', items:[
+        '<b>★ แก้ fetch Google Sheets + FRED ไม่ได้ (โหลดข้อมูลค้าง)</b> — CORS proxy ทั้ง 3 ตัวที่ใช้ตายพร้อมกัน: <code>allorigins.win</code> ช้า/timeout, <code>corsproxy.io</code> คืน 403, <code>codetabs</code> คืน 400 → บน GitHub Pages / file:// โหลดข้อมูลไม่ได้เลย (direct fetch ก็โดน CORS block เพราะ Google redirect) · เจอว่า <b>corsproxy.io ยังใช้ได้ แต่เปลี่ยน API</b>: เดิม <code>corsproxy.io/?</code>+url (403) → ต้องเป็น <code>corsproxy.io/?url=</code>+url (200 ✓) · แก้ทั้ง 2 จุด (<code>tryFetch</code> สำหรับ Sheets + FRED proxy list) เปลี่ยนเป็น <code>?url=</code> และย้าย corsproxy.io ขึ้นเป็นตัวแรก · ทดสอบจริง: <code>loadAll(true)</code> โหลด NAV 6,017 rows + TX 49 rows สำเร็จใน ~0.4s, FRED ก็ได้ · <b>โน้ต:</b> proxy สาธารณะตายเรื่อยๆ — ระยะยาวควร deploy Google Apps Script Web App (<code>GPF_GAS_v6.js</code> ที่มีอยู่) เป็น proxy ของตัวเองจะเสถียรกว่า'
+      ]}
+    ]},
     {date:'2026-07-14 · v29', groups:[
       {title:'Bug fix — Dynamic TX column mapping', items:[
         '<b>★ Fetch Transaction ผิดเมื่อ column ในชีตเปลี่ยน</b> — เดิม <code>parseTx()</code> ใช้ <code>TX_COLS</code> ที่ <b>hardcode ตำแหน่ง column ตายตัว</b> (F=9-11, G=12-14, A65=15-17, MM=18-20, A75=21-23) · พอ user <b>แทรกกอง TH (col 12-14) ระหว่าง F กับ G</b> ทำให้ G/A65/MM/A75 เลื่อนไป 3 ช่อง → แอปอ่าน G เป็นค่า TH, A65 เป็น G, MM เป็น A65, A75 เป็น MM และ<b>ไม่เห็นกอง TH เลย</b> · แก้เป็น <b>อ่าน column map จาก header อัตโนมัติ</b> (<code>_buildTxColMap()</code> helper ใหม่): scan แถว header หา <code>"NAV (X)"/"Unit (X)"/"Bath (X)"</code> แล้ว resolve code → FM key (direct key หรือ short code <code>FM[k].s</code> เช่น "MM" → Money_Market) · detect <b>Total column</b> ด้วย header name ด้วย (กัน column แทรกก่อน Total) · fallback ไป <code>TX_COLS</code> เดิมถ้า parse header ไม่ได้ · ทดสอบชีตจริง: ตรวจเจอ F/TH/G/A65/MM/A75 ครบ ตำแหน่งถูกทุกกอง, held units อ่านถูก (รวม TH 816 หน่วยที่เดิมหาย), ไม่มี error · <b>ทนต่อการเพิ่ม/ย้าย column ในอนาคต</b>',
