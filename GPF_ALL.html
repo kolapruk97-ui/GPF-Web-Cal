@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://api.stlouisfed.org https://fred.stlouisfed.org https://api.allorigins.win https://corsproxy.io https://api.codetabs.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
-<title>GPF Live Trade v29</title>
+<title>GPF Live Trade v30</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -1073,8 +1073,8 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     <div class="logo-box">
       <div class="logo-icon">กบข</div>
       <div>
-        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v29</span></div>
-        <div class="logo-sub">Hierarchical Regime · FRED 12 Factors · v7.29</div>
+        <div class="logo-text">GPF Live Trade <span style="color:var(--gold);font-family:var(--mono);font-size:13px">v30</span></div>
+        <div class="logo-sub">Hierarchical Regime · FRED via Google Sheet · v7.30</div>
       </div>
     </div>
     <div class="tab-nav">
@@ -1116,6 +1116,16 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
       <span id="tst-tx-txt">🔗 ทดสอบ</span>
     </button>
     <div class="cbadge idle" id="badge-tx">○ ยังไม่ทดสอบ</div>
+  </div>
+
+  <div class="cfg-row" id="cfg-row-fred">
+    <div class="cfg-lbl">📈 FRED / MACRO<br><span style="font-size:9px;color:var(--t3)">regime (ตัวเลือก)</span></div>
+    <input class="sinput" id="cfg-fred-id"  placeholder="Publish URL ของแท็บ FRED (IMPORTDATA) — ว่างไว้ = ใช้ proxy" oninput="onCfgInput()" style="grid-column:span 2">
+    <button class="btn-tst" id="btn-tst-fred" onclick="testCfgSheet('fred')">
+      <span class="tst-spinner" id="tsp-fred"></span>
+      <span id="tst-fred-txt">🔗 ทดสอบ</span>
+    </button>
+    <div class="cbadge idle" id="badge-fred">○ ยังไม่ทดสอบ</div>
   </div>
 
   <div class="cfg-actions">
@@ -1347,7 +1357,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 
 <div id="run-time"></div>
 <div class="sig-footer">
-  v7.29 · FRED Hierarchical Regime + 6M Preset Momentum (Jegadeesh 1993)<br>
+  v7.30 · FRED Hierarchical Regime + 6M Preset Momentum (Jegadeesh 1993)<br>
   DGS10(bond) → HY OAS(credit) → DXY+WALCL+DFII10(confirm) · Vol targeting (round 5%) · V28 presets<br>
   <span class="calib-badge">⚙ RISK_OFF=5% · MILD_OFF=8% · NEUTRAL=10% · MILD_ON=12% · RISK_ON=15% · G≤25%</span>
 </div>
@@ -1627,7 +1637,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 // ================================================================
 //  CONSTANTS — v6.28 (Online Learning + Bayesian + MDP Quota + Crash Shield)
 // ================================================================
-const ALGO_VERSION  = 'v7.29';
+const ALGO_VERSION  = 'v7.30';
 const G_CAP         = 0.25;
 const QUOTA_PER_YR  = 12;
 const T_DELAY       = 2;
@@ -1983,12 +1993,69 @@ async function fetchFredSeries(seriesId) {
   }
   return null; // all proxies failed
 }
+// V30: FRED via Google Sheet (IMPORTDATA) — เลี่ยงปัญหา CORS proxy สาธารณะที่ตายเรื่อยๆ
+// แท็บ FRED ในชีตใช้ =IMPORTDATA(fredgraph.csv?id=...) วางคอลัมน์คู่ (date,value) เรียง
+// series ตาม header. Google ดึง server-side จึงไม่มีปัญหา CORS แล้ว publish CSV (ACAO:*)
+function _fredSerialToISO(n){
+  // Google Sheets serial date → ISO (base 1899-12-30 UTC)
+  const d = new Date(Math.round(n) * 86400000 + Date.UTC(1899,11,30));
+  return isNaN(d) ? null : d.toISOString().slice(0,10);
+}
+function _fredCellDate(cell){
+  const s = (cell||'').trim();
+  if(!s) return null;
+  if(/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);           // already ISO
+  if(/^\d+(\.\d+)?$/.test(s)){
+    const n = parseFloat(s);
+    if(n >= 20000 && n <= 80000) return _fredSerialToISO(n);       // Google serial
+  }
+  const d = new Date(s);
+  return isNaN(d) ? null : d.toISOString().slice(0,10);
+}
+async function fetchFredFromSheet(rawUrl){
+  const url = buildCsvUrl(rawUrl, 'FRED');
+  if(!url) throw new Error('FRED URL ไม่ถูกต้อง');
+  const text = await tryFetch(url);
+  if(!text) throw new Error('โหลดแท็บ FRED ไม่ได้');
+  const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.length);
+  if(lines.length < 2) throw new Error('แท็บ FRED ว่าง');
+  const header = lines[0].split(',');
+  const rows = lines.slice(1).map(l=>l.split(','));
+  const result = {};
+  // อ่านทีละคอลัมน์คู่: col c = observation_date, col c+1 = series id (จาก header)
+  for(let c=0; c+1<header.length; c+=2){
+    const sid = (header[c+1]||'').trim();
+    if(!sid || sid.toLowerCase()==='observation_date') continue;
+    const pts = [];
+    for(const cols of rows){
+      const iso = _fredCellDate(cols[c]);
+      const val = parseFloat((cols[c+1]||'').trim());
+      if(iso && isFinite(val)) pts.push({date: iso, value: val});   // ข้ามช่องว่าง/'.' (missing)
+    }
+    if(pts.length){ pts.sort((a,b)=> a.date<b.date?-1:1); result[sid] = pts; }
+  }
+  return result;
+}
 async function fetchAllFred() {
   if (!isFredCacheStale()) {
     const cached = getFredCached();
     if (cached) { console.log('FRED cache hit'); return cached; }
   }
-  console.log('Fetching FRED data...');
+  // V30: ถ้ากรอก URL แท็บ FRED (IMPORTDATA) ไว้ → ใช้ก่อน (ไม่ต้องพึ่ง proxy)
+  const fredSheetUrl = (el('cfg-fred-id') && el('cfg-fred-id').value || '').trim();
+  if (fredSheetUrl) {
+    try {
+      const r = await fetchFredFromSheet(fredSheetUrl);
+      const ok = Object.keys(r).filter(k=>r[k].length>0).length;
+      if (ok > 0) {
+        console.log('FRED from Sheet:', ok + '/' + FRED_SERIES.length + ' series OK');
+        setFredCache(r);
+        return r;
+      }
+      console.warn('FRED sheet คืน 0 series — fallback ไป proxy');
+    } catch(e) { console.warn('FRED sheet fetch failed:', e.message, '— fallback ไป proxy'); }
+  }
+  console.log('Fetching FRED data (proxy)...');
   const result = {};
   const fetches = FRED_SERIES.map(async s => {
     const pts = await fetchFredSeries(s);
@@ -3204,6 +3271,7 @@ function saveCfg(){
     localStorage.setItem(CFG_KEY,JSON.stringify({
       dbId:el('cfg-db-id').value,dbSheet:'Database',
       txId:el('cfg-tx-id').value,txSheet:'GPF',
+      fredId:el('cfg-fred-id')?el('cfg-fred-id').value:'',
     }));
   }catch(e){}
 }
@@ -3213,12 +3281,14 @@ function loadCfg(){
     const d=JSON.parse(r);
     if(d.dbId)    el('cfg-db-id').value    = d.dbId;
     if(d.txId)    el('cfg-tx-id').value    = d.txId;
+    if(d.fredId && el('cfg-fred-id')) el('cfg-fred-id').value = d.fredId;
   }catch(e){}
 }
 function onCfgInput(){
   saveCfg();
   setBadgeCfg('db','idle','ยังไม่ทดสอบ');
   setBadgeCfg('tx','idle','ยังไม่ทดสอบ');
+  if(el('badge-fred')) setBadgeCfg('fred','idle','ยังไม่ทดสอบ');
   el('btn-load-all').disabled = false;
 }
 function setBadgeCfg(which, state, msg){
@@ -3237,7 +3307,8 @@ async function testCfgSheet(which){
   try{
     const csv=await fetchSheet(idVal,shName);const rows=parseCSV(csv);
     setBadgeCfg(which,'ok','✓ '+(rows.length-1)+' แถว');
-    if(txt) txt.textContent=(which==='db'?'Database':'Transaction')+' ✓';
+    const _lbl={db:'Database',tx:'Transaction',fred:'FRED'}[which]||which;
+    if(txt) txt.textContent=_lbl+' ✓';
     el('btn-load-all').disabled=false;saveCfg();
   }catch(e){
     setBadgeCfg(which,'err',e.message.substring(0,40));
@@ -7195,6 +7266,15 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
+    {date:'2026-07-25 · v30', groups:[
+      {title:'★ FRED via Google Sheet (IMPORTDATA) — เลิกพึ่ง CORS proxy', items:[
+        '<b>★ ปัญหาที่แก้:</b> regime layer ของ Preset 6M พึ่ง FRED 5 series (DGS10, HY OAS, DXY, WALCL, DFII10) แต่ CORS proxy สาธารณะทั้ง 3 ตัว (<code>corsproxy.io</code> 403, <code>allorigins</code> timeout, <code>codetabs</code> 522) <b>ตายพร้อมกัน</b> — ทดสอบจาก browser จริงได้ <b>FRED 0/13 series</b> → <code>detectRegimeV29</code> คืน NEUTRAL เงียบๆ ทำให้ระบบรันแบบ "ไม่มี regime" (vol target ค้าง 10%, credit-crisis guard ปิด). ผล backtest: CAGR <b>20.0%→14.6%</b>, Sharpe <b>1.95→1.46</b>, MaxDD <b>−10.7%→−19.1%</b>',
+        '<b>★ วิธีแก้ (ไม่ต้อง deploy GAS):</b> Google Sheet published-CSV ส่ง header <code>Access-Control-Allow-Origin: *</code> (browser ดึงตรงได้) แต่ FRED ไม่ส่ง → ปัญหาอยู่ที่ CORS ล้วนๆ. เอา FRED เข้าชีตด้วย <code>=IMPORTDATA("fredgraph.csv?id=...&cosd=2024-01-01")</code> (Google ดึง server-side ไม่มี CORS) แล้ว publish แท็บ FRED เป็น CSV → แอปดึงตรงเหมือน NAV/TX. <b>refresh อัตโนมัติ ~ทุกชั่วโมง ตั้งครั้งเดียวจบ</b>',
+        'เพิ่มช่อง config <b>📈 FRED / MACRO</b> ในการ์ดตั้งค่า (ข้าง DATABASE/TRANSACTION) + ปุ่มทดสอบ + persist ลง <code>CFG_KEY</code> — ว่างไว้ = ใช้ proxy เดิมเป็น fallback',
+        'ฟังก์ชันใหม่ <code>fetchFredFromSheet()</code>: parse คอลัมน์คู่ (date,value) อ่านชื่อ series จาก header (ทนการสลับ/เพิ่มลด series เหมือน dynamic TX column), แปลง <b>Google serial date → ISO</b> (เช่น 45293 → 2024-01-02), ข้ามช่องว่าง/<code>.</code> (missing), รองรับตาราง ragged (แต่ละ series ยาวไม่เท่ากัน). <code>fetchAllFred()</code> เรียก sheet ก่อน ถ้าได้ 0 series ค่อย fallback ไป proxy · ทดสอบ URL จริง: parse ได้ครบ 13/13 series, regime ออก <b>MILD_ON</b> (yield +0.13/60วัน) — ระบบฟื้น',
+        '<b>เลิก silent failure:</b> การ์ด FRED เดิมซ่อนตัวเองเมื่อโหลดไม่ได้ → เปลี่ยนเป็น <b>แถบเตือนสีแดง</b> บอกชัดว่า regime ตก NEUTRAL + วิธีแก้ · หัว dashboard โชว์ <code>FRED n/13 factors</code> ตามจริง',
+      ]}
+    ]},
     {date:'2026-07-22 · v29', groups:[
       {title:'Bug fix — โหลดข้อมูลไม่ได้ (CORS proxy)', items:[
         '<b>★ แก้ fetch Google Sheets + FRED ไม่ได้ (โหลดข้อมูลค้าง)</b> — CORS proxy ทั้ง 3 ตัวที่ใช้ตายพร้อมกัน: <code>allorigins.win</code> ช้า/timeout, <code>corsproxy.io</code> คืน 403, <code>codetabs</code> คืน 400 → บน GitHub Pages / file:// โหลดข้อมูลไม่ได้เลย (direct fetch ก็โดน CORS block เพราะ Google redirect) · เจอว่า <b>corsproxy.io ยังใช้ได้ แต่เปลี่ยน API</b>: เดิม <code>corsproxy.io/?</code>+url (403) → ต้องเป็น <code>corsproxy.io/?url=</code>+url (200 ✓) · แก้ทั้ง 2 จุด (<code>tryFetch</code> สำหรับ Sheets + FRED proxy list) เปลี่ยนเป็น <code>?url=</code> และย้าย corsproxy.io ขึ้นเป็นตัวแรก · ทดสอบจริง: <code>loadAll(true)</code> โหลด NAV 6,017 rows + TX 49 rows สำเร็จใน ~0.4s, FRED ก็ได้ · <b>โน้ต:</b> proxy สาธารณะตายเรื่อยๆ — ระยะยาวควร deploy Google Apps Script Web App (<code>GPF_GAS_v6.js</code> ที่มีอยู่) เป็น proxy ของตัวเองจะเสถียรกว่า'
@@ -7577,7 +7657,16 @@ function renderFredDashboard(decision) {
   const card = el('fred-card');
   if (!card) return;
   const fredData = decision.fredData || FRED_DATA;
-  if (!fredData || Object.keys(fredData).length === 0) { card.style.display = 'none'; return; }
+  const _fredOK = fredData ? Object.keys(fredData).filter(k=>(fredData[k]||[]).length>0).length : 0;
+  if (_fredOK === 0) {
+    // V30: ไม่ซ่อนเงียบอีกต่อไป — เตือนชัดว่า regime ตก NEUTRAL เพราะ FRED ล่ม
+    card.style.display = 'block';
+    card.innerHTML = '<div style="padding:10px 13px;border:1px solid var(--red);border-radius:8px;background:rgba(255,61,90,.08);font-size:11px;color:var(--red);font-family:var(--mono);line-height:1.7">'
+      + '⚠️ <b>FRED โหลดไม่ได้ (0/' + FRED_SERIES.length + ' series)</b> — regime ตกไป <b>NEUTRAL</b> อัตโนมัติ '
+      + '(vol target ค้าง 10%, credit-crisis guard ปิด). สัญญาณเลือกกอง (momentum) ยังทำงานปกติ แต่ layer จัดการความเสี่ยงหยุด<br>'
+      + '👉 แก้: กรอก Publish URL ของแท็บ FRED (IMPORTDATA) ในช่อง <b>⚙ ตั้งค่า → 📈 FRED</b></div>';
+    return;
+  }
   card.style.display = 'block';
 
   function latestVal(series) {
@@ -7608,7 +7697,7 @@ function renderFredDashboard(decision) {
   const regColor = regimeColors[regime] || 'var(--t2)';
 
   let html = '<div style="font-size:11px;font-family:var(--mono);color:var(--t2);margin-bottom:8px">'
-    + '🌎 Regime: <b style="color:' + regColor + '">' + regime + '</b> · FRED 12 Factors</div>'
+    + '🌎 Regime: <b style="color:' + regColor + '">' + regime + '</b> · FRED ' + _fredOK + '/' + FRED_SERIES.length + ' factors</div>'
     + '<div class="fred-grid">';
 
   for (const sid of FRED_SERIES) {
@@ -7797,7 +7886,7 @@ window.addEventListener('DOMContentLoaded',function(){
     const s=JSON.parse(localStorage.getItem(STORE_KEY)||'{}');
     setPortMode(s['port-mode']||'auto');
   }catch(e){setPortMode('auto');}
-  console.log('GPF LiveTrade '+ALGO_VERSION+' loaded | Menu options: '+Object.keys(getMenuCached()).length+' | Hierarchical Regime + FRED 12 Factors');
+  console.log('GPF LiveTrade '+ALGO_VERSION+' loaded | Menu options: '+Object.keys(getMenuCached()).length+' | Hierarchical Regime + FRED via Google Sheet');
 });
 </script>
 </body>
