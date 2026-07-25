@@ -7266,15 +7266,6 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
-    {date:'2026-07-25 · v30', groups:[
-      {title:'★ FRED via Google Sheet (IMPORTDATA) — เลิกพึ่ง CORS proxy', items:[
-        '<b>★ ปัญหาที่แก้:</b> regime layer ของ Preset 6M พึ่ง FRED 5 series (DGS10, HY OAS, DXY, WALCL, DFII10) แต่ CORS proxy สาธารณะทั้ง 3 ตัว (<code>corsproxy.io</code> 403, <code>allorigins</code> timeout, <code>codetabs</code> 522) <b>ตายพร้อมกัน</b> — ทดสอบจาก browser จริงได้ <b>FRED 0/13 series</b> → <code>detectRegimeV29</code> คืน NEUTRAL เงียบๆ ทำให้ระบบรันแบบ "ไม่มี regime" (vol target ค้าง 10%, credit-crisis guard ปิด). ผล backtest: CAGR <b>20.0%→14.6%</b>, Sharpe <b>1.95→1.46</b>, MaxDD <b>−10.7%→−19.1%</b>',
-        '<b>★ วิธีแก้ (ไม่ต้อง deploy GAS):</b> Google Sheet published-CSV ส่ง header <code>Access-Control-Allow-Origin: *</code> (browser ดึงตรงได้) แต่ FRED ไม่ส่ง → ปัญหาอยู่ที่ CORS ล้วนๆ. เอา FRED เข้าชีตด้วย <code>=IMPORTDATA("fredgraph.csv?id=...&cosd=2024-01-01")</code> (Google ดึง server-side ไม่มี CORS) แล้ว publish แท็บ FRED เป็น CSV → แอปดึงตรงเหมือน NAV/TX. <b>refresh อัตโนมัติ ~ทุกชั่วโมง ตั้งครั้งเดียวจบ</b>',
-        'เพิ่มช่อง config <b>📈 FRED / MACRO</b> ในการ์ดตั้งค่า (ข้าง DATABASE/TRANSACTION) + ปุ่มทดสอบ + persist ลง <code>CFG_KEY</code> — ว่างไว้ = ใช้ proxy เดิมเป็น fallback',
-        'ฟังก์ชันใหม่ <code>fetchFredFromSheet()</code>: parse คอลัมน์คู่ (date,value) อ่านชื่อ series จาก header (ทนการสลับ/เพิ่มลด series เหมือน dynamic TX column), แปลง <b>Google serial date → ISO</b> (เช่น 45293 → 2024-01-02), ข้ามช่องว่าง/<code>.</code> (missing), รองรับตาราง ragged (แต่ละ series ยาวไม่เท่ากัน). <code>fetchAllFred()</code> เรียก sheet ก่อน ถ้าได้ 0 series ค่อย fallback ไป proxy · ทดสอบ URL จริง: parse ได้ครบ 13/13 series, regime ออก <b>MILD_ON</b> (yield +0.13/60วัน) — ระบบฟื้น',
-        '<b>เลิก silent failure:</b> การ์ด FRED เดิมซ่อนตัวเองเมื่อโหลดไม่ได้ → เปลี่ยนเป็น <b>แถบเตือนสีแดง</b> บอกชัดว่า regime ตก NEUTRAL + วิธีแก้ · หัว dashboard โชว์ <code>FRED n/13 factors</code> ตามจริง',
-      ]}
-    ]},
     {date:'2026-07-22 · v29', groups:[
       {title:'Bug fix — โหลดข้อมูลไม่ได้ (CORS proxy)', items:[
         '<b>★ แก้ fetch Google Sheets + FRED ไม่ได้ (โหลดข้อมูลค้าง)</b> — CORS proxy ทั้ง 3 ตัวที่ใช้ตายพร้อมกัน: <code>allorigins.win</code> ช้า/timeout, <code>corsproxy.io</code> คืน 403, <code>codetabs</code> คืน 400 → บน GitHub Pages / file:// โหลดข้อมูลไม่ได้เลย (direct fetch ก็โดน CORS block เพราะ Google redirect) · เจอว่า <b>corsproxy.io ยังใช้ได้ แต่เปลี่ยน API</b>: เดิม <code>corsproxy.io/?</code>+url (403) → ต้องเป็น <code>corsproxy.io/?url=</code>+url (200 ✓) · แก้ทั้ง 2 จุด (<code>tryFetch</code> สำหรับ Sheets + FRED proxy list) เปลี่ยนเป็น <code>?url=</code> และย้าย corsproxy.io ขึ้นเป็นตัวแรก · ทดสอบจริง: <code>loadAll(true)</code> โหลด NAV 6,017 rows + TX 49 rows สำเร็จใน ~0.4s, FRED ก็ได้ · <b>โน้ต:</b> proxy สาธารณะตายเรื่อยๆ — ระยะยาวควร deploy Google Apps Script Web App (<code>GPF_GAS_v6.js</code> ที่มีอยู่) เป็น proxy ของตัวเองจะเสถียรกว่า'
@@ -7467,6 +7458,15 @@ const CHANGELOG_DATA = {
     ]}
   ],
   signal: [
+    {date:'2026-07-25 · v30', groups:[
+      {title:'★ FRED via Google Sheet (IMPORTDATA) — เลิกพึ่ง CORS proxy', items:[
+        '<b>★ ปัญหาที่แก้:</b> regime layer ของ Preset 6M พึ่ง FRED 5 series (DGS10, HY OAS, DXY, WALCL, DFII10) แต่ CORS proxy สาธารณะทั้ง 3 ตัว (<code>corsproxy.io</code> 403, <code>allorigins</code> timeout, <code>codetabs</code> 522) <b>ตายพร้อมกัน</b> — ทดสอบจาก browser จริงได้ <b>FRED 0/13 series</b> → <code>detectRegimeV29</code> คืน NEUTRAL เงียบๆ ทำให้ระบบรันแบบ "ไม่มี regime" (vol target ค้าง 10%, credit-crisis guard ปิด). ผล backtest: CAGR <b>20.0%→14.6%</b>, Sharpe <b>1.95→1.46</b>, MaxDD <b>−10.7%→−19.1%</b>',
+        '<b>★ วิธีแก้ (ไม่ต้อง deploy GAS):</b> Google Sheet published-CSV ส่ง header <code>Access-Control-Allow-Origin: *</code> (browser ดึงตรงได้) แต่ FRED ไม่ส่ง → ปัญหาอยู่ที่ CORS ล้วนๆ. เอา FRED เข้าชีตด้วย <code>=IMPORTDATA("fredgraph.csv?id=...&cosd=2024-01-01")</code> (Google ดึง server-side ไม่มี CORS) แล้ว publish แท็บ FRED เป็น CSV → แอปดึงตรงเหมือน NAV/TX. <b>refresh อัตโนมัติ ~ทุกชั่วโมง ตั้งครั้งเดียวจบ</b>',
+        'เพิ่มช่อง config <b>📈 FRED / MACRO</b> ในการ์ดตั้งค่า (ข้าง DATABASE/TRANSACTION) + ปุ่มทดสอบ + persist ลง <code>CFG_KEY</code> — ว่างไว้ = ใช้ proxy เดิมเป็น fallback',
+        'ฟังก์ชันใหม่ <code>fetchFredFromSheet()</code>: parse คอลัมน์คู่ (date,value) อ่านชื่อ series จาก header (ทนการสลับ/เพิ่มลด series เหมือน dynamic TX column), แปลง <b>Google serial date → ISO</b> (เช่น 45293 → 2024-01-02), ข้ามช่องว่าง/<code>.</code> (missing), รองรับตาราง ragged (แต่ละ series ยาวไม่เท่ากัน). <code>fetchAllFred()</code> เรียก sheet ก่อน ถ้าได้ 0 series ค่อย fallback ไป proxy · ทดสอบ URL จริง: parse ได้ครบ 13/13 series, regime ออก <b>MILD_ON</b> (yield +0.13/60วัน) — ระบบฟื้น',
+        '<b>เลิก silent failure:</b> การ์ด FRED (Signal tab) เดิมซ่อนตัวเองเมื่อโหลดไม่ได้ → เปลี่ยนเป็น <b>แถบเตือนสีแดง</b> บอกชัดว่า regime ตก NEUTRAL + วิธีแก้ · หัว dashboard โชว์ <code>FRED n/13 factors</code> ตามจริง',
+      ]}
+    ]},
     {date:'2026-05-04 · v29 · ALGO v7.29', groups:[
       {title:'FRED Hierarchical Regime Engine', items:[
         '12 macro factors จาก FRED (DGS10, HY OAS, DXY, T10Y3M, WALCL, NFCI, ฯลฯ)',
