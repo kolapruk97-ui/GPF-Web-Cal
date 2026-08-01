@@ -1890,7 +1890,13 @@ async function tryFetch(url){
 //  SMART CACHE — NAV update วันละครั้ง ไม่ต้อง fetch ใหม่ทุกครั้ง
 // ================================================================
 const CSV_CACHE={};
-function getCacheKey(sheetId,sheetName){return 'gpf_csv_'+sheetId.slice(0,12)+'_'+sheetName;}
+function getCacheKey(sheetId,sheetName){
+  // V30 fix: hash full id+sheet — Google published URLs ทุกตัวขึ้นต้น "https://docs" (12 ตัวเหมือนกัน)
+  // เดิม slice(0,12) ทำให้แยกกันด้วย sheetName เท่านั้น → FRED (ดีฟอลต์ 'GPF') ชนกับ TX ('GPF')
+  const s=(sheetId||'')+'|'+(sheetName||'');
+  let h=0;for(let i=0;i<s.length;i++){h=((h<<5)-h+s.charCodeAt(i))|0;}
+  return 'gpf_csv_'+(h>>>0).toString(36)+'_'+(sheetName||'').slice(0,8);
+}
 function getCached(sheetId,sheetName){
   const key=getCacheKey(sheetId,sheetName);
   // Try memory first
@@ -2453,7 +2459,7 @@ function getMenuCached() {
 // ================================================================
 //  V29: HIERARCHICAL REGIME DETECTION
 // ================================================================
-function detectRegimeV29(fredData, signalDate) {
+function detectRegimeV29(fredData, signalDate, navDates) {
   // ============================================================
   // Hierarchical Regime — ตรงกับ gpf_v29_hierarchical.py
   // Bond=ศูนย์กลาง, Credit=guard, Confirmation=adjust
@@ -2463,10 +2469,23 @@ function detectRegimeV29(fredData, signalDate) {
 
   const LEVELS = ['RISK_OFF','MILD_OFF','NEUTRAL','MILD_ON','RISK_ON'];
 
+  // V30 fix: align FRED เข้ากับ "วันเทรด NAV" (ffill) ก่อน slice — ไม่งั้นหน้าต่าง lookback
+  // นับตามวันของ FRED เอง (US holidays + WALCL รายสัปดาห์) ซึ่งไม่ตรงปฏิทิน NAV → regime timing เพี้ยน
+  // (forensic: FRED-own → MaxDD -17%, NAV-aligned → -10.7%). ต้อง align ทั้งชุด ไม่ใช่แก้ WALCL ตัวเดียว
+  const navUpTo = (navDates && navDates.length)
+    ? navDates.filter(d => !signalDate || d <= signalDate)
+    : null;
   function getPts(series) {
     const pts = fredData[series];
     if (!pts || pts.length === 0) return null;
-    return signalDate ? pts.filter(p => p.date <= signalDate) : pts;
+    if (!navUpTo) return signalDate ? pts.filter(p => p.date <= signalDate) : pts;
+    // ffill FRED ลงบนวันเทรด NAV: แต่ละวัน NAV เอาค่า FRED ล่าสุดที่ date ≤ วันนั้น
+    const aligned = []; let k = 0, last = null;
+    for (const nd of navUpTo) {
+      while (k < pts.length && pts[k].date <= nd) { last = pts[k].value; k++; }
+      if (last !== null) aligned.push({ date: nd, value: last });
+    }
+    return aligned.length ? aligned : null;
   }
   function avgSlice(pts, from, to) {
     if (!pts) return null;
@@ -2754,7 +2773,7 @@ function computeSignalV29(navMatrix, dates, plans, delay, fredData, curAlloc) {
   const idx = N - 1 - (delay || 0);
   if (idx < 0) return [];
   const signalDate = dates[idx];
-  const regimeResult = detectRegimeV29(fredData, signalDate);
+  const regimeResult = detectRegimeV29(fredData, signalDate, dates.slice(0, idx + 1));
   const regime = regimeResult.regime;
   const allocResult = computeV29Allocation(navMatrix, idx, plans, regime, curAlloc);
   return [{
@@ -3305,10 +3324,19 @@ async function testCfgSheet(which){
   const btn=el('btn-tst-'+which),sp=el('tsp-'+which),txt=el('tst-'+which+'-txt');
   if(btn) btn.disabled=true;if(sp) sp.style.display='inline-block';if(txt) txt.textContent='กำลังทดสอบ...';
   try{
-    const csv=await fetchSheet(idVal,shName);const rows=parseCSV(csv);
-    setBadgeCfg(which,'ok','✓ '+(rows.length-1)+' แถว');
-    const _lbl={db:'Database',tx:'Transaction',fred:'FRED'}[which]||which;
-    if(txt) txt.textContent=_lbl+' ✓';
+    if(which==='fred'){
+      // V30: FRED parse เป็น series ไม่ใช่แถว (และไม่แตะ CSV cache ของ TX)
+      const fd=await fetchFredFromSheet(idVal);
+      const okN=Object.keys(fd).filter(k=>fd[k].length>0).length;
+      if(okN===0) throw new Error('parse ไม่ได้ (0 series)');
+      setBadgeCfg('fred','ok','✓ '+okN+'/'+FRED_SERIES.length+' series');
+      if(txt) txt.textContent='FRED ✓';
+    }else{
+      const csv=await fetchSheet(idVal,shName);const rows=parseCSV(csv);
+      setBadgeCfg(which,'ok','✓ '+(rows.length-1)+' แถว');
+      const _lbl={db:'Database',tx:'Transaction'}[which]||which;
+      if(txt) txt.textContent=_lbl+' ✓';
+    }
     el('btn-load-all').disabled=false;saveCfg();
   }catch(e){
     setBadgeCfg(which,'err',e.message.substring(0,40));
@@ -3619,6 +3647,18 @@ async function loadAll(forceRefresh){
         const txCsv=await fetchSheet(txId,txSheet,forceRefresh);TX_PORT=parseTx(txCsv);
         setBadgeCfg('tx','ok','โหลดสำเร็จ ('+(TX_PORT.length)+' รายการ)');
       }catch(e){TX_PORT=[];setBadgeCfg('tx','err','โหลดไม่ได้: '+e.message.substring(0,30));}
+    }
+    // V30: โหลด FRED ด้วย (regime) — Force Refresh จะ bust FRED cache + โชว์สถานะเหมือน NAV/TX
+    const fredId=el('cfg-fred-id')?el('cfg-fred-id').value.trim():'';
+    if(fredId){
+      showPortLoading(usingCache?'กำลังโหลด FRED จาก cache...':'กำลังโหลด FRED...');
+      try{
+        if(forceRefresh){try{localStorage.removeItem(FRED_CACHE_KEY);}catch(_){}}
+        const fd=await fetchAllFred();FRED_DATA=fd;
+        const okN=fd?Object.keys(fd).filter(k=>(fd[k]||[]).length>0).length:0;
+        if(okN>0)setBadgeCfg('fred','ok','โหลดสำเร็จ ('+okN+'/'+FRED_SERIES.length+' series)');
+        else setBadgeCfg('fred','err','โหลดไม่ได้ (0 series) — regime = NEUTRAL');
+      }catch(e){setBadgeCfg('fred','err','โหลดไม่ได้: '+e.message.substring(0,30));}
     }
     if(NAV_PORT.length>0){renderPortAll();if(el('tab-nav').classList.contains('active'))renderNavTab();}else{showPortErr('ไม่พบข้อมูล NAV ใน Database sheet');}
     const elapsed=((performance.now()-t0)/1000).toFixed(1);
@@ -7465,6 +7505,10 @@ const CHANGELOG_DATA = {
         'เพิ่มช่อง config <b>📈 FRED / MACRO</b> ในการ์ดตั้งค่า (ข้าง DATABASE/TRANSACTION) + ปุ่มทดสอบ + persist ลง <code>CFG_KEY</code> — ว่างไว้ = ใช้ proxy เดิมเป็น fallback',
         'ฟังก์ชันใหม่ <code>fetchFredFromSheet()</code>: parse คอลัมน์คู่ (date,value) อ่านชื่อ series จาก header (ทนการสลับ/เพิ่มลด series เหมือน dynamic TX column), แปลง <b>Google serial date → ISO</b> (เช่น 45293 → 2024-01-02), ข้ามช่องว่าง/<code>.</code> (missing), รองรับตาราง ragged (แต่ละ series ยาวไม่เท่ากัน). <code>fetchAllFred()</code> เรียก sheet ก่อน ถ้าได้ 0 series ค่อย fallback ไป proxy · ทดสอบ URL จริง: parse ได้ครบ 13/13 series, regime ออก <b>MILD_ON</b> (yield +0.13/60วัน) — ระบบฟื้น',
         '<b>เลิก silent failure:</b> การ์ด FRED (Signal tab) เดิมซ่อนตัวเองเมื่อโหลดไม่ได้ → เปลี่ยนเป็น <b>แถบเตือนสีแดง</b> บอกชัดว่า regime ตก NEUTRAL + วิธีแก้ · หัว dashboard โชว์ <code>FRED n/13 factors</code> ตามจริง',
+        '<b>★ แก้ bug cache key ชนกัน</b> — ปุ่มทดสอบ FRED โชว์ "51 แถว" (ข้อมูล TX) เพราะ <code>getCacheKey</code> ใช้ <code>sheetId.slice(0,12)</code> ซึ่ง Google published URL ทุกตัวขึ้นต้น <code>"https://docs"</code> เหมือนกันหมด → แยกด้วย sheetName เท่านั้น → FRED (ดีฟอลต์ <code>GPF</code>) ชน cache ของ TX (<code>GPF</code>) key เดียวกัน <code>gpf_csv_https://docs_GPF</code>. แก้เป็น <b>hash full url+sheet</b> → ทุก sheet ได้ key ไม่ซ้ำ (กัน NAV/TX/FRED ปนกันในอนาคตด้วย)',
+        '<b>ปุ่มทดสอบ FRED โชว์ series</b> — เดิมโชว์ "แถว" (parse CSV) → เปลี่ยนเป็น <code>fetchFredFromSheet()</code> โชว์ <code>✓ 13/13 series</code> ตรงความหมาย + ไม่แตะ CSV cache ของ TX',
+        '<b>Force Refresh โหลด FRED ด้วย</b> — เดิม <code>loadAll()</code> โหลดแค่ NAV/TX (FRED โหลดตอนรัน Signal เท่านั้น) → เพิ่มโหลด FRED ใน loadAll + bust FRED cache เมื่อ force + badge <code>✅ โหลดสำเร็จ (13/13 series)</code> เหมือน NAV/TX',
+        '<b>★★ แก้ regime bug — align FRED กับวันเทรด NAV</b> — เดิม <code>detectRegimeV29</code> ตัด slice FRED ตาม<b>ซีรีส์ของ FRED เอง</b> (<code>avgSlice</code> เอา N จุดท้าย) แต่ N จุดของ FRED ครอบคลุมวันปฏิทินคนละชุดกับ N วันเทรด NAV (FRED หยุดตามวันหยุดสหรัฐ / NAV ตามไทย, WALCL รายสัปดาห์) → หน้าต่าง lookback คำนวณบนวันผิด → regime timing เพี้ยน → ถือหุ้นผ่าน DD 2024-25 ไม่ถอย. <b>Forensic (V29 sim สลับทีละตัวแปร):</b> ตัวการคือ FRED alignment ล้วนๆ (timing i vs i-2 แทบไม่มีผล) — FRED-own → MaxDD <b>-17%</b>, NAV-aligned → <b>-10.7%</b>. แก้: <code>detectRegimeV29</code> รับ <code>navDates</code> แล้ว <b>ffill FRED ลงบนวันเทรด NAV</b> ก่อน slice (แต่ละวัน NAV = ค่า FRED ล่าสุด date ≤ วันนั้น) → หน้าต่างตรงปฏิทินที่เทรดจริง. <b>ผล backtest (Node, JS จริง):</b> CAGR <b>15.9%→19.0%</b>, Sharpe <b>1.59→1.85</b>, MaxDD <b>-17.3%→-10.7%</b> ตรงกับ Python backtest เดิม · แก้ทั้งชุด (ไม่ใช่ WALCL ตัวเดียว) เป็น fix ที่ถูกหลัก align macro กับสินทรัพย์ที่เทรด',
       ]}
     ]},
     {date:'2026-05-04 · v29 · ALGO v7.29', groups:[
