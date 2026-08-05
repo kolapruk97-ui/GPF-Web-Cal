@@ -1381,6 +1381,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
     </div>
   </div>
   <div id="port-dash">
+    <div id="tx-data-warn" style="display:none"></div>
     <div class="sec">📊 ภาพรวม Portfolio</div>
     <div class="pcards pcards6" id="cards-row1"></div>
     <div class="sec">📈 Analytics</div>
@@ -1873,14 +1874,19 @@ function buildCsvUrl(input, sheetName){
   if(!id)return null;
   return'https://docs.google.com/spreadsheets/d/'+id+'/gviz/tq?tqx=out:csv&sheet='+encodeURIComponent(sheetName||'Sheet1');
 }
-async function tryFetch(url){
+// noCache=true → bypass HTTP cache ของ browser ด้วย (ใช้ตอน Force Refresh)
+//   URL ที่ยิงเหมือนเดิมทุกครั้ง + Google/proxy ส่ง header ที่ cache ได้
+//   → fetch() ธรรมดาคืน response เก่าจาก disk cache แม้ข้าม localStorage cache ไปแล้ว
+//   = แก้ข้อมูลในชีตแล้วกด Force Refresh ก็ยังเห็นค่าเก่า (เจอจริง 2026-08-05)
+async function tryFetch(url,noCache){
+  const opt=noCache?{cache:'no-store'}:{};
   try{
-    const r=await fetch(url,{mode:'cors'});
+    const r=await fetch(url,Object.assign({mode:'cors'},opt));
     if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.trim().startsWith('<'))return t;}
   }catch(e){}
   for(const proxy of['https://corsproxy.io/?url=','https://api.allorigins.win/raw?url=','https://api.codetabs.com/v1/proxy?quest=']){
     try{
-      const r=await fetch(proxy+encodeURIComponent(url));
+      const r=await fetch(proxy+encodeURIComponent(url),opt);
       if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.trim().startsWith('<')&&!t.includes('"error"'))return t;}
     }catch(e){}
   }
@@ -1939,7 +1945,7 @@ async function fetchSheet(sheetId,sheetName,forceRefresh){
       return cached.csv;
     }
   }
-  const text=await tryFetch(url);
+  const text=await tryFetch(url,forceRefresh);
   if(!text)throw new Error('เชื่อมต่อไม่ได้ผ่านทุก proxy\n\nวิธีแก้: File → Share → Publish to web → CSV');
   // Save to cache
   setCache(sheetId,sheetName,text);
@@ -2018,10 +2024,10 @@ function _fredCellDate(cell){
   const d = new Date(s);
   return isNaN(d) ? null : d.toISOString().slice(0,10);
 }
-async function fetchFredFromSheet(rawUrl){
+async function fetchFredFromSheet(rawUrl,noCache){
   const url = buildCsvUrl(rawUrl, 'FRED');
   if(!url) throw new Error('FRED URL ไม่ถูกต้อง');
-  const text = await tryFetch(url);
+  const text = await tryFetch(url,noCache);
   if(!text) throw new Error('โหลดแท็บ FRED ไม่ได้');
   const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.length);
   if(lines.length < 2) throw new Error('แท็บ FRED ว่าง');
@@ -2042,7 +2048,7 @@ async function fetchFredFromSheet(rawUrl){
   }
   return result;
 }
-async function fetchAllFred() {
+async function fetchAllFred(forceRefresh) {
   if (!isFredCacheStale()) {
     const cached = getFredCached();
     if (cached) { console.log('FRED cache hit'); return cached; }
@@ -2051,7 +2057,7 @@ async function fetchAllFred() {
   const fredSheetUrl = (el('cfg-fred-id') && el('cfg-fred-id').value || '').trim();
   if (fredSheetUrl) {
     try {
-      const r = await fetchFredFromSheet(fredSheetUrl);
+      const r = await fetchFredFromSheet(fredSheetUrl,forceRefresh);
       const ok = Object.keys(r).filter(k=>r[k].length>0).length;
       if (ok > 0) {
         console.log('FRED from Sheet:', ok + '/' + FRED_SERIES.length + ' series OK');
@@ -3654,7 +3660,7 @@ async function loadAll(forceRefresh){
       showPortLoading(usingCache?'กำลังโหลด FRED จาก cache...':'กำลังโหลด FRED...');
       try{
         if(forceRefresh){try{localStorage.removeItem(FRED_CACHE_KEY);}catch(_){}}
-        const fd=await fetchAllFred();FRED_DATA=fd;
+        const fd=await fetchAllFred(forceRefresh);FRED_DATA=fd;
         const okN=fd?Object.keys(fd).filter(k=>(fd[k]||[]).length>0).length:0;
         if(okN>0)setBadgeCfg('fred','ok','โหลดสำเร็จ ('+okN+'/'+FRED_SERIES.length+' series)');
         else setBadgeCfg('fred','err','โหลดไม่ได้ (0 series) — regime = NEUTRAL');
@@ -4900,7 +4906,33 @@ function _currentPlanFromHold(hold, ln){
   return parts.map(x=>((FM[x.f]&&FM[x.f].s)||x.f)+x.pct).join(':');
 }
 // Shared: transaction cost helper (handles carry-in where a.b=null → NAV×units fallback)
+// ใช้ได้เฉพาะงาน "ต้นทุนรายกอง" (P&L by Asset) — ห้ามใช้หาเงินลงทุนสะสม ดู calcDeposits()
 function _txCostOf(a){const ab=a.b!=null?Math.abs(a.b):0;if(ab>0)return ab;if(a.n!=null&&a.u!=null)return Math.abs(a.n*a.u);return 0;}
+// ================================================================
+//  INVESTED CAPITAL — แหล่งความจริงเดียวของ "เงินลงทุนสะสม"
+//  = เงินที่นำส่งเข้ากองทุนจริง (แถว "เงินนำส่ง" เท่านั้น) อ่านตรงจาก 4 คอลัมน์
+//    เงินชดเชย + เงินสะสม + เงินสมทบ + เงินสะสมส่วนเพิ่ม
+//
+//  เดิม P&L คำนวณย้อนกลับจาก Σ(ซื้อ) − Σ(ขาย) ของ "ทุกแถว" ผ่าน _txCostOf (ช่อง Bath)
+//  ซึ่งได้ผลเท่ากัน *ถ้า* ทุกคู่เปลี่ยนแผนเข้า/ออกสมดุลเป๊ะ — แต่ต้องกวาด Bath
+//  ซื้อ 825,985฿ / ขาย 668,642฿ จาก 50 แถว เพียงเพื่อให้ได้เลข 157,343฿
+//  ที่อ่านตรงๆ ได้จาก 22 แถวเงินนำส่ง
+//  → typo ช่องเดียวในแถวไหนก็ได้ (รวมแถว switch ที่ไม่ใช่เงินใหม่เลย) รั่วเข้ากำไร/ขาดทุนทันที
+//  เปลี่ยนมาอ่านตรง: การเปลี่ยนแผนย้ายเงินระหว่างกอง ไม่ใช่เงินเข้าใหม่ → ไม่แตะเงินลงทุนสะสม
+// ================================================================
+function _depositOf(t){
+  const c=(t.comp||0)+(t.accum||0)+(t.match||0)+(t.extra||0);
+  return c!==0?c:(t.total||0);   // fallback ไปคอลัมน์ Total ถ้า 4 คอลัมน์ว่าง
+}
+function calcDeposits(txList){
+  const rows=(txList||[]).filter(t=>t.type==='เงินนำส่ง').sort((a,b)=>a.date-b.date)
+    .map(t=>({date:t.date,amount:_depositOf(t)}));
+  let total=0;const cum=[];
+  for(const r of rows){total+=r.amount;cum.push({date:r.date,sum:total});}
+  // เงินลงทุนสะสม ณ วันใดวันหนึ่ง (step function — คงที่ระหว่างวันนำส่ง)
+  const at=d=>{let s=0;for(const x of cum){if(x.date>d)break;s=x.sum;}return s;};
+  return{rows,total,cum,at};
+}
 // Shared: per-fund cost basis via MOVING (weighted) average — walk TX chronologically.
 //   On buy  → heldUnits += u, heldCost += cost (avg recomputed)
 //   On sell → costOfSold = avgAtTime × sellUnits; realized += proceeds − costOfSold; held reduced
@@ -4951,12 +4983,13 @@ function calcPort(nav,tx,days){
   const cut=days>0?new Date(Date.now()-days*864e5):new Date(0);
   const nf=nav.filter(n=>n.date>=cut);if(!nf.length)return{l:[],v:[],iv:[]};
   const ts=[...tx].sort((a,b)=>a.date-b.date);
+  const dep=calcDeposits(tx);   // เส้น "เงินลงทุนสะสม" = ผลรวมเงินนำส่ง (ฐานเดียวกับ Sim)
   const l=[],v=[],iv=[];
   for(const n of nf){
-    const u={};let inv=0;
-    for(const t of ts){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts)){u[f]=(u[f]||0)+a.u;if(a.u>0)inv+=_txCostOf(a);else if(a.u<0)inv-=_txCostOf(a);}}
+    const u={};
+    for(const t of ts){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;}
     let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
-    if(val>0||v.length>0){l.push(n.date);v.push(val);iv.push(inv);}
+    if(val>0||v.length>0){l.push(n.date);v.push(val);iv.push(dep.at(n.date));}
   }
   return{l,v,iv};
 }
@@ -5070,10 +5103,11 @@ function calcAnalytics(hold,nav,tx){
   }
   let tot=0,prev=0;
   for(const[f,u]of Object.entries(hold)){const nv=ln?.funds[f];if(nv)tot+=u*nv;const pv=pn?.funds[f];if(pv)prev+=u*pv;}
-  // Cost basis via shared average-cost helper
-  const {costBasis,realized:realizedPnl,effectiveDeposits}=calcEffectiveCost(tx,hold,ln);
-  const cost=effectiveDeposits;
-  const pnl=(tot-costBasis)+realizedPnl,pp=cost>0?(pnl/cost)*100:0;
+  // เงินลงทุนสะสม + กำไร/ขาดทุน — อ่านตรงจากแถวเงินนำส่ง (ดู calcDeposits)
+  // ต้องได้ผลตรงกับโดนัท "ยอดเงินปัจจุบัน" เสมอ เพราะใช้แหล่งข้อมูลเดียวกัน
+  const dep=calcDeposits(tx);
+  const cost=dep.total;
+  const pnl=tot-cost,pp=cost>0?(pnl/cost)*100:0;
   const dc=prev>0?tot-prev:0,dp=prev>0?(dc/prev)*100:0;
   // ============================================================
   // Peak / DD / peakProfit
@@ -5084,15 +5118,10 @@ function calcAnalytics(hold,nav,tx){
   // ============================================================
   let peakValue=0,peakDate=null,maxDD=0,ddEnd=null;
   let peakProfit=-Infinity,peakProfitDate=null,peakProfitValue=0,peakProfitCost=0;
-  let runCost=0,txIdx2=0;
+  let runCost=0,depIdx=0;
   for(const p of portSeries){
-    while(txIdx2<txSorted.length&&txSorted[txIdx2].date<=p.date){
-      for(const[f,a]of Object.entries(txSorted[txIdx2].amounts)){
-        if(a.u>0)runCost+=_txCostOf(a);
-        else if(a.u<0)runCost-=_txCostOf(a);
-      }
-      txIdx2++;
-    }
+    // เงินลงทุนสะสม ณ วันนั้น = ผลรวมเงินนำส่งถึงวันนั้น (switch ไม่นับ)
+    while(depIdx<dep.rows.length&&dep.rows[depIdx].date<=p.date){runCost+=dep.rows[depIdx].amount;depIdx++;}
     if(p.val>peakValue){peakValue=p.val;peakDate=p.date;}
     const dd=peakValue>0?(p.val-peakValue)/peakValue*100:0;
     if(dd<maxDD){maxDD=dd;ddEnd=p.date;}
@@ -5126,13 +5155,12 @@ function calcAnalytics(hold,nav,tx){
   const winRate=rets.length>0?winDays/rets.length*100:0;
   const txDeposits=tx.filter(t=>t.type==='เงินนำส่ง');
   // avgMonthly: cash deposits only (not carry-in) — reflects DCA behavior
-  const cashDeposits=txDeposits.reduce((s,t)=>s+(t.total||0),0);
-  const avgMonthly=txDeposits.length>0?cashDeposits/txDeposits.length:0;
+  const avgMonthly=dep.rows.length>0?dep.total/dep.rows.length:0;
   const lastTx=[...tx].reverse().find(t=>t.plan);
   // IRR (Money-Weighted Return): solve for r where NPV of cash flows + final value = 0
   // Cash flows: deposits (negative outflows from investor's perspective), final port value (positive)
   const cashFlows=[];
-  for(const t of txDeposits){cashFlows.push({date:t.date,amount:-(t.total||0)});}
+  for(const r of dep.rows){cashFlows.push({date:r.date,amount:-r.amount});}
   if(ln&&tot>0)cashFlows.push({date:ln.date,amount:tot});
   const irr=calcIRR(cashFlows);
   // Tax savings (Thai PIT): GPF deductible up to 500k/yr (or 15% of income).
@@ -5174,9 +5202,70 @@ function calcIRR(cashFlows){
   return null;
 }
 
+// ================================================================
+//  TX DATA GUARD — จับ typo ในชีตที่ทำให้ตัวเลข 2 ที่ไม่ตรงกันเงียบๆ
+//  _txCostOf() อ่านช่อง Bath ก่อนเสมอ → Bath พิมพ์ผิด (เช่น 222.5 แทน 2222.50)
+//  ทำให้ cost basis หายไป → การ์ด "กำไร/ขาดทุน" เกินจริง ขณะที่โดนัท "ผลประโยชน์"
+//  (อ่านจาก เงินสะสม/ส่วนเพิ่ม/ชดเชย/สมทบ) ยังถูก → 2 ค่าไม่ตรงกันโดยไม่มีใครเตือน
+//  Tolerance 1฿: NAV/Unit เก็บ 4 ตำแหน่ง → drift จาก rounding จริงสูงสุดที่วัดได้ ~0.02฿
+// ================================================================
+const TX_DATA_TOL=1;
+function validateTxData(txList){
+  const issues=[];
+  for(const t of txList||[]){
+    const ents=Object.entries(t.amounts||{}).filter(([,a])=>a&&a.u);
+    let sumB=0,allB=ents.length>0;
+    for(const[f,a]of ents){
+      if(a.b==null){allB=false;continue;}
+      sumB+=Math.abs(a.b);
+      if(a.n==null)continue;
+      const exp=Math.abs(a.n*a.u),got=Math.abs(a.b);
+      if(Math.abs(got-exp)>TX_DATA_TOL)issues.push({date:t.date,fund:f,kind:'bath',got,exp});
+    }
+    const tot=t.total!=null?Math.abs(t.total):null;
+    if(tot==null)continue;
+    if(allB&&Math.abs(sumB-tot)>TX_DATA_TOL)issues.push({date:t.date,kind:'total',got:tot,exp:sumB});
+    const contrib=Math.abs((t.comp||0)+(t.accum||0)+(t.match||0)+(t.extra||0));
+    if(contrib>0&&Math.abs(contrib-tot)>TX_DATA_TOL)issues.push({date:t.date,kind:'contrib',got:tot,exp:contrib});
+  }
+  return issues;
+}
+function renderTxDataWarn(txList){
+  const box=el('tx-data-warn');if(!box)return;
+  const iss=validateTxData(txList);
+  if(!iss.length){box.style.display='none';box.innerHTML='';return;}
+  const KIND={
+    bath:{c:'Bath ≠ NAV × Unit',w:'ช่อง Bath',r:'ต้นทุน (cost basis) เพี้ยน → การ์ด "กำไร/ขาดทุน" ไม่ตรงกับ "ผลประโยชน์" ในกราฟ'},
+    total:{c:'ผลรวม Bath ≠ Total',w:'ช่อง Total',r:'ผลรวมรายกองไม่เท่ายอดรวมของแถว'},
+    contrib:{c:'เงินสะสม+ส่วนเพิ่ม+ชดเชย+สมทบ ≠ Total',w:'ช่อง Total',r:'ยอดเงินนำส่งไม่เท่ายอดรวมของแถว'}
+  };
+  const rows=iss.map(x=>{
+    const k=KIND[x.kind],fn=x.fund?((FM[x.fund]&&FM[x.fund].l)||x.fund):'—';
+    return '<tr>'
+      +'<td style="padding:4px 8px 4px 0;white-space:nowrap">'+fDt(x.date)+'</td>'
+      +'<td style="padding:4px 8px 4px 0">'+esc(fn)+'</td>'
+      +'<td style="padding:4px 8px 4px 0">'+k.c+'</td>'
+      +'<td style="padding:4px 8px 4px 0;text-align:right;font-family:var(--mono)">'+fmt(x.got,2)+'</td>'
+      +'<td style="padding:4px 8px 4px 0;text-align:right;font-family:var(--mono);color:var(--green)">'+fmt(x.exp,2)+'</td>'
+      +'<td style="padding:4px 0;text-align:right;font-family:var(--mono);color:var(--amber)">'+fmtS(x.got-x.exp)+'</td>'
+      +'</tr>';
+  }).join('');
+  box.innerHTML='<div style="padding:12px 14px;border-radius:8px;background:rgba(255,61,90,.08);border:1px solid rgba(255,61,90,.3);margin-bottom:12px;font-size:12px;line-height:1.6">'
+    +'<div style="font-weight:700;color:var(--red);margin-bottom:4px">⚠️ พบข้อมูลไม่สอดคล้องในชีต Transaction ('+iss.length+' จุด)</div>'
+    +'<div style="color:var(--t2);margin-bottom:8px">ตัวเลขในแอปจะเพี้ยนจนกว่าจะแก้ที่ชีต — แก้แล้วกด <b>🔄 Force Refresh</b> (ปุ่ม "โหลดข้อมูล" ใช้ cache 30 นาที)</div>'
+    +'<div style="overflow-x:auto"><table style="border-collapse:collapse;font-size:11px;min-width:520px">'
+    +'<thead><tr style="color:var(--t3);border-bottom:1px solid var(--b2)">'
+    +'<th style="text-align:left;padding:0 8px 4px 0">วันที่</th><th style="text-align:left;padding:0 8px 4px 0">กองทุน</th>'
+    +'<th style="text-align:left;padding:0 8px 4px 0">ปัญหา</th><th style="text-align:right;padding:0 8px 4px 0">ค่าในชีต</th>'
+    +'<th style="text-align:right;padding:0 8px 4px 0">ค่าที่ควรเป็น</th><th style="text-align:right;padding:0 0 4px 0">ต่าง</th></tr></thead>'
+    +'<tbody>'+rows+'</tbody></table></div></div>';
+  box.style.display='';
+}
+
 function renderPortAll(){
   const hold=calcHold(TX_PORT);
   const analytics=calcAnalytics(hold,NAV_PORT,TX_PORT);
+  renderTxDataWarn(TX_PORT);
   renderPortCards(hold,analytics);renderHold(hold,NAV_PORT);renderPerfAttrib(hold,NAV_PORT,TX_PORT);renderPerfAttribMonth(TX_PORT,NAV_PORT);renderPortHeatmap(TX_PORT,NAV_PORT);renderRebalROI(TX_PORT,NAV_PORT);renderNavTbl(NAV_PORT,hold);
   renderDaily(NAV_PORT,TX_PORT);renderTxTbl(TX_PORT);renderMon(TX_PORT);
   showPortDash();
@@ -5717,11 +5806,12 @@ function renderMon(tx){
 }
 function renderDaily(nav,tx){
   const txSorted=[...tx].sort((a,b)=>a.date-b.date);const txDateSet=new Set(tx.map(t=>t.date.toDateString()));const portFull=[];
+  const dep=calcDeposits(tx);
   for(const n of nav){
-    const u={};let inv=0;
-    for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts)){u[f]=(u[f]||0)+a.u;if(a.u>0)inv+=_txCostOf(a);else if(a.u<0)inv-=_txCostOf(a);}}
+    const u={};
+    for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;}
     let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
-    portFull.push({date:n.date,val,inv,hasTx:txDateSet.has(n.date.toDateString())});
+    portFull.push({date:n.date,val,inv:dep.at(n.date),hasTx:txDateSet.has(n.date.toDateString())});
   }
   const series=portFull.filter(p=>p.val>0);const reversed=[...series].reverse();
   const bdy=reversed.map((p,i)=>{const prev=reversed[i+1];const dayChg=(prev&&!p.hasTx)?p.val-prev.val:null;const dayPct=(prev&&prev.val>0&&!p.hasTx)?(dayChg/prev.val)*100:null;const pnl=p.val-p.inv,pnlPct=p.inv>0?(pnl/p.inv)*100:0;const txMark=p.hasTx?'<span style="font-size:10px;color:var(--gold);margin-left:4px">● TX</span>':'';const chgClr=dayChg==null?'var(--t3)':dayChg>=0?'var(--green)':'var(--red)';
@@ -6867,11 +6957,8 @@ function renderYearlySummary(nav,tx){
     // Deposits = net new capital AFTER yrStart (tx after yrStart that add money)
     // startVal already accounts for capital present at start of year
     const postStartTx=yrTx.filter(t=>t.date>yrStart.date);
-    let deposits=0;
-    for(const t of postStartTx)for(const[f,a]of Object.entries(t.amounts)){if(a.u>0)deposits+=_txCostOf(a);}
-    let sellProceeds=0;
-    for(const t of postStartTx)for(const[f,a]of Object.entries(t.amounts)){if(a.u<0)sellProceeds+=_txCostOf(a);}
-    deposits=deposits-sellProceeds; // net new money (switches cancel out)
+    // net new money = เงินนำส่งในช่วงนั้น (switch ย้ายเงินระหว่างกอง ไม่ใช่เงินใหม่)
+    const deposits=postStartTx.filter(t=>t.type==='เงินนำส่ง').reduce((s,t)=>s+_depositOf(t),0);
     // Rebalance count (include สลับกองทุน)
     const rebalCount=new Set(yrTx.filter(t=>t.type&&(t.type.includes('เปลี่ยนแผน')||t.type.includes('สลับ')||t.type.toLowerCase().includes('rebal'))).map(t=>t.date.toDateString())).size;
     // Skip years with no activity
@@ -7306,6 +7393,25 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
+    {date:'2026-08-05 · v30', groups:[
+      {title:'★★ Bug fix — สูตรกำไร/ขาดทุนผิด (คำนวณย้อนกลับจาก Bath)', items:[
+        '<b>★★ root cause: การ์ด "กำไร/ขาดทุน" ไม่ได้อ่านเงินลงทุนสะสมตรงๆ แต่ reconstruct จากช่อง Bath ทุกแถว</b> — <code>calcAnalytics</code> เดิมใช้ <code>calcEffectiveCost()</code> → <code>pnl = (มูลค่า − costBasis) + realized</code> ซึ่งกางออกมาได้ <code>pnl = V − Σ(ซื้อ) + Σ(ขาย)</code> · แปลว่าต้องกวาด Bath <b>ซื้อ 825,985฿ / ขาย 668,642฿ จาก 50 แถว</b> เพื่อให้ได้ตัวเลข <b>157,343฿</b> ที่อ่านตรงๆ ได้จาก 22 แถว "เงินนำส่ง" · สูตรนี้ถูกก็ต่อเมื่อ <b>ทุกคู่เปลี่ยนแผนเข้า/ออกสมดุลเป๊ะ</b> → typo ช่องเดียวในแถวไหนก็ได้ <b>รวมแถว switch ที่ไม่ใช่เงินเข้าใหม่เลย</b> รั่วเข้ากำไร/ขาดทุนทันที ขณะที่โดนัท "ผลประโยชน์" (อ่าน 4 คอลัมน์เงินสมทบ) ไม่ขยับ → 2 ค่าไม่ตรงกัน',
+        '<b>แก้:</b> เพิ่ม <code>calcDeposits(tx)</code> + <code>_depositOf(t)</code> เป็น<b>แหล่งความจริงเดียว</b>ของเงินลงทุนสะสม — อ่านตรงจากแถว <code>เงินนำส่ง</code> คอลัมน์ <code>เงินชดเชย + เงินสะสม + เงินสมทบ + เงินสะสมส่วนเพิ่ม</code> (fallback ไป <code>Total</code> ถ้า 4 คอลัมน์ว่าง) · <code>pnl = มูลค่า − เงินนำส่งสะสม</code> ตรงๆ · <b>การเปลี่ยนแผนย้ายเงินระหว่างกอง ไม่ใช่เงินเข้าใหม่ → ไม่แตะเงินลงทุนสะสมอีกต่อไป</b>',
+        '<b>แก้ทุกจุดที่ reconstruct แบบเดียวกัน</b> (เดิมกระจาย 5 ที่): การ์ด <code>กำไร/ขาดทุน</code> + <code>เงินลงทุนสะสม</code> + <code>% ผลตอบแทน</code> + <code>CAGR</code> · <code>Peak Profit</code> (<code>runCost</code>) · เส้น <b>เงินลงทุนสะสม</b> ในกราฟ + <b>Port P&L</b> ใน tooltip (<code>calcPort</code>) · ตาราง <b>รายวัน</b> (<code>renderDaily</code>) · <b>ROI รายปี</b> (<code>renderRebalROI</code>) · <code>IRR</code> + <code>เฉลี่ย/ครั้ง</code> · ผลพลอยได้: เส้น Port กับ Sim ใช้ฐาน "เงินนำส่งสะสม" เดียวกันแล้ว (เดิมคนละนิยาม)',
+        '<b>คงไว้ที่เดิม:</b> <code>_fundCostBasis()</code> / <code>_txCostOf()</code> ยังใช้ใน <b>P&L by Asset</b> (แยก realized/unrealized รายกอง) และ cashflow รายเดือนรายกอง — งานพวกนี้ต้องใช้ Bath รายกองจริงๆ แทนกันไม่ได้',
+        '<b>verify (browser จริง):</b> ยิง typo กลับเข้าไปทดสอบ — <code>Bath(PR) −2,000</code> → P&L ขยับ <b>0.00</b> (เดิมขยับ 2,000) · <code>Bath แถว switch −50,000</code> → P&L ขยับ <b>0.00</b> (เดิมขยับ 50,000) · ข้อมูลสะอาด: การ์ด <code>+17,670.81</code> = โดนัท <code>13,743.97 + 3,926.84</code> = tooltip กราฟ = P&L by Asset รวม <code>+17,670.81 (+11.23%)</code> ตรงกันหมด'
+      ]},
+      {title:'Data guard — เตือน typo ในชีต Transaction', items:[
+        '<b>★ แถบเตือนแดงเมื่อข้อมูลในชีตไม่สอดคล้อง</b> — เจอเคสจริง: แถว <code>23/7/2026</code> ช่อง <code>Bath (PR)</code> พิมพ์ <code>222.5</code> แทน <code>2222.50</code> (ตกเลข 2) · <code>_txCostOf()</code> อ่านช่อง Bath ก่อนเสมอ → cost basis หายไป 2,000฿ → การ์ด <b>"กำไร/ขาดทุน"</b> โชว์ <code>+19,670.81</code> เกินจริง ขณะที่โดนัท <b>"ผลประโยชน์"</b> (อ่านจาก เงินสะสม/ส่วนเพิ่ม/ชดเชย/สมทบ) โชว์ <code>17,670.81</code> ถูก → <b>2 ค่าไม่ตรงกันโดยไม่มีอะไรเตือน</b> · เพิ่ม <code>validateTxData()</code> + <code>renderTxDataWarn()</code> สแกนทุกแถวตอน <code>renderPortAll()</code> เช็ค 3 อย่าง: <code>|Bath| ≠ |NAV × Unit|</code>, <code>Σ Bath ≠ Total</code>, <code>เงินสะสม+ส่วนเพิ่ม+ชดเชย+สมทบ ≠ Total</code> · แถบแดงบนสุดของแท็บ Portfolio แสดงตาราง วันที่ / กองทุน / ปัญหา / ค่าในชีต / ค่าที่ควรเป็น / ส่วนต่าง · tolerance <code>1฿</code> (NAV/Unit เก็บ 4 ตำแหน่ง → drift จริงที่วัดได้สูงสุด 0.02฿ = ไม่มี false positive)',
+        '<b>ตรวจเจอเพิ่ม:</b> แถว <code>21/5/2026 เปลี่ยนแผนออก</code> ช่อง <code>Total</code> = <code>-36,967.75</code> แต่ Bath และผลรวม 4 คอลัมน์เงินสมทบ = <code>-36,964.75</code> (ต่าง 3฿) — ไม่กระทบ P&L (ไม่มีใครอ่าน Total ของแถว switch) แต่ guard รายงานให้เห็น'
+      ]},
+      {title:'Bug fix — Force Refresh ไม่ได้ข้อมูลใหม่จริง', items:[
+        '<b>★ กด 🔄 Force Refresh แล้วยังเห็นค่าเก่า</b> — <code>loadAll(true)</code> ข้าม localStorage cache ถูกแล้ว แต่ <code>tryFetch()</code> เรียก <code>fetch()</code> แบบ default → **browser HTTP cache** คืน response เก่าจาก disk (URL เหมือนเดิมทุกครั้ง + Google/proxy ส่ง header ที่ cache ได้) → แก้ข้อมูลในชีตแล้วยังเห็นเลขเดิมทั้งที่ CSV ต้นทางถูกแล้ว · แก้: <code>tryFetch(url,noCache)</code> ส่ง <code>{cache:\'no-store\'}</code> ทั้ง direct fetch และทุก proxy, ต่อสายจาก <code>fetchSheet(...,forceRefresh)</code> · FRED ต่อสายเหมือนกัน (<code>fetchAllFred(forceRefresh)</code> → <code>fetchFredFromSheet(url,noCache)</code>) · verify: hook <code>window.fetch</code> เห็น <code>cache=no-store</code> ครบทุก request ตอน force, ส่วนโหลดปกติยังไม่ยิง network (ใช้ cache 30 นาทีเหมือนเดิม)'
+      ]},
+      {title:'Note', items:[
+        'ปุ่ม <b>โหลดข้อมูล</b> ใช้ localStorage cache 30 นาที (<code>isCacheStale()</code>) — แก้ข้อมูลในชีตแล้วต้องกด <b>🔄 Force Refresh</b> ถึงจะเห็นค่าใหม่ · ข้อความในแถบเตือนระบุไว้ด้วย'
+      ]}
+    ]},
     {date:'2026-07-22 · v29', groups:[
       {title:'Bug fix — โหลดข้อมูลไม่ได้ (CORS proxy)', items:[
         '<b>★ แก้ fetch Google Sheets + FRED ไม่ได้ (โหลดข้อมูลค้าง)</b> — CORS proxy ทั้ง 3 ตัวที่ใช้ตายพร้อมกัน: <code>allorigins.win</code> ช้า/timeout, <code>corsproxy.io</code> คืน 403, <code>codetabs</code> คืน 400 → บน GitHub Pages / file:// โหลดข้อมูลไม่ได้เลย (direct fetch ก็โดน CORS block เพราะ Google redirect) · เจอว่า <b>corsproxy.io ยังใช้ได้ แต่เปลี่ยน API</b>: เดิม <code>corsproxy.io/?</code>+url (403) → ต้องเป็น <code>corsproxy.io/?url=</code>+url (200 ✓) · แก้ทั้ง 2 จุด (<code>tryFetch</code> สำหรับ Sheets + FRED proxy list) เปลี่ยนเป็น <code>?url=</code> และย้าย corsproxy.io ขึ้นเป็นตัวแรก · ทดสอบจริง: <code>loadAll(true)</code> โหลด NAV 6,017 rows + TX 49 rows สำเร็จใน ~0.4s, FRED ก็ได้ · <b>โน้ต:</b> proxy สาธารณะตายเรื่อยๆ — ระยะยาวควร deploy Google Apps Script Web App (<code>GPF_GAS_v6.js</code> ที่มีอยู่) เป็น proxy ของตัวเองจะเสถียรกว่า'
