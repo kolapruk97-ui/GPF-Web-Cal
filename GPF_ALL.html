@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://api.stlouisfed.org https://fred.stlouisfed.org https://api.allorigins.win https://corsproxy.io https://api.codetabs.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://*.googleusercontent.com https://api.stlouisfed.org https://fred.stlouisfed.org https://api.allorigins.win https://corsproxy.io https://api.codetabs.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
 <title>GPF Live Trade v30</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -3420,6 +3420,36 @@ function buildGrid(gridId,plans){
     }
   });
 }
+// ================================================================
+//  ALLOCATION → integer % (Largest Remainder / Hamilton)
+//  ปัดทีละกองด้วย Math.round แล้วผลรวมไม่เท่า 100% ได้ เช่นสัดส่วนจริง
+//  F 25.06 / TH 49.48 / PR 25.46 → ปัดแยก = 25+49+25 = 99% → runSignal ตีกลับ
+//  วิธีแก้: ปัดลงทั้งหมดก่อน แล้วแจกเศษที่เหลือให้กองที่ทศนิยมมากสุด → รวม 100% เสมอ
+//  เคารพ cap (G ≤ 25%): ถ้ากองไหนเกิน cap → ตรึงที่ cap แล้วแบ่งส่วนที่เหลือให้กองอื่นใหม่
+// ================================================================
+function _capOf(key){const d=ALL_PLAN_DEFS.find(p=>p.key===key);return d&&d.cap?d.cap:100;}
+function allocToIntPct(weights){
+  let pool=Object.entries(weights).filter(([,w])=>w>0).map(([k,w])=>({k,w}));
+  if(!pool.length)return{};
+  const fixed={};let budget=100;
+  for(let guard=0;guard<10&&pool.length;guard++){
+    const tw=pool.reduce((s,x)=>s+x.w,0);
+    if(tw<=0)break;
+    const share=pool.map(x=>({k:x.k,raw:x.w/tw*budget}));
+    // Hamilton: floor ก่อน แล้วแจกเศษตามทศนิยมมากสุด
+    const out=share.map(x=>({k:x.k,i:Math.floor(x.raw),frac:x.raw-Math.floor(x.raw)}));
+    let left=budget-out.reduce((s,x)=>s+x.i,0);
+    out.sort((a,b)=>b.frac-a.frac);
+    for(let j=0;j<left;j++)out[j%out.length].i++;
+    // ตรวจ cap
+    const over=out.filter(x=>x.i>_capOf(x.k));
+    if(!over.length){for(const x of out)if(x.i>0)fixed[x.k]=x.i;return fixed;}
+    for(const x of over){fixed[x.k]=_capOf(x.k);budget-=_capOf(x.k);}
+    const overKeys=new Set(over.map(x=>x.k));
+    pool=pool.filter(x=>!overKeys.has(x.k));
+  }
+  return fixed;
+}
 function getAllocTotal(){
   return ALL_PLAN_DEFS.reduce((s,p)=>{const v=parseFloat(el('a_'+p.key)?.value||'0');return s+(isNaN(v)?0:v);},0);
 }
@@ -4898,8 +4928,10 @@ function _currentPlanFromHold(hold, ln){
     if(nv){vals[f]=u*nv; tot+=u*nv;}
   }
   if(tot<=0)return '';
-  const parts=Object.entries(vals)
-    .map(([f,v])=>({f,pct:Math.round(v/tot*100)}))
+  // ใช้ Hamilton เหมือน grid — ป้ายแผนต้องรวม 100% ไม่ใช่ 99/101%
+  const w={};for(const[f,v]of Object.entries(vals))w[f]=v/tot;
+  const parts=Object.entries(allocToIntPct(w))
+    .map(([f,pct])=>({f,pct}))
     .filter(x=>x.pct>0)
     .sort((a,b)=>b.pct-a.pct);
   if(!parts.length)return '';
@@ -5306,9 +5338,12 @@ function applyAutoSync(analytics,hold){
       const holdAlloc = {};
       for(const[f,u] of Object.entries(hold)){
         const nv=ln?.funds[f];if(!nv||u<=0)continue;
-        const pct=Math.round((u*nv/grand)*100);
-        const inp=el('a_'+f);if(inp&&pct>0)inp.value=String(pct);
         holdAlloc[f] = (u*nv/grand);
+      }
+      // ปัดเป็น % จำนวนเต็มให้รวม 100% พอดี (Hamilton) — เดิม Math.round ทีละกองได้ 99/101%
+      const intPct = allocToIntPct(holdAlloc);
+      for(const[f,pct] of Object.entries(intPct)){
+        const inp=el('a_'+f);if(inp&&pct>0)inp.value=String(pct);
       }
       onAllocChange();
       // C2+M2: Reverse-lookup menu name from actual allocation
@@ -7393,6 +7428,11 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
+    {date:'2026-08-25 · v30', groups:[
+      {title:'Bug fix — ป้าย "แผนลงทุนปัจจุบัน" รวมไม่ครบ 100%', items:[
+        'การ์ด <b>แผนลงทุนปัจจุบัน</b> (<code>_currentPlanFromHold</code>) ปัด % ทีละกองด้วย <code>Math.round</code> เหมือน grid → โชว์ <code>TH49:F25:PR25</code> (รวม 99%) · เปลี่ยนมาใช้ <code>allocToIntPct()</code> (Largest Remainder) ตัวเดียวกับ grid → <b>TH50:F25:PR25</b> รวม 100% และตรงกับ grid เสมอ'
+      ]}
+    ]},
     {date:'2026-08-05 · v30', groups:[
       {title:'★★ Bug fix — สูตรกำไร/ขาดทุนผิด (คำนวณย้อนกลับจาก Bath)', items:[
         '<b>★★ root cause: การ์ด "กำไร/ขาดทุน" ไม่ได้อ่านเงินลงทุนสะสมตรงๆ แต่ reconstruct จากช่อง Bath ทุกแถว</b> — <code>calcAnalytics</code> เดิมใช้ <code>calcEffectiveCost()</code> → <code>pnl = (มูลค่า − costBasis) + realized</code> ซึ่งกางออกมาได้ <code>pnl = V − Σ(ซื้อ) + Σ(ขาย)</code> · แปลว่าต้องกวาด Bath <b>ซื้อ 825,985฿ / ขาย 668,642฿ จาก 50 แถว</b> เพื่อให้ได้ตัวเลข <b>157,343฿</b> ที่อ่านตรงๆ ได้จาก 22 แถว "เงินนำส่ง" · สูตรนี้ถูกก็ต่อเมื่อ <b>ทุกคู่เปลี่ยนแผนเข้า/ออกสมดุลเป๊ะ</b> → typo ช่องเดียวในแถวไหนก็ได้ <b>รวมแถว switch ที่ไม่ใช่เงินเข้าใหม่เลย</b> รั่วเข้ากำไร/ขาดทุนทันที ขณะที่โดนัท "ผลประโยชน์" (อ่าน 4 คอลัมน์เงินสมทบ) ไม่ขยับ → 2 ค่าไม่ตรงกัน',
@@ -7604,6 +7644,22 @@ const CHANGELOG_DATA = {
     ]}
   ],
   signal: [
+    {date:'2026-08-25 · v30', groups:[
+      {title:'★★ เลิกพึ่ง CORS proxy — ตัวบล็อกคือ CSP ของแอปเอง ไม่ใช่ CORS', items:[
+        '<b>★★ ข้อสรุปเดิมผิด</b> — เคยสรุปว่า "Google published-CSV ดึงตรงจาก browser ไม่ได้เพราะ CORS" จึงต้องพึ่ง <code>corsproxy.io</code> ทั้ง NAV/TX/FRED · ความจริง: <code>docs.google.com/.../pub?output=csv</code> <b>302 redirect ไป <code>*.googleusercontent.com</code></b> ซึ่ง<b>ไม่อยู่ใน CSP allowlist ของหน้าเว็บเอง</b> → เบราว์เซอร์ตัดทิ้งตั้งแต่ก่อนถึงขั้นเช็ค CORS แล้วโยน <code>TypeError: Failed to fetch</code> ซึ่งหน้าตาเหมือน CORS error เป๊ะ · ปลายทางส่ง <code>Access-Control-Allow-Origin: *</code> มาตลอด ดึงตรงได้อยู่แล้ว',
+        '<b>แก้:</b> เพิ่ม <code>https://*.googleusercontent.com</code> ใน <code>default-src</code> ของ CSP meta tag (บรรทัดเดียว) · <b>ไม่แตะ <code>tryFetch()</code></b> — มันลอง direct ก่อน proxy อยู่แล้ว พอ CSP ปล่อยผ่าน direct ก็สำเร็จเอง · <b>คง proxy ทั้ง 3 ตัวไว้เป็น fallback</b> ไม่ได้ถอดออก',
+        '<b>ผลทดสอบ A/B (หน้าเทสแยก, browser จริง):</b> CSP เดิม → NAV/TX/FRED <code>Failed to fetch</code> ทั้ง 3 · CSP ใหม่ → <code>HTTP 200</code> ทั้ง 3 พร้อม CSV จริง (NAV 383,606B · TX 6,922B · FRED 89,108B)',
+        '<b>ผลบนแอปจริง:</b> <code>loadAll(true)</code> ยิง <b>3 requests ตรงไป docs.google.com · ผ่าน proxy 0 ครั้ง</b> · NAV 6,037 rows (ถึง 21 ส.ค.) · TX 50 · FRED 13/13 · <code>runSignal</code> สำเร็จ',
+        '<b>เร็วขึ้นด้วย</b> (วัดจริงต่อ request): NAV <code>1,626ms</code> vs proxy <code>2,793ms</code> · TX <code>1,092</code> vs <code>2,330</code> · FRED <code>1,028</code> vs <code>1,392</code>',
+        '<b>ผลลัพธ์:</b> ตัด single point of failure ที่ใหญ่ที่สุดของแอปออก — เดิมถ้า corsproxy.io ล่มหรือ block domain ขึ้นมา NAV+TX+FRED ดับพร้อมกันทั้งหมด ตอนนี้ proxy เป็นแค่ทางสำรอง'
+      ]},
+      {title:'★ Bug fix — รัน Signal ไม่ได้ "Allocation รวม 99%"', items:[
+        '<b>★ อาการ:</b> กด Run Signal แล้วขึ้น <code>กรุณากรอก Allocation รวม 100% ก่อนรัน Signal (ปัจจุบัน 99%)</code> ทั้งที่ไม่ได้แตะช่องไหนเลย — grid ถูก auto-fill จากสัดส่วนที่ถือจริง',
+        '<b>root cause:</b> ตอน sync grid จาก holdings ใช้ <code>Math.round()</code> <b>ปัดทีละกองแยกกัน</b> → ผลรวมไม่การันตี 100% · สัดส่วนจริง ณ 21 ส.ค.: F <code>25.0638%</code> → 25, TH <code>49.4767%</code> → <b>49</b>, PR <code>25.4594%</code> → 25 = <b>99%</b> → <code>runSignal</code> ตีกลับ (เช็ค <code>|sum−1| &gt; 0.005</code>) · เป็นได้ทั้ง 99% และ 101% แล้วแต่ NAV วันนั้น = bug ที่โผล่แบบสุ่มตามราคา',
+        '<b>แก้:</b> เพิ่ม <code>allocToIntPct()</code> ใช้ <b>Largest Remainder (Hamilton)</b> — ปัดลงทุกกองก่อน แล้วแจกเศษที่เหลือให้กองที่ทศนิยมมากสุด → <b>รวม 100% เสมอ</b> · เคารพ cap ด้วย (G ≤ 25%): ถ้ากองไหนเกิน cap → ตรึงที่ cap แล้วแบ่งส่วนที่เหลือให้กองอื่นใหม่ (วนจนนิ่ง) · เคสจริงได้ <b>F25:TH50:PR25</b> ตรงกับแผนที่ตั้งไว้จริง',
+        '<b>verify:</b> unit test 9 เคส (รวมลงตัว / ปัดเกิน 101% / G เกิน cap / กองเดียว / 7 กองเศษเท่ากัน / กองจิ๋ว &lt;0.5% / ว่าง) ผ่านทุกเคส รวม 100% และไม่ละเมิด cap · browser จริง: grid <code>100%</code>, <code>runSignal</code> สำเร็จ → <b>SWITCH → TH100 eq 100%</b> (regime MILD_ON, FRED 13/13)'
+      ]}
+    ]},
     {date:'2026-07-25 · v30', groups:[
       {title:'★ FRED via Google Sheet (IMPORTDATA) — เลิกพึ่ง CORS proxy', items:[
         '<b>★ ปัญหาที่แก้:</b> regime layer ของ Preset 6M พึ่ง FRED 5 series (DGS10, HY OAS, DXY, WALCL, DFII10) แต่ CORS proxy สาธารณะทั้ง 3 ตัว (<code>corsproxy.io</code> 403, <code>allorigins</code> timeout, <code>codetabs</code> 522) <b>ตายพร้อมกัน</b> — ทดสอบจาก browser จริงได้ <b>FRED 0/13 series</b> → <code>detectRegimeV29</code> คืน NEUTRAL เงียบๆ ทำให้ระบบรันแบบ "ไม่มี regime" (vol target ค้าง 10%, credit-crisis guard ปิด). ผล backtest: CAGR <b>20.0%→14.6%</b>, Sharpe <b>1.95→1.46</b>, MaxDD <b>−10.7%→−19.1%</b>',
