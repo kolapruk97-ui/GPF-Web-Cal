@@ -4956,6 +4956,44 @@ function _depositOf(t){
   const c=(t.comp||0)+(t.accum||0)+(t.match||0)+(t.extra||0);
   return c!==0?c:(t.total||0);   // fallback ไปคอลัมน์ Total ถ้า 4 คอลัมน์ว่าง
 }
+// ================================================================
+//  DRAWDOWN — Time-Weighted (หักเงินนำส่งออกก่อน)
+//  DD เดิมหา running max จาก "มูลค่าพอร์ตดิบ" → วันฝากเงินมูลค่ากระโดดขึ้นจาก
+//  เงินใหม่ (ไม่ใช่กำไร) → peak ถูกดันขึ้น → DD รีเซ็ตเป็น 0 ทั้งที่ตลาดยังไม่ฟื้น
+//  เคสจริง 26 มี.ค. 2026: ฝาก 8,645฿ → มูลค่าดิบ +5.48% แต่ตลาดจริง −1.36%
+//  → DD เด้งจาก −5.08% เป็น 0.00% ทั้งที่ DD จริงคือ −6.37%
+//
+//    r(t)     = ( V(t) − CF(t) ) / V(t-1) − 1      CF = เงินนำส่งวันนั้น
+//    index(t) = index(t-1) × (1 + r(t))            เริ่มที่ 1.0
+//    DD(t)    = ( index − runningMax(index) ) / runningMax × 100
+//
+//  แม่นยำเป๊ะ ไม่ใช่ค่าประมาณ: กบข ซื้อหน่วยด้วย NAV ของวันนั้น เงินฝากจึงเข้ามา
+//  ที่ราคาปิดพอดี ไม่กินผลตอบแทนวันนั้น (verify: ตรงกับผลตอบแทนที่คิดจาก
+//  หน่วยเดิม × NAV ล้วน ต่างกัน 1.5e-7)
+//  วันเปลี่ยนแผน CF=0 → ลดรูปเป็น V(t)/V(t-1)−1 ตามปกติ ไม่ต้องทำอะไรพิเศษ
+//
+//  values[i] = มูลค่าพอร์ต ณ วัน i (null/0 = ยังไม่เริ่ม → คืน null)
+//  cumDep[i] = เงินนำส่ง "สะสม" ถึงวัน i (ฐานเดียวกับ values; ละไว้ = ไม่มีเงินเข้าออก)
+// ================================================================
+function calcDDSeries(values, cumDep){
+  const out=new Array(values.length).fill(null);
+  let idx=null, pk=0, prevV=null, prevC=0;
+  for(let i=0;i<values.length;i++){
+    const v=values[i];
+    if(v==null||!(v>0))continue;
+    const c=(cumDep&&cumDep[i]!=null)?cumDep[i]:0;
+    if(idx===null){ idx=1; pk=1; }
+    else{
+      const cf=c-prevC;
+      const r=prevV>0?((v-cf)/prevV-1):0;
+      idx=idx*(1+r);
+      if(idx>pk)pk=idx;
+    }
+    out[i]=pk>0?(idx-pk)/pk*100:0;
+    prevV=v; prevC=c;
+  }
+  return out;
+}
 function calcDeposits(txList){
   const rows=(txList||[]).filter(t=>t.type==='เงินนำส่ง').sort((a,b)=>a.date-b.date)
     .map(t=>({date:t.date,amount:_depositOf(t)}));
@@ -5148,15 +5186,18 @@ function calcAnalytics(hold,nav,tx){
   //   When val is at all-time high → DD = 0 (peak = val)
   //   peakProfit: max(val - runCost) → absolute baht gain over cost basis
   // ============================================================
-  let peakValue=0,peakDate=null,maxDD=0,ddEnd=null;
+  // Max DD ใช้ TWR (calcDDSeries) — peakValue/peakDate ยังเป็นมูลค่าดิบตามเดิม
+  // เพราะการ์ด "Peak Value" หมายถึงยอดเงินสูงสุดในบัญชีจริง ไม่ใช่ผลการลงทุน
+  const _ddArr=calcDDSeries(portSeries.map(p=>p.val), portSeries.map(p=>dep.at(p.date)));
+  let maxDD=0,ddEnd=null;
+  for(let i=0;i<_ddArr.length;i++){if(_ddArr[i]!=null&&_ddArr[i]<maxDD){maxDD=_ddArr[i];ddEnd=portSeries[i].date;}}
+  let peakValue=0,peakDate=null;
   let peakProfit=-Infinity,peakProfitDate=null,peakProfitValue=0,peakProfitCost=0;
   let runCost=0,depIdx=0;
   for(const p of portSeries){
     // เงินลงทุนสะสม ณ วันนั้น = ผลรวมเงินนำส่งถึงวันนั้น (switch ไม่นับ)
     while(depIdx<dep.rows.length&&dep.rows[depIdx].date<=p.date){runCost+=dep.rows[depIdx].amount;depIdx++;}
     if(p.val>peakValue){peakValue=p.val;peakDate=p.date;}
-    const dd=peakValue>0?(p.val-peakValue)/peakValue*100:0;
-    if(dd<maxDD){maxDD=dd;ddEnd=p.date;}
     const profit=p.val-runCost;
     if(profit>peakProfit){peakProfit=profit;peakProfitDate=p.date;peakProfitValue=p.val;peakProfitCost=runCost;}
   }
@@ -6035,13 +6076,8 @@ function renderPortChart(days){
   for(const t of depositTx){const k=t.date.toDateString();depositMap[k]=(depositMap[k]||0)+(t.total||0);}
   const depositData=l.map((d,i)=>depositMap[d.toDateString()]?v[i]:null);
   const labels=l.map(fmtDateChart);
-  // Compute DD data — running max of portfolio value
-  // → When val is at all-time high, peak = val, DD = 0%
-  let peak=0;
-  const ddData=v.map(val=>{
-    if(val>peak)peak=val;
-    return peak>0?(val-peak)/peak*100:0;
-  });
+  // DD = Time-Weighted (หักเงินนำส่ง) — iv คือเงินนำส่งสะสม ฐานเดียวกับ v
+  const ddData=calcDDSeries(v,iv).map(x=>x==null?0:x);
   // V29: Compute BH results for both Portfolio Sims (Sim 1 + Sim 2)
   const bhResults=[_calcBhForSim(0,l), _calcBhForSim(1,l), _calcBhForSim(2,l)];
   const SIM_COLORS=['#a855f7','#ff1493','#2563eb'];
@@ -6545,8 +6581,8 @@ function _calcBhForSim(simIdx, l){
   if(!sim||!sim.alloc)return null;
   const s=calcBHSeries(sim.alloc, l, sim.entry);
   if(!s||!s.value.some(x=>x!=null))return null;
-  let peak=0;
-  const dd=s.value.map(v=>{if(v==null)return null;if(v>peak)peak=v;return peak>0?(v-peak)/peak*100:0;});
+  // s.invested = เงินนำส่งสะสมของ sim (ฐานเดียวกับ s.value) → หักออกก่อนคิด DD
+  const dd=calcDDSeries(s.value, s.invested);
   return {value:s.value, invested:s.invested, ddData:dd, lbl:sim.lbl};
 }
 function setFundPeriod(btn,days){document.querySelectorAll('.fpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');fundPeriod=days;if(NAV_PORT.length>0){destroyChart('fund');renderFund(NAV_PORT,days);}}
@@ -6966,6 +7002,7 @@ function renderNavDrawdown(nav,days){
 function renderYearlySummary(nav,tx){
   const box=el('yearly-summary');if(!box)return;
   if(!nav||nav.length<2||!tx||tx.length<1){box.innerHTML='<div style="color:var(--t3);font-size:12px;padding:10px">ข้อมูลไม่พอ</div>';return;}
+  const _depAll=calcDeposits(tx);   // เงินนำส่งสะสม — ใช้หัก CF ตอนคิด DD รายปี
   // Group by year
   const years=new Map();
   const allYears=[...new Set(nav.map(n=>n.date.getFullYear()))].sort();
@@ -6998,15 +7035,15 @@ function renderYearlySummary(nav,tx){
     const rebalCount=new Set(yrTx.filter(t=>t.type&&(t.type.includes('เปลี่ยนแผน')||t.type.includes('สลับ')||t.type.toLowerCase().includes('rebal'))).map(t=>t.date.toDateString())).size;
     // Skip years with no activity
     if(endVal===0&&startVal===0&&deposits===0) return;
-    // DD within year
-    let peak=0,maxDD=0;
-    yrNav.forEach(n=>{
+    // DD within year — TWR (หักเงินนำส่ง) ฐานเดียวกับการ์ด/กราฟ
+    const _yrVals=yrNav.map(n=>{
       const h=calcHold(tx.filter(t=>t.date<=n.date));
       let val=0;for(const[f,u]of Object.entries(h)){const nv=n?.funds[f];if(nv)val+=u*nv;}
-      if(val>peak)peak=val;
-      const dd=peak>0?(val-peak)/peak*100:0;
-      if(dd<maxDD)maxDD=dd;
+      return val;
     });
+    const _yrDep=yrNav.map(n=>_depAll.at(n.date));
+    let maxDD=0;
+    for(const d of calcDDSeries(_yrVals,_yrDep))if(d!=null&&d<maxDD)maxDD=d;
     const pnl=endVal-startVal-deposits;
     // Modified Dietz: PnL / (startVal + deposits * 0.5)
     const base=startVal+deposits*0.5;
@@ -7053,16 +7090,15 @@ function renderYearlySummary(nav,tx){
   // Total return: simple return = PnL / total capital (startVal + all deposits)
   const totCost=(firstYr?firstYr.startVal:0)+totDep;
   const totPct=totCost>0?(totPnl/totCost)*100:0;
-  // Compute overall max DD across all data
-  let overallPeak=0,overallMaxDD=0;
+  // Overall max DD (แถว "รวม") — TWR ฐานเดียวกับการ์ด/กราฟ/รายปี
   const txSorted=[...tx].sort((a,b)=>a.date-b.date);
-  for(const n of nav){
+  const _allVals=nav.map(n=>{
     const h={};for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))h[f]=(h[f]||0)+a.u;}
     let val=0;for(const[f,u]of Object.entries(h)){const nv=n?.funds[f];if(nv)val+=u*nv;}
-    if(val>overallPeak)overallPeak=val;
-    const dd=overallPeak>0?(val-overallPeak)/overallPeak*100:0;
-    if(dd<overallMaxDD)overallMaxDD=dd;
-  }
+    return val;
+  });
+  let overallMaxDD=0;
+  for(const d of calcDDSeries(_allVals, nav.map(n=>_depAll.at(n.date))))if(d!=null&&d<overallMaxDD)overallMaxDD=d;
   html+='<tr style="border-top:2px solid var(--b2);font-weight:700">'
     +'<td style="padding:8px 6px;color:var(--gold)">รวม</td>'
     +'<td style="padding:8px 6px;text-align:right">'+(firstYr?fmt(firstYr.startVal,2):'-')+'</td>'
@@ -7217,12 +7253,8 @@ function renderFsChart(chartKey){
     for(const t of depositTx){const k=t.date.toDateString();depositMap[k]=(depositMap[k]||0)+(t.total||0);}
     const depositData=l.map((d,i)=>depositMap[d.toDateString()]?v[i]:null);
     const labels=l.map(fmtDateChart);
-    // Compute DD data — running max of portfolio value
-    let peak=0;
-    const ddData=v.map(val=>{
-      if(val>peak)peak=val;
-      return peak>0?(val-peak)/peak*100:0;
-    });
+    // DD = Time-Weighted (หักเงินนำส่ง) — iv คือเงินนำส่งสะสม ฐานเดียวกับ v
+    const ddData=calcDDSeries(v,iv).map(x=>x==null?0:x);
     // V29: Compute BH results for both Portfolio Sims
     const bhResults=[_calcBhForSim(0,l), _calcBhForSim(1,l), _calcBhForSim(2,l)];
     const SIM_COLORS=['#a855f7','#ff1493','#2563eb'];
@@ -7429,6 +7461,16 @@ function renderFsChart(chartKey){
 const CHANGELOG_DATA = {
   port: [
     {date:'2026-08-25 · v30', groups:[
+      {title:'★★ Bug fix — DD เพี้ยนทุกวันที่ฝากเงิน (เปลี่ยนเป็น Time-Weighted)', items:[
+        '<b>★★ อาการ:</b> DD ทุกที่หา running max จาก <b>มูลค่าพอร์ตดิบ</b> → วันฝากเงินมูลค่ากระโดดขึ้นจาก<b>เงินใหม่ ไม่ใช่กำไร</b> → peak ถูกดันขึ้น → DD รีเซ็ตเป็น 0% ทั้งที่ตลาดยังไม่ฟื้น · <b>เคสจริง 26 มี.ค. 2026:</b> ฝาก 8,645฿ → มูลค่าดิบ <code>+5.48%</code> แต่<b>ตลาดจริง −1.36%</b> → เส้น DD เด้งจาก <code>−5.08%</code> เป็น <code>0.00%</code> ทั้งที่ DD จริงคือ <code>−6.37%</code> (ลบ drawdown 5% ทิ้งในวันเดียว)',
+        '<b>แก้:</b> เพิ่ม <code>calcDDSeries(values, cumDep)</code> เป็นแหล่งความจริงเดียว ใช้ <b>Time-Weighted Return</b> — <code>r(t) = (V(t) − CF(t)) / V(t-1) − 1</code> โดย CF = เงินนำส่งวันนั้น → ต่อเป็น index (เริ่ม 1.0) → หา DD จาก index แทนมูลค่าดิบ · เงินฝากไม่ดัน peak อีกต่อไป',
+        '<b>แม่นยำเป๊ะ ไม่ใช่ค่าประมาณ</b> — กบข ซื้อหน่วยด้วย NAV ของวันนั้น เงินฝากจึงเข้าที่ราคาปิดพอดี ไม่กินผลตอบแทนวันนั้น · verify: ค่าที่ได้ตรงกับผลตอบแทนที่คิดจาก <b>หน่วยเดิม × NAV ล้วน</b> (ไม่ยุ่งกับเงินฝากเลย) ต่างกัน <code>1.5e-7</code> · <b>วันเปลี่ยนแผน CF=0</b> → ลดรูปเป็น <code>V(t)/V(t-1)−1</code> ตามปกติ ไม่กระทบ',
+        '<b>แก้ครบ 6 จุดที่คิด DD แยกกันเอง</b>: การ์ด <code>Max Drawdown</code> + <code>Calmar</code> · เส้น DD ในกราฟ + tooltip <code>Port DD</code> · เส้น DD เต็มจอ · เส้น DD ของ <b>Sim 1/2/3</b> (ใช้ <code>s.invested</code> เป็น CF) · <code>Max DD รายปี</code> · แถว <b>"รวม"</b> ของตารางรายปี (จุดนี้เกือบตกไป — เจอตอน verify ว่าแถวรวมโชว์ −6.7% ไม่ตรงการ์ด)',
+        '<b>ไม่แตะ:</b> แท็บ <b>NAV Analysis</b> (<code>navMaxDD</code>, <code>renderNavDrawdown</code>, กราฟเต็มจอ NAV) — คิดจาก NAV ของกองตรงๆ ไม่มีเงินเข้าออก ถูกอยู่แล้ว · <b>Peak Value</b> ยังเป็นมูลค่าดิบตามเดิม (หมายถึงยอดเงินสูงสุดในบัญชีจริง ไม่ใช่ผลการลงทุน)',
+        '<b>ตัวเลขที่เปลี่ยน:</b> Max DD <code>−6.72% (24 มี.ค. 2026)</code> → <code>−7.99% (8 เม.ย. 2025)</code> — <b>จุดต่ำสุดจริงคนละวันเลย</b> · รายปี 2024 <code>−2.3→−2.6%</code>, 2025 <code>−5.4→−7.3%</code>, 2026 <code>−6.7→−7.1%</code> · Calmar <code>0.77→0.65</code> · <b>CAGR/IRR/Sharpe/Sortino/Vol/P&L/Win Rate ไม่เปลี่ยน</b> (Sharpe/Vol ข้ามวัน TX อยู่แล้ว)',
+        '<b>ผลพลอยได้:</b> DD ของแอป<b>เทียบกับ backtest engine ได้ตรงๆ แล้ว</b> — harness ใช้ growth-of-1 = TWR ตัวเดียวกัน (เดิมเทียบ −6.72% กับ V28 −7.1% / V30 −10.7% ไม่ได้ เพราะคนละนิยาม)',
+        '<b>verify (browser จริง):</b> เขียน reference อิสระที่ไม่เรียก <code>calcDDSeries</code> → เส้น DD ต่างกัน <code>0.00e+0</code> ทุกจุด · การ์ด == ก้นเส้นกราฟ == แถวรวม (−7.99% / −8.0%) · Sim1 F75:G25 DD <code>−8.52%</code> ตรง reference เป๊ะ · ไม่มี console error'
+      ]},
       {title:'Bug fix — ป้าย "แผนลงทุนปัจจุบัน" รวมไม่ครบ 100%', items:[
         'การ์ด <b>แผนลงทุนปัจจุบัน</b> (<code>_currentPlanFromHold</code>) ปัด % ทีละกองด้วย <code>Math.round</code> เหมือน grid → โชว์ <code>TH49:F25:PR25</code> (รวม 99%) · เปลี่ยนมาใช้ <code>allocToIntPct()</code> (Largest Remainder) ตัวเดียวกับ grid → <b>TH50:F25:PR25</b> รวม 100% และตรงกับ grid เสมอ'
       ]}
