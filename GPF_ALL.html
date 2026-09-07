@@ -1544,6 +1544,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
           </div>
         </div>
         <div class="nav-fund-toggles" id="nav-scat-toggles"></div>
+        <div id="nav-scat-msg" style="display:none;color:var(--t3);font-size:12px;padding:14px 4px;line-height:1.6"></div>
         <div class="chart-box" style="height:260px"><canvas id="nav-scatter-chart"></canvas></div>
       </div>
     </div>
@@ -5086,10 +5087,12 @@ function calcBHSeries(alloc,l,entryDate){
     if(rows.length<2)return null;
     navByFund[f]=rows;
   }
-  const deps=TX_PORT.filter(t=>t.type==='เงินนำส่ง'&&t.total>0).sort((a,b)=>a.date-b.date);
+  // ใช้ _depositOf (4 คอลัมน์เงินสมทบ) ให้ตรงกับ Port — เดิมอ่านคอลัมน์ Total
+  // ทำให้ typo ใน Total ดัน invested/value ของ Sim เพี้ยนไปจาก Port ทั้งที่ Port ถูก
+  const deps=TX_PORT.filter(t=>t.type==='เงินนำส่ง'&&_depositOf(t)>0).sort((a,b)=>a.date-b.date);
   if(!deps.length)return null;
   // Cumulative deposit totals across full history (used as `invested` base — same denominator as Port)
-  const depCumTotal=[];{let s=0;for(const t of deps){s+=t.total;depCumTotal.push({date:t.date,s});}}
+  const depCumTotal=[];{let s=0;for(const t of deps){s+=_depositOf(t);depCumTotal.push({date:t.date,s});}}
   const _depTotalAtOrBefore=(d)=>{let s=0;for(const x of depCumTotal){if(x.date>d)break;s=x.s;}return s;};
   // Mode: "from-port-value" when entryDate is set AFTER first deposit (simulates a full rebalance at entry, kept holding from then)
   //       Otherwise: "inception" — every deposit from day 1 goes into the chosen plan
@@ -5127,7 +5130,7 @@ function calcBHSeries(alloc,l,entryDate){
       for(const f of funds){
         const w=alloc[f];if(!w)continue;
         const nv=_navOnOrBefore(navByFund[f],f,t.date);
-        if(nv&&nv>0)cumU[f]+=t.total*w/nv;
+        if(nv&&nv>0)cumU[f]+=_depositOf(t)*w/nv;
       }
       depCum.push({date:t.date,u:Object.assign({},cumU)});
     }
@@ -5139,7 +5142,7 @@ function calcBHSeries(alloc,l,entryDate){
       for(const f of funds){
         const w=alloc[f];if(!w)continue;
         const nv=_navOnOrBefore(navByFund[f],f,t.date);
-        if(nv&&nv>0)cumU[f]+=t.total*w/nv;
+        if(nv&&nv>0)cumU[f]+=_depositOf(t)*w/nv;
       }
       depCum.push({date:t.date,u:Object.assign({},cumU)});
     }
@@ -5703,7 +5706,7 @@ function renderPortHeatmap(tx,nav){
         for(const[f,a]of Object.entries(t.amounts))holdEnd[f]=(holdEnd[f]||0)+a.u;
       }else if(t.date<=mEnd){
         for(const[f,a]of Object.entries(t.amounts))holdEnd[f]=(holdEnd[f]||0)+a.u;
-        if(t.type==='เงินนำส่ง')cashIn+=t.total||0;
+        if(t.type==='เงินนำส่ง')cashIn+=_depositOf(t);
       }
     }
     let sV=0,eV=0;
@@ -5799,7 +5802,7 @@ function renderRebalROI(tx,nav){
     const d30=portValAt(new Date(ev.date.getTime()+30*864e5));
     const d90=portValAt(new Date(ev.date.getTime()+90*864e5));
     // Cash flow during event period (deposits)
-    const cashFlow=txSorted.filter(t=>t.date>ev.date&&t.date<=endDate&&t.type==='เงินนำส่ง').reduce((s,t)=>s+(t.total||0),0);
+    const cashFlow=txSorted.filter(t=>t.date>ev.date&&t.date<=endDate&&t.type==='เงินนำส่ง').reduce((s,t)=>s+_depositOf(t),0);
     const sV=start?.val||0,eV=end?.val||0;
     const pnl=eV-sV-cashFlow;
     const days=Math.round((endDate-ev.date)/864e5);
@@ -6071,9 +6074,9 @@ function renderPortChart(days){
   for(const t of rebalTx){const k=t.date.toDateString();rebalPlanMap[k]=t.plan||'-';}
   const rebalData=l.map((d,i)=>rebalPlanMap[d.toDateString()]?v[i]:null);
   // Deposit markers (เงินนำส่ง)
-  const depositTx=TX_PORT.filter(t=>t.type==='เงินนำส่ง'&&t.total>0);
+  const depositTx=TX_PORT.filter(t=>t.type==='เงินนำส่ง'&&_depositOf(t)>0);
   const depositMap={};
-  for(const t of depositTx){const k=t.date.toDateString();depositMap[k]=(depositMap[k]||0)+(t.total||0);}
+  for(const t of depositTx){const k=t.date.toDateString();depositMap[k]=(depositMap[k]||0)+_depositOf(t);}
   const depositData=l.map((d,i)=>depositMap[d.toDateString()]?v[i]:null);
   const labels=l.map(fmtDateChart);
   // DD = Time-Weighted (หักเงินนำส่ง) — iv คือเงินนำส่งสะสม ฐานเดียวกับ v
@@ -6161,7 +6164,7 @@ function renderCashFlowComposition(tx,nav){
   for(const n of nav){
     while(txIdx<txSorted.length&&txSorted[txIdx].date<=n.date){
       const t=txSorted[txIdx];
-      if(t.type==='เงินนำส่ง')runDeposit+=t.total||0;
+      if(t.type==='เงินนำส่ง')runDeposit+=_depositOf(t);
       txIdx++;
     }
     const u={};for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;}
@@ -6874,8 +6877,23 @@ function buildScatChart(canvasCtx,pts,chartKey){
   const labelPlugin={id:'scatLabels_'+chartKey,afterDatasetsDraw(chart){const meta=chart.getDatasetMeta(0);if(!meta)return;const c=chart.ctx;c.save();c.font='10px IBM Plex Mono';c.fillStyle='#c8d6f0';c.textAlign='center';meta.data.forEach((pt,i)=>{if(pts[i])c.fillText(pts[i].label,pt.x,pt.y-12);});c.restore();}};
   return new Chart(canvasCtx,{type:'scatter',data:{datasets:ds},plugins:[labelPlugin],options:{...CD,responsive:true,maintainAspectRatio:false,plugins:{...CD.plugins,legend:{display:false},tooltip:{callbacks:{label:c=>{const p=pts[c.dataIndex];return p?p.fullLabel+' — Return: '+p.y.toFixed(1)+'%, Vol: '+p.x.toFixed(1)+'%':'';}}}},scales:{x:{...CD.scales.x,title:{display:true,text:'Annualized Volatility (%)',color:'#7888a8',font:{size:11}}},y:{...CD.scales.y,title:{display:true,text:'Annualized Return (%)',color:'#7888a8',font:{size:11}}}}}});
 }
+// ด่านขั้นต่ำ = 11 แถว → 10 daily returns ซึ่งเป็นเท่าที่ navAnnReturn/navAnnVol ต้องการจริง
+// เดิมตั้งไว้ 20 แถว ซึ่ง "1M" ผ่านไม่ได้: 30 วันปฏิทิน = ~18 วันทำการไทย
+// (เสาร์อาทิตย์ + วันหยุด + NAV ประกาศย้อนหลัง T-2) → ตกด่าน → return ทันที
+// โดยไม่แตะกราฟเลย → กราฟค้างของ period เก่า = ดูเหมือนปุ่ม 1M "ไม่ทำงาน"
+const MIN_SCAT_ROWS=11;
 function renderNavScatter(nav,days){
-  const rc=navSlice(nav,days);if(rc.length<20)return;
+  const msg=el('nav-scat-msg');
+  const box=el('nav-scatter-chart')?el('nav-scatter-chart').parentElement:null;
+  const fail=t=>{ destroyChart('navscat'); _scatPoints=null;
+    if(msg){msg.textContent=t;msg.style.display='';}
+    if(box)box.style.display='none';
+    renderScatToggles('nav-scat-toggles'); };
+  const rc=navSlice(nav,days);
+  if(rc.length<MIN_SCAT_ROWS){
+    fail('ข้อมูลไม่พอในช่วงนี้ — มี '+rc.length+' วันทำการ ต้องการอย่างน้อย '+MIN_SCAT_ROWS+' วัน');
+    return;
+  }
   const fs=(navPerfFunds?[...navPerfFunds]:ALL_PLANS).filter(f=>FM[f]&&rc.some(n=>n.funds[f]!=null));
   const points=[];
   fs.forEach(f=>{
@@ -6886,7 +6904,9 @@ function renderNavScatter(nav,days){
     points.push({x:av,y:ar,label:m.s,color:m.c,fullLabel:m.l});
   });
   _scatPoints=points;
-  if(points.length===0){destroyChart('navscat');return;}
+  if(points.length===0){ fail('ไม่มีกองทุนที่แสดงได้ในช่วงนี้ — เลือกกองจากปุ่มด้านบน'); return; }
+  if(msg)msg.style.display='none';
+  if(box)box.style.display='';
   const ctx=el('nav-scatter-chart').getContext('2d');destroyChart('navscat');
   portCharts.navscat=buildScatChart(ctx,points,'navscat');
   renderScatToggles('nav-scat-toggles');
@@ -7248,9 +7268,9 @@ function renderFsChart(chartKey){
     const rebalPlanMap={};
     for(const t of rebalTx){const k=t.date.toDateString();rebalPlanMap[k]=t.plan||'-';}
     const rebalData=l.map((d,i)=>rebalPlanMap[d.toDateString()]?v[i]:null);
-    const depositTx=TX_PORT.filter(t=>t.type==='เงินนำส่ง'&&t.total>0);
+    const depositTx=TX_PORT.filter(t=>t.type==='เงินนำส่ง'&&_depositOf(t)>0);
     const depositMap={};
-    for(const t of depositTx){const k=t.date.toDateString();depositMap[k]=(depositMap[k]||0)+(t.total||0);}
+    for(const t of depositTx){const k=t.date.toDateString();depositMap[k]=(depositMap[k]||0)+_depositOf(t);}
     const depositData=l.map((d,i)=>depositMap[d.toDateString()]?v[i]:null);
     const labels=l.map(fmtDateChart);
     // DD = Time-Weighted (หักเงินนำส่ง) — iv คือเงินนำส่งสะสม ฐานเดียวกับ v
@@ -7435,7 +7455,8 @@ function renderFsChart(chartKey){
       points.push({x:av2,y:ar,label:m.s,color:m.c,fullLabel:m.l});
     });
     _scatPoints=points;
-    if(points.length===0)return;
+    // เลิก fail เงียบ: เดิม return ทิ้งไว้เฉยๆ ทำให้กราฟเต็มจอค้างของช่วงก่อน
+    if(points.length===0){ if(fsChart){try{fsChart.destroy();}catch(_){} fsChart=null;} return; }
     fsChart=buildScatChart(ctx,points,'fsscat');
   } else if(chartKey === 'navchart'){
     const hold=calcHold(TX_PORT);
@@ -7460,6 +7481,21 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
+    {date:'2026-09-07 · v30', groups:[
+      {title:'★ Audit ทั้งระบบ — รวมแหล่งเงินนำส่งให้เหลือแหล่งเดียว', items:[
+        '<b>★ เจอจาก audit:</b> <b>Portfolio Sim</b> กับ <b>ROI ต่อการเปลี่ยนแผน</b> ยังอ่าน<b>คอลัมน์ <code>Total</code></b> ขณะที่การ์ด/กราฟ/สรุปรายปี อ่าน<b>4 คอลัมน์เงินสมทบ</b> (ชดเชย+สะสม+สมทบ+ส่วนเพิ่ม) ผ่าน <code>_depositOf()</code> → <b>2 นิยามของ "เงินนำส่ง" ในแอปเดียวกัน</b> · พิสูจน์ด้วยการยิง typo <code>Total +9,000</code> บนแถวเงินนำส่ง: Sim invested เพี้ยน <code>+9,000</code> · Sim value เพี้ยน <code>+9,006</code> · ตาราง ROI เปลี่ยนไป ขณะที่ Port ไม่ขยับเลย → เส้น Port กับ Sim ในกราฟเดียวกันจะเทียบกันไม่ได้',
+        '<b>แก้:</b> เปลี่ยนทุกจุดที่เหลือมาใช้ <code>_depositOf(t)</code> — <code>calcBHSeries()</code> (ทั้ง filter, ยอดสะสม, และการแปลงเป็นหน่วยลงทุน 2 จุด) · <code>renderRebalROI()</code> cashFlow · P&L รายเดือน <code>cashIn</code> · จุด 💰 deposit บนกราฟ (ปกติ + เต็มจอ) · กราฟ cash flow <code>runDeposit</code> · <b>ตอนนี้ทั้งแอปมีนิยาม "เงินนำส่ง" เดียว</b>',
+        '<b>เลิก fail เงียบใน Risk/Return เต็มจอ</b> — เดิม <code>if(points.length===0)return;</code> ปล่อยกราฟเต็มจอค้างของช่วงก่อน (คลาสเดียวกับบั๊ก 1M ที่แก้ไปวันนี้) → เปลี่ยนเป็นทำลายกราฟก่อน return',
+        '<b>verify หลังแก้:</b> ยิง typo <code>Total +9,000</code> ซ้ำ → Sim invested/value <b>ไม่ขยับ</b> · ROI <b>ไม่ขยับ</b> · Sim invested <code>166,233.00</code> = เงินลงทุนสะสม Port เป๊ะ · invariant ผ่านหมด (P&L การ์ด=โดนัท=กราฟ, cost การ์ด=โดนัท, MaxDD การ์ด=กราฟ) · render 16 เส้นทาง + ทุกปุ่มช่วงเวลา ไม่มี error'
+      ]},
+      {title:'ผล audit — สิ่งที่ตรวจแล้วไม่มีปัญหา', items:[
+        '<b>invariant ผ่านหมด:</b> Σ กำไรรายปี = กำไรรวม · Σ เงินเข้ารายปี = เงินลงทุนสะสม · แถวรวม = การ์ด (มูลค่า/เงินเข้า/กำไร/MaxDD) · P&L by Asset (unrealized+realized) = กำไรรวม · คู่เปลี่ยนแผนเข้า=ออก สมดุลครบ <b>15 วัน</b> · ไม่มีหน่วยลงทุนติดลบ · allocation grid รวม 100%',
+        '<b>กฎ กบข:</b> G ≤ 25% บังคับตั้งแต่ UI (dropdown มีแค่ 0-25%) · engine V29 ไม่เคยเสนอ G เกิน 25% · allocation ที่ engine เสนอรวม 100.00% พอดี · quota 12/ปี',
+        '<b>โครงสร้างโค้ด:</b> 176 top-level function · <b>ไม่มีนิยามซ้ำ</b> · syntax ผ่าน · ไม่มี window error ตลอดการทดสอบ',
+        '<b>dead code 5 ตัว</b> (ไม่มีใครเรียกเลย): <code>addBdays</code>, <code>fmtLocalDate</code>, <code>emojiPoint</code>, <code>renderCashFlowComposition</code>, <code>setFundPeriod</code> — ไม่กระทบการทำงาน ยังไม่ลบ',
+        '<b>ตรวจแล้วไม่ใช่บั๊ก:</b> <code>histPosPeak</code> (peak มูลค่าดิบ ได้รับผลจากเงินฝาก) ใช้เฉพาะ <code>makeDecisionV22</code> ซึ่ง <b>V29 override ทับ</b> เสมอ และ <code>makeDecisionV29</code> ไม่รับ peak/trailing เลย → ไม่กระทบสัญญาณจริง'
+      ]}
+    ]},
     {date:'2026-08-25 · v30', groups:[
       {title:'★★ Bug fix — DD เพี้ยนทุกวันที่ฝากเงิน (เปลี่ยนเป็น Time-Weighted)', items:[
         '<b>★★ อาการ:</b> DD ทุกที่หา running max จาก <b>มูลค่าพอร์ตดิบ</b> → วันฝากเงินมูลค่ากระโดดขึ้นจาก<b>เงินใหม่ ไม่ใช่กำไร</b> → peak ถูกดันขึ้น → DD รีเซ็ตเป็น 0% ทั้งที่ตลาดยังไม่ฟื้น · <b>เคสจริง 26 มี.ค. 2026:</b> ฝาก 8,645฿ → มูลค่าดิบ <code>+5.48%</code> แต่<b>ตลาดจริง −1.36%</b> → เส้น DD เด้งจาก <code>−5.08%</code> เป็น <code>0.00%</code> ทั้งที่ DD จริงคือ <code>−6.37%</code> (ลบ drawdown 5% ทิ้งในวันเดียว)',
@@ -7659,6 +7695,14 @@ const CHANGELOG_DATA = {
     ]}
   ],
   nav: [
+    {date:'2026-09-07 · v30', groups:[
+      {title:'★ Bug fix — Risk / Return ปุ่ม 1M ไม่ทำงาน', items:[
+        '<b>★ อาการ:</b> กดปุ่ม <code>1M</code> ในการ์ด <b>Risk / Return</b> (แท็บ NAV Analysis) แล้วกราฟไม่เปลี่ยน — ปุ่มติด active แต่จุดยังเป็นของช่วงเดิม',
+        '<b>root cause:</b> <code>renderNavScatter()</code> มีด่าน <code>if(rc.length&lt;20)return;</code> · <b>30 วันปฏิทิน = แค่ ~18 วันทำการไทย</b> (เสาร์-อาทิตย์ + วันหยุด + NAV ประกาศย้อนหลัง T-2) → ตกด่าน → <b>return ทันทีโดยไม่แตะกราฟเลย</b> → กราฟค้างของช่วงก่อนหน้า = ดูเหมือน "ไม่ทำงาน" · ด่าน 20 ยังตั้งเกินความจำเป็นด้วย: <code>navAnnReturn/navAnnVol</code> ต้องการแค่ <b>10 daily returns</b> = 11 แถว',
+        '<b>แก้:</b> ลดด่านเป็น <code>MIN_SCAT_ROWS=11</code> (เท่าที่คณิตศาสตร์ต้องการจริง) + <b>เลิก fail เงียบ</b> — เมื่อข้อมูลไม่พอจริงให้ <b>ทำลายกราฟเก่า ซ่อน canvas แล้วขึ้นข้อความบอกเหตุผล</b> พร้อมจำนวนวันที่มี/ที่ต้องการ แทนที่จะปล่อยกราฟเก่าค้างไว้ · เพิ่มข้อความกรณีปิดกองทุนหมดด้วย และ render ปุ่ม toggle ทุกเส้นทาง (เดิมถ้า <code>points.length===0</code> ปุ่มไม่ถูก render ใหม่)',
+        '<b>verify (browser จริง, data สด):</b> 1M <code>18 แถว → 13 จุด</code> ✓ · 3M/6M/1Y/5Y/All ได้ 13 จุดเท่าเดิม ไม่ regress · ทดสอบช่วง 5 วัน → ขึ้น <i>"ข้อมูลไม่พอในช่วงนี้ — มี 1 วันทำการ ต้องการอย่างน้อย 11 วัน"</i> แล้วกลับมา 1M ฟื้นปกติ · ปิดกองทั้งหมด → ขึ้นข้อความ ปุ่ม toggle ยังกดได้ เปิดคืนแล้วกราฟกลับมา · ค่า 1M จริง: G <code>+34.7% / vol 25.1%</code>, Shariah <code>+27.5% / 10.9%</code>, F <code>+9.0% / 9.0%</code>'
+      ]}
+    ]},
     {date:'2026-05-04 · v29', groups:[
       {title:'Bug fixes', items:[
         'Fix toggle ใน Risk/Return scatter ไม่ trigger update ของ NAV Performance — ใช้ <code>navPerfRefresh()</code> sync ทั้ง 2 chart'
