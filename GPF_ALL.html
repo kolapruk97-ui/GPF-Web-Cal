@@ -1409,8 +1409,8 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
         Portfolio Value
         <div style="display:flex;align-items:center;flex-wrap:wrap;gap:6px;justify-content:flex-end">
           <div class="pbtns">
-            <button class="pbtn active" onclick="setPeriod(this,30)">1M</button>
-            <button class="pbtn"        onclick="setPeriod(this,90)">3M</button>
+            <button class="pbtn"        onclick="setPeriod(this,30)">1M</button>
+            <button class="pbtn active" onclick="setPeriod(this,90)">3M</button>
             <button class="pbtn"        onclick="setPeriod(this,180)">6M</button>
             <button class="pbtn"        onclick="setPeriod(this,365)">1Y</button>
             <button class="pbtn"        onclick="setPeriod(this,1825)">5Y</button>
@@ -1426,10 +1426,12 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;flex-wrap:wrap;gap:8px">
           <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
             <div id="bh-sim-header" style="font-family:var(--mono);font-size:12px;color:#a855f7;font-weight:700;letter-spacing:.10em;text-transform:uppercase">🔬 Portfolio Sim</div>
-            <div style="display:flex;gap:4px">
+            <div style="display:flex;gap:4px;flex-wrap:wrap">
               <button type="button" id="bh-sim-tab-0" onclick="switchBhSim(0)" style="padding:4px 12px;border-radius:5px;font-size:11px;font-family:var(--sans);font-weight:600;cursor:pointer;border:1px solid rgba(168,85,247,.4);background:rgba(168,85,247,.18);color:#a855f7">🟣 Sim 1</button>
               <button type="button" id="bh-sim-tab-1" onclick="switchBhSim(1)" style="padding:4px 12px;border-radius:5px;font-size:11px;font-family:var(--sans);font-weight:500;cursor:pointer;border:1px solid rgba(255,20,147,.3);background:transparent;color:#ff1493"><span style="display:inline-block;width:.7em;height:.7em;border-radius:50%;background:#ff1493;vertical-align:middle;margin-right:4px"></span>Sim 2</button>
               <button type="button" id="bh-sim-tab-2" onclick="switchBhSim(2)" style="padding:4px 12px;border-radius:5px;font-size:11px;font-family:var(--sans);font-weight:500;cursor:pointer;border:1px solid rgba(37,99,235,.3);background:transparent;color:#2563eb">🔵 Sim 3</button>
+              <button type="button" id="bh-sim-tab-3" onclick="switchBhSim(3)" style="padding:4px 12px;border-radius:5px;font-size:11px;font-family:var(--sans);font-weight:500;cursor:pointer;border:1px solid rgba(245,158,11,.3);background:transparent;color:#f59e0b">🟠 Sim 4</button>
+              <button type="button" id="bh-sim-tab-4" onclick="switchBhSim(4)" style="padding:4px 12px;border-radius:5px;font-size:11px;font-family:var(--sans);font-weight:500;cursor:pointer;border:1px solid rgba(226,232,240,.3);background:transparent;color:#e2e8f0"><span style="display:inline-block;width:.7em;height:.7em;border-radius:50%;background:#e2e8f0;vertical-align:middle;margin-right:4px"></span>Sim 5</button>
             </div>
           </div>
           <button type="button" id="bh-sim-clear-btn" onclick="bhSimClear()" style="padding:4px 10px;border-radius:5px;font-size:10px;font-family:var(--sans);cursor:pointer;border:1px solid rgba(168,85,247,.3);background:rgba(168,85,247,.08);color:#a855f7" title="ล้าง sim ที่ active อยู่">⌫ ล้างอันนี้</button>
@@ -1511,9 +1513,9 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
           <div style="display:flex;align-items:center">
             <div class="pbtns">
               <button class="navpbtn" onclick="setNavPeriod(this,30)">1M</button>
-              <button class="navpbtn" onclick="setNavPeriod(this,90)">3M</button>
+              <button class="navpbtn active" onclick="setNavPeriod(this,90)">3M</button>
               <button class="navpbtn" onclick="setNavPeriod(this,180)">6M</button>
-              <button class="navpbtn active" onclick="setNavPeriod(this,365)">1Y</button>
+              <button class="navpbtn" onclick="setNavPeriod(this,365)">1Y</button>
               <button class="navpbtn" onclick="setNavPeriod(this,1825)">5Y</button>
               <button class="navpbtn" onclick="setNavPeriod(this,0)">All</button>
             </div>
@@ -1534,9 +1536,9 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
           <div style="display:flex;align-items:center">
             <div class="pbtns">
               <button class="scatpbtn" onclick="setScatPeriod(this,30)">1M</button>
-              <button class="scatpbtn" onclick="setScatPeriod(this,90)">3M</button>
+              <button class="scatpbtn active" onclick="setScatPeriod(this,90)">3M</button>
               <button class="scatpbtn" onclick="setScatPeriod(this,180)">6M</button>
-              <button class="scatpbtn active" onclick="setScatPeriod(this,365)">1Y</button>
+              <button class="scatpbtn" onclick="setScatPeriod(this,365)">1Y</button>
               <button class="scatpbtn" onclick="setScatPeriod(this,1825)">5Y</button>
               <button class="scatpbtn" onclick="setScatPeriod(this,0)">All</button>
             </div>
@@ -1794,20 +1796,23 @@ let FRED_DATA  = null;
 let NAV_PORT   = [];
 let TX_PORT    = [];
 let portCharts = {};
-// V29: Portfolio Sim — up to 3 sims compared side-by-side
+// V29: Portfolio Sim — เทียบพร้อมกันได้ N ตัว (ปัจจุบัน 5)
+// ★ จำนวน sim มาจาก BH_THEMES.length ที่เดียว — เพิ่ม sim = เพิ่ม theme + emoji + ปุ่มใน HTML
 let bhSimActive = 0;
-let bhSims = [
-  {alloc:null, lbl:'', entry:null, entryMode:'first', mixKey:'', diyVals:{}},
-  {alloc:null, lbl:'', entry:null, entryMode:'first', mixKey:'', diyVals:{}},
-  {alloc:null, lbl:'', entry:null, entryMode:'first', mixKey:'', diyVals:{}}
-];
-// Theme per sim — Sim 1 purple, Sim 2 hot-pink (deeppink), Sim 3 blue — used by _applyBhSimTheme
+// Theme per sim — Sim 1 ม่วง / Sim 2 ชมพู deeppink / Sim 3 น้ำเงิน / Sim 4 ส้ม / Sim 5 ขาว
+// เลี่ยงชนสีที่ใช้อยู่ในกราฟแล้ว: Port ทอง #ffc120 · เงินลงทุนสะสม #e879f9 · จุด deposit เขียว #22c55e · จุด rebalance แดง
 const BH_THEMES = [
   {main:'#a855f7', bg18:'rgba(168,85,247,.18)', bg15:'rgba(168,85,247,.15)', bg08:'rgba(168,85,247,.08)', bg04:'rgba(168,85,247,.04)', brd40:'rgba(168,85,247,.4)', brd30:'rgba(168,85,247,.3)', brd15:'rgba(168,85,247,.15)'},
   {main:'#ff1493', bg18:'rgba(255,20,147,.18)', bg15:'rgba(255,20,147,.15)', bg08:'rgba(255,20,147,.08)', bg04:'rgba(255,20,147,.04)', brd40:'rgba(255,20,147,.4)', brd30:'rgba(255,20,147,.3)', brd15:'rgba(255,20,147,.15)'},
-  {main:'#2563eb', bg18:'rgba(37,99,235,.18)', bg15:'rgba(37,99,235,.15)', bg08:'rgba(37,99,235,.08)', bg04:'rgba(37,99,235,.04)', brd40:'rgba(37,99,235,.4)', brd30:'rgba(37,99,235,.3)', brd15:'rgba(37,99,235,.15)'}
+  {main:'#2563eb', bg18:'rgba(37,99,235,.18)', bg15:'rgba(37,99,235,.15)', bg08:'rgba(37,99,235,.08)', bg04:'rgba(37,99,235,.04)', brd40:'rgba(37,99,235,.4)', brd30:'rgba(37,99,235,.3)', brd15:'rgba(37,99,235,.15)'},
+  {main:'#f59e0b', bg18:'rgba(245,158,11,.18)', bg15:'rgba(245,158,11,.15)', bg08:'rgba(245,158,11,.08)', bg04:'rgba(245,158,11,.04)', brd40:'rgba(245,158,11,.4)', brd30:'rgba(245,158,11,.3)', brd15:'rgba(245,158,11,.15)'},
+  {main:'#e2e8f0', bg18:'rgba(226,232,240,.18)', bg15:'rgba(226,232,240,.15)', bg08:'rgba(226,232,240,.08)', bg04:'rgba(226,232,240,.04)', brd40:'rgba(226,232,240,.4)', brd30:'rgba(226,232,240,.3)', brd15:'rgba(226,232,240,.15)'}
 ];
-let curPeriod  = 30;
+// marker ใน tooltip (เป็น text ล้วน ใส่ HTML ไม่ได้) — Sim 2 ใช้ 🔴 เพราะ Unicode ไม่มีวงกลมชมพู
+const BH_SIM_EMOJI = ['🟣','🔴','🔵','🟠','⚪'];
+const BH_SIM_N = BH_THEMES.length;
+let bhSims = Array.from({length:BH_SIM_N}, () => ({alloc:null, lbl:'', entry:null, entryMode:'first', mixKey:'', diyVals:{}}));
+let curPeriod  = 90;   // default 3M
 let fundPeriod = 365;
 let viewMode   = 'today';
 let cachedDates = [];
@@ -4920,6 +4925,17 @@ function calcHold(tx){
 // Derive current plan string from ACTUAL holdings (value-weighted %), e.g. "F40:G25:MM20:TH15".
 // More reliable than the last transaction's plan label, which can be mislabeled in the sheet.
 // Uses fund short code (FM[f].s) to match the sheet's plan-label format. Returns '' if not derivable.
+// alloc {F:0.75,G:0.25} -> "F75:G25"  (ใช้ allocToIntPct เพื่อให้รวม 100% เสมอ + เคารพ cap)
+// เรียงจากสัดส่วนมาก→น้อย ใช้ short code ของกอง (FM[f].s) ให้ตรงรูปแบบชื่อแผนในชีต
+function _allocLabel(alloc){
+  if(!alloc||!Object.keys(alloc).length)return '';
+  const parts=Object.entries(allocToIntPct(alloc))
+    .map(([f,pct])=>({f,pct}))
+    .filter(x=>x.pct>0)
+    .sort((a,b)=>b.pct-a.pct);
+  if(!parts.length)return '';
+  return parts.map(x=>((FM[x.f]&&FM[x.f].s)||x.f)+x.pct).join(':');
+}
 function _currentPlanFromHold(hold, ln){
   if(!hold||!ln||!ln.funds)return '';
   const vals={}; let tot=0;
@@ -4929,14 +4945,8 @@ function _currentPlanFromHold(hold, ln){
     if(nv){vals[f]=u*nv; tot+=u*nv;}
   }
   if(tot<=0)return '';
-  // ใช้ Hamilton เหมือน grid — ป้ายแผนต้องรวม 100% ไม่ใช่ 99/101%
   const w={};for(const[f,v]of Object.entries(vals))w[f]=v/tot;
-  const parts=Object.entries(allocToIntPct(w))
-    .map(([f,pct])=>({f,pct}))
-    .filter(x=>x.pct>0)
-    .sort((a,b)=>b.pct-a.pct);
-  if(!parts.length)return '';
-  return parts.map(x=>((FM[x.f]&&FM[x.f].s)||x.f)+x.pct).join(':');
+  return _allocLabel(w);   // แหล่งเดียวกับป้าย Sim
 }
 // Shared: transaction cost helper (handles carry-in where a.b=null → NAV×units fallback)
 // ใช้ได้เฉพาะงาน "ต้นทุนรายกอง" (P&L by Asset) — ห้ามใช้หาเงินลงทุนสะสม ดู calcDeposits()
@@ -6082,8 +6092,8 @@ function renderPortChart(days){
   // DD = Time-Weighted (หักเงินนำส่ง) — iv คือเงินนำส่งสะสม ฐานเดียวกับ v
   const ddData=calcDDSeries(v,iv).map(x=>x==null?0:x);
   // V29: Compute BH results for both Portfolio Sims (Sim 1 + Sim 2)
-  const bhResults=[_calcBhForSim(0,l), _calcBhForSim(1,l), _calcBhForSim(2,l)];
-  const SIM_COLORS=['#a855f7','#ff1493','#2563eb'];
+  const bhResults=BH_THEMES.map((_,i)=>_calcBhForSim(i,l));
+  const SIM_COLORS=BH_THEMES.map(t=>t.main);
   const datasets=[
     {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,_isLine:true,
       backgroundColor:c=>{const a=c.chart.chartArea;if(!a)return'rgba(255,193,32,.15)';const g=c.chart.ctx.createLinearGradient(0,a.top,0,a.bottom);g.addColorStop(0,'rgba(255,193,32,.2)');g.addColorStop(1,'rgba(255,193,32,0)');return g;}},
@@ -6095,8 +6105,8 @@ function renderPortChart(days){
   if(depositData.some(v=>v!==null)){
     datasets.push({label:'Deposit',data:depositData,type:'line',fill:false,borderWidth:0,pointRadius:6,pointHoverRadius:8,pointStyle:'circle',pointBackgroundColor:'#22c55e',pointBorderColor:'#fff',pointBorderWidth:1.5,showLine:false});
   }
-  // V29: Portfolio Sim lines (up to 2 — Sim 1 purple, Sim 2 orange)
-  for(let si=0;si<3;si++){
+  // V29: เส้น Portfolio Sim ทุกตัว (สีจาก BH_THEMES)
+  for(let si=0;si<bhResults.length;si++){
     if(!bhResults[si])continue;
     datasets.push({label:'Sim'+(si+1)+': '+bhResults[si].lbl,data:bhResults[si].value,fill:false,borderColor:SIM_COLORS[si],borderWidth:1.8,borderDash:[6,3],pointRadius:0,tension:.3,_isLine:true,spanGaps:true});
   }
@@ -6128,7 +6138,7 @@ function renderPortChart(days){
           titleColor:'#7888a8',titleFont:{family:'Sarabun',size:12},bodyFont:{family:'IBM Plex Mono',size:12},
           filter:item=>item.dataset.label!=='Rebalance'&&item.dataset.label!=='Deposit',
           callbacks:{title:items=>{const i=items[0]?.dataIndex;return i!=null&&l[i]?fmtDateTooltip(l[i]):items[0]?.label||'';},label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}),
-            afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const _SIM_E=['🟣','🔴','🔵'];const parts=[' ─────────────────────────','🟢 Port P&L : ฿'+pnl.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+fmtS(pct)+'%)'];for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0)continue;const bp=bd.value[i]-bd.invested[i];parts.push(_SIM_E[si]+' Sim'+(si+1)+' P&L : ฿'+bp.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+fmtS(bp/bd.invested[i]*100)+'%)');}parts.push(' ─────────────────────────');parts.push(ddIco(dd)+' Port  DD : '+dd.toFixed(2)+'%');for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.ddData[i]==null)continue;parts.push(ddIco(bd.ddData[i])+' Sim'+(si+1)+' DD : '+bd.ddData[i].toFixed(2)+'%');}let _hasDiff=false;for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0||bd.ddData[i]==null)continue;if(!_hasDiff){parts.push(' ─────────────────────────');_hasDiff=true;}const bp=bd.value[i]-bd.invested[i],dpP=pnl-bp,dpD=dd-bd.ddData[i];const eP=dpP>0?'🟢':dpP<0?'🔴':'⚪';const eD=dpD>0?'🟢':dpD<0?'🔴':'⚪';parts.push(eP+' Diff(Sim'+(si+1)+') Profit '+(dpP>=0?'+':'-')+'฿'+Math.abs(dpP).toLocaleString('th-TH',{maximumFractionDigits:0})+' : '+eD+' DD '+fmtS(dpD)+'%');}if(rebalData[i]!==null){const plan=rebalPlanMap[l[i].toDateString()]||'-';parts.push('📌 เปลี่ยนแผน: '+plan);}if(depositData[i]!==null){const dt=l[i].toDateString();const amt=depositMap[dt]||0;parts.push('💰 Deposit: ฿'+amt.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}));}return parts;}}
+            afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const _SIM_E=BH_SIM_EMOJI;const parts=[' ─────────────────────────','🟢 Port P&L : ฿'+pnl.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+fmtS(pct)+'%)'];for(let si=0;si<bhResults.length;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0)continue;const bp=bd.value[i]-bd.invested[i];parts.push(_SIM_E[si]+' Sim'+(si+1)+' P&L : ฿'+bp.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2})+' ('+fmtS(bp/bd.invested[i]*100)+'%)');}parts.push(' ─────────────────────────');parts.push(ddIco(dd)+' Port  DD : '+dd.toFixed(2)+'%');for(let si=0;si<bhResults.length;si++){const bd=bhResults[si];if(!bd||bd.ddData[i]==null)continue;parts.push(ddIco(bd.ddData[i])+' Sim'+(si+1)+' DD : '+bd.ddData[i].toFixed(2)+'%');}let _hasDiff=false;for(let si=0;si<bhResults.length;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0||bd.ddData[i]==null)continue;if(!_hasDiff){parts.push(' ─────────────────────────');_hasDiff=true;}const bp=bd.value[i]-bd.invested[i],dpP=pnl-bp,dpD=dd-bd.ddData[i];const eP=dpP>0?'🟢':dpP<0?'🔴':'⚪';const eD=dpD>0?'🟢':dpD<0?'🔴':'⚪';parts.push(eP+' Diff(Sim'+(si+1)+') Profit '+(dpP>=0?'+':'-')+'฿'+Math.abs(dpP).toLocaleString('th-TH',{maximumFractionDigits:0})+' : '+eD+' DD '+fmtS(dpD)+'%');}if(rebalData[i]!==null){const plan=rebalPlanMap[l[i].toDateString()]||'-';parts.push('📌 เปลี่ยนแผน: '+plan);}if(depositData[i]!==null){const dt=l[i].toDateString();const amt=depositMap[dt]||0;parts.push('💰 Deposit: ฿'+amt.toLocaleString('th-TH',{minimumFractionDigits:2,maximumFractionDigits:2}));}return parts;}}
         }
       }
     }
@@ -6137,7 +6147,7 @@ function renderPortChart(days){
   const ddCtx=el('dd-chart');
   if(ddCtx){
     const ddDatasets=[{data:ddData,fill:false,borderColor:'#ffc120',borderWidth:1.2,pointRadius:0,tension:.3}];
-    for(let si=0;si<3;si++){if(!bhResults[si])continue;ddDatasets.push({data:bhResults[si].ddData,fill:false,borderColor:SIM_COLORS[si],borderWidth:1.2,borderDash:[5,3],pointRadius:0,tension:.3,spanGaps:true});}
+    for(let si=0;si<bhResults.length;si++){if(!bhResults[si])continue;ddDatasets.push({data:bhResults[si].ddData,fill:false,borderColor:SIM_COLORS[si],borderWidth:1.2,borderDash:[5,3],pointRadius:0,tension:.3,spanGaps:true});}
     portCharts.dd=new Chart(ddCtx.getContext('2d'),{type:'line',
       data:{labels,datasets:ddDatasets},
       options:{responsive:true,maintainAspectRatio:false,animation:{duration:400},
@@ -6304,7 +6314,13 @@ function renderNavCh(nav,hold){
   const ctx=el('nav-chart').getContext('2d');destroyChart('navchart');
   portCharts.navchart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{title:items=>{const i=items[0]?.dataIndex;return i!=null&&rc[i]?fmtDateTooltip(rc[i].date):items[0]?.label||'';},label:c=>{if(c.parsed.y==null)return null;const f=active[c.datasetIndex];const navVal=rc[c.dataIndex]?.funds[f];return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'+(navVal?' (NAV '+fmt(navVal,4)+')':'')}},filter:c=>c.parsed.y!=null}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
 }
-function setPeriod(btn,days){document.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');curPeriod=days;destroyChart('port');renderPortChart(days);}
+function setPeriod(btn,days){
+  // จำกัดขอบเขตไว้ในกลุ่มปุ่มของตัวเอง — ปุ่ม Correlation Matrix ก็ใช้ class 'pbtn'
+  // ถ้ากวาดทั้งหน้าจะไปลบ active ของ Correlation ด้วย (ปุ่มนั้นค้างไม่มีตัวไหน active)
+  const box=btn.closest('.pbtns')||document;
+  box.querySelectorAll('.pbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');curPeriod=days;destroyChart('port');renderPortChart(days);
+}
 // V29: BH Sim Builder — Mixed Plans buttons + DIY % per fund (mirrors Signal sim panel)
 let _bhSimFromMix=false;
 function buildChartSimGrid(){
@@ -6407,7 +6423,8 @@ function onBhSimDiyChange(){
     const v=parseFloat(el('bh_sim_diy_'+p.key)?.value||'0');
     if(v>0){alloc[p.key]=v/100;total+=v;sim.diyVals[p.key]=String(v);}
   });
-  if(Math.abs(total-100)<0.01&&Object.keys(alloc).length>0){sim.alloc=alloc;sim.lbl='DIY';}
+  // ป้ายเป็นอัตราส่วนจริง (เช่น F75:G25) ไม่ใช่คำว่า "DIY" — จะได้อ่านออกจาก legend/tooltip ของกราฟ
+  if(Math.abs(total-100)<0.01&&Object.keys(alloc).length>0){sim.alloc=alloc;sim.lbl=_allocLabel(alloc)||'DIY';}
   else{sim.alloc=null;sim.lbl='';}
   _bhSimSumRefresh();_renderBHCharts();
   _saveBhSims();
@@ -6440,14 +6457,14 @@ function onBhSimEntryChange(){
   _saveBhSims();
 }
 function _bhSimSetDefaultEntry(){
-  for(let i=0;i<3;i++){bhSims[i].entryMode='first';bhSims[i].entry=null;bhSims[i].alloc=null;bhSims[i].lbl='';bhSims[i].mixKey='';bhSims[i].diyVals={};}
+  for(let i=0;i<bhSims.length;i++){bhSims[i].entryMode='first';bhSims[i].entry=null;bhSims[i].alloc=null;bhSims[i].lbl='';bhSims[i].mixKey='';bhSims[i].diyVals={};}
   bhSimActive=0;
   // Try to load saved state from localStorage (overrides defaults)
   const loaded=_loadBhSims();
   if(loaded){_restoreActiveSimUI();_renderBHCharts();}
   else if(el('bh-entry-mode-first'))setBhEntryMode('first');
 }
-// Persist all 3 sims + active index to localStorage so user doesn't lose setup on reload
+// Persist ทุก sim + active index ลง localStorage
 const BH_SIMS_LS_KEY='gpf_bhSims_v29';
 function _saveBhSims(){
   try{
@@ -6460,17 +6477,19 @@ function _loadBhSims(){
     const raw=localStorage.getItem(BH_SIMS_LS_KEY);
     if(!raw)return false;
     const data=JSON.parse(raw);
-    if(!data||!Array.isArray(data.sims)||data.sims.length!==3)return false;
-    for(let i=0;i<3;i++){
+    if(!data||!Array.isArray(data.sims)||data.sims.length===0)return false;
+    // ยอมรับ state เก่าที่มี sim น้อยกว่าปัจจุบัน (เช่น 3 → 5) — ตัวที่เกินมาปล่อยว่าง
+    for(let i=0;i<bhSims.length;i++){
       const s=data.sims[i]||{};
       bhSims[i].alloc=s.alloc||null;
-      bhSims[i].lbl=s.lbl||'';
+      // migrate state เก่าที่เก็บป้ายว่า "DIY" → แปลงเป็นอัตราส่วนจริง
+      bhSims[i].lbl=(s.lbl==='DIY'&&s.alloc)?(_allocLabel(s.alloc)||'DIY'):(s.lbl||'');
       bhSims[i].entry=s.entry?new Date(s.entry):null;
       bhSims[i].entryMode=s.entryMode||'first';
       bhSims[i].mixKey=s.mixKey||'';
       bhSims[i].diyVals=s.diyVals||{};
     }
-    bhSimActive=(typeof data.active==='number' && data.active>=0 && data.active<3)?data.active:0;
+    bhSimActive=(typeof data.active==='number' && data.active>=0 && data.active<bhSims.length)?data.active:0;
     return true;
   }catch(e){return false;}
 }
@@ -6478,11 +6497,8 @@ function _loadBhSims(){
 function _restoreActiveSimUI(){
   const next=activeSim();
   // Tab button styles — Sim 1 purple / Sim 2 hot-pink / Sim 3 blue
-  const tabs=[
-    {el:el('bh-sim-tab-0'), main:'#a855f7', bg18:'rgba(168,85,247,.18)', brd40:'rgba(168,85,247,.4)', brd30:'rgba(168,85,247,.3)'},
-    {el:el('bh-sim-tab-1'), main:'#ff1493', bg18:'rgba(255,20,147,.18)', brd40:'rgba(255,20,147,.4)', brd30:'rgba(255,20,147,.3)'},
-    {el:el('bh-sim-tab-2'), main:'#2563eb', bg18:'rgba(37,99,235,.18)',  brd40:'rgba(37,99,235,.4)',  brd30:'rgba(37,99,235,.3)'}
-  ];
+  // สร้างจาก BH_THEMES — เพิ่ม sim ไม่ต้องแก้ตรงนี้อีก
+  const tabs=BH_THEMES.map((th,i)=>({el:el('bh-sim-tab-'+i), main:th.main, bg18:th.bg18, brd40:th.brd40, brd30:th.brd30}));
   for(let i=0;i<tabs.length;i++){
     const t=tabs[i]; if(!t.el)continue;
     if(i===bhSimActive){t.el.style.background=t.bg18; t.el.style.borderColor=t.brd40; t.el.style.color=t.main; t.el.style.fontWeight='600';}
@@ -6549,11 +6565,8 @@ function switchBhSim(idx){
   bhSimActive=idx;
   const next=activeSim();
   // Update tab button styles — Sim 1 purple / Sim 2 hot-pink / Sim 3 blue
-  const tabs=[
-    {el:el('bh-sim-tab-0'), main:'#a855f7', bg18:'rgba(168,85,247,.18)', brd40:'rgba(168,85,247,.4)', brd30:'rgba(168,85,247,.3)'},
-    {el:el('bh-sim-tab-1'), main:'#ff1493', bg18:'rgba(255,20,147,.18)', brd40:'rgba(255,20,147,.4)', brd30:'rgba(255,20,147,.3)'},
-    {el:el('bh-sim-tab-2'), main:'#2563eb', bg18:'rgba(37,99,235,.18)',  brd40:'rgba(37,99,235,.4)',  brd30:'rgba(37,99,235,.3)'}
-  ];
+  // สร้างจาก BH_THEMES — เพิ่ม sim ไม่ต้องแก้ตรงนี้อีก
+  const tabs=BH_THEMES.map((th,i)=>({el:el('bh-sim-tab-'+i), main:th.main, bg18:th.bg18, brd40:th.brd40, brd30:th.brd30}));
   for(let i=0;i<tabs.length;i++){
     const t=tabs[i]; if(!t.el)continue;
     if(i===idx){t.el.style.background=t.bg18; t.el.style.borderColor=t.brd40; t.el.style.color=t.main; t.el.style.fontWeight='600';}
@@ -6593,7 +6606,10 @@ function setFundPeriod(btn,days){document.querySelectorAll('.fpbtn').forEach(b=>
 // ================================================================
 //  NAV ANALYSIS TAB — All 7 sections
 // ================================================================
-let navPerfPeriod=365, navScatPeriod=365, navPerfFunds=null;
+let navPerfPeriod=90, navScatPeriod=90, navPerfFunds=null;   // default 3M
+// กองที่ติ๊กไว้ตั้งต้นในกราฟ NAV Performance — Normalized (ใช้ Set เดียวกับ Risk/Return)
+// ใช้ FM key ไม่ใช่ short code: Shr = Shariah
+const NAV_PERF_DEFAULT_FUNDS = ['TH','PR','F','G','A75','Shariah'];
 let _navDdDs=null, _navPerfSyncAC=null; // shared DD datasets + pair sync for small screen
 let navStatsSortCol=0, navStatsSortAsc=false;
 
@@ -6603,7 +6619,11 @@ function renderNavTab(){
   if(ld)ld.style.display='none';if(dash)dash.style.display='block';
   // init comp funds to all available
   const allF=ALL_PLANS.filter(f=>FM[f]&&NAV_PORT.some(n=>n.funds[f]!=null));
-  if(!navPerfFunds)navPerfFunds=new Set(allF);
+  if(!navPerfFunds){
+    // เลือกเฉพาะกองที่มีข้อมูลจริง — ถ้าไม่ตรงสักกองให้ fallback เป็นทุกกอง (กันกราฟว่าง)
+    const want=NAV_PERF_DEFAULT_FUNDS.filter(f=>allF.includes(f));
+    navPerfFunds=new Set(want.length?want:allF);
+  }
   renderNavPerfToggles(allF);
   renderNavPerf(NAV_PORT,navPerfPeriod);
   renderNavScatter(NAV_PORT,navScatPeriod);
@@ -6618,7 +6638,7 @@ function renderNavTab(){
 }
 
 // ===== NAV Analysis: Monthly Heatmap, Correlation, Rolling Returns =====
-let navHeatmapFund=null, navCorrPeriod=365, navRollingFunds=null;
+let navHeatmapFund=null, navCorrPeriod=90, navRollingFunds=null;   // default 3M
 function renderFundHeatmapToggles(allF){
   const box=el('nav-heatmap-funds');if(!box)return;
   if(!navHeatmapFund)navHeatmapFund=allF[0];
@@ -7276,8 +7296,8 @@ function renderFsChart(chartKey){
     // DD = Time-Weighted (หักเงินนำส่ง) — iv คือเงินนำส่งสะสม ฐานเดียวกับ v
     const ddData=calcDDSeries(v,iv).map(x=>x==null?0:x);
     // V29: Compute BH results for both Portfolio Sims
-    const bhResults=[_calcBhForSim(0,l), _calcBhForSim(1,l), _calcBhForSim(2,l)];
-    const SIM_COLORS=['#a855f7','#ff1493','#2563eb'];
+    const bhResults=BH_THEMES.map((_,i)=>_calcBhForSim(i,l));
+    const SIM_COLORS=BH_THEMES.map(t=>t.main);
     const datasets=[
       {label:'มูลค่า Portfolio',data:v,fill:true,borderColor:'#ffc120',borderWidth:2,pointRadius:0,tension:.3,backgroundColor:'rgba(255,193,32,.12)',_isLine:true},
       {label:'เงินลงทุนสะสม',data:iv,fill:false,borderColor:'#e879f9',borderWidth:1.5,borderDash:[4,4],pointRadius:0,tension:.3,_isLine:true}
@@ -7289,7 +7309,7 @@ function renderFsChart(chartKey){
       datasets.push({label:'Deposit',data:depositData,type:'line',fill:false,borderWidth:0,pointRadius:8,pointHoverRadius:10,pointStyle:'circle',pointBackgroundColor:'#22c55e',pointBorderColor:'#fff',pointBorderWidth:2,showLine:false});
     }
     // V29: Portfolio Sim lines (up to 2)
-    for(let si=0;si<3;si++){
+    for(let si=0;si<bhResults.length;si++){
       if(!bhResults[si])continue;
       datasets.push({label:'Sim'+(si+1)+': '+bhResults[si].lbl,data:bhResults[si].value,fill:false,borderColor:SIM_COLORS[si],borderWidth:2,borderDash:[6,3],pointRadius:0,tension:.3,_isLine:true,spanGaps:true});
     }
@@ -7313,7 +7333,7 @@ function renderFsChart(chartKey){
           fontColor:'#c8d6f0',
         }))}},
         tooltip:{...fsTTOpts({title:items=>{const i=items[0]?.dataIndex;return i!=null&&l[i]?fmtDateTooltip(l[i]):items[0]?.label||'';},label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
-          afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const _SIM_E=['🟣','🔴','🔵'];const parts=[' ─────────────────────────','🟢 Port P&L : ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)'];for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0)continue;const bp=bd.value[i]-bd.invested[i];parts.push(_SIM_E[si]+' Sim'+(si+1)+' P&L : ฿'+bp.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(bp/bd.invested[i]*100)+'%)');}parts.push(' ─────────────────────────');parts.push(ddIco(dd)+' Port  DD : '+dd.toFixed(2)+'%');for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.ddData[i]==null)continue;parts.push(ddIco(bd.ddData[i])+' Sim'+(si+1)+' DD : '+bd.ddData[i].toFixed(2)+'%');}let _hasDiff=false;for(let si=0;si<3;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0||bd.ddData[i]==null)continue;if(!_hasDiff){parts.push(' ─────────────────────────');_hasDiff=true;}const bp=bd.value[i]-bd.invested[i],dpP=pnl-bp,dpD=dd-bd.ddData[i];const eP=dpP>0?'🟢':dpP<0?'🔴':'⚪';const eD=dpD>0?'🟢':dpD<0?'🔴':'⚪';parts.push(eP+' Diff(Sim'+(si+1)+') Profit '+(dpP>=0?'+':'-')+'฿'+Math.abs(dpP).toLocaleString('th-TH',{maximumFractionDigits:0})+' : '+eD+' DD '+fmtS(dpD)+'%');}if(rebalData[i]!==null){const plan=rebalPlanMap[l[i].toDateString()]||'-';parts.push('📌 เปลี่ยนแผน: '+plan);}if(depositData[i]!==null){const dt=l[i].toDateString();const amt=depositMap[dt]||0;parts.push('💰 Deposit: ฿'+amt.toLocaleString('th-TH',{maximumFractionDigits:0}));}return parts;}
+          afterBody:items=>{const i=items[0]?.dataIndex;if(i==null||i===0)return[];const pnl=v[i]-iv[i],pct=iv[i]>0?(pnl/iv[i]*100):0;const dd=ddData[i]||0;const _SIM_E=BH_SIM_EMOJI;const parts=[' ─────────────────────────','🟢 Port P&L : ฿'+pnl.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)'];for(let si=0;si<bhResults.length;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0)continue;const bp=bd.value[i]-bd.invested[i];parts.push(_SIM_E[si]+' Sim'+(si+1)+' P&L : ฿'+bp.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(bp/bd.invested[i]*100)+'%)');}parts.push(' ─────────────────────────');parts.push(ddIco(dd)+' Port  DD : '+dd.toFixed(2)+'%');for(let si=0;si<bhResults.length;si++){const bd=bhResults[si];if(!bd||bd.ddData[i]==null)continue;parts.push(ddIco(bd.ddData[i])+' Sim'+(si+1)+' DD : '+bd.ddData[i].toFixed(2)+'%');}let _hasDiff=false;for(let si=0;si<bhResults.length;si++){const bd=bhResults[si];if(!bd||bd.value[i]==null||bd.invested[i]<=0||bd.ddData[i]==null)continue;if(!_hasDiff){parts.push(' ─────────────────────────');_hasDiff=true;}const bp=bd.value[i]-bd.invested[i],dpP=pnl-bp,dpD=dd-bd.ddData[i];const eP=dpP>0?'🟢':dpP<0?'🔴':'⚪';const eD=dpD>0?'🟢':dpD<0?'🔴':'⚪';parts.push(eP+' Diff(Sim'+(si+1)+') Profit '+(dpP>=0?'+':'-')+'฿'+Math.abs(dpP).toLocaleString('th-TH',{maximumFractionDigits:0})+' : '+eD+' DD '+fmtS(dpD)+'%');}if(rebalData[i]!==null){const plan=rebalPlanMap[l[i].toDateString()]||'-';parts.push('📌 เปลี่ยนแผน: '+plan);}if(depositData[i]!==null){const dt=l[i].toDateString();const amt=depositMap[dt]||0;parts.push('💰 Deposit: ฿'+amt.toLocaleString('th-TH',{maximumFractionDigits:0}));}return parts;}
         }),filter:item=>item.dataset.label!=='Rebalance'&&item.dataset.label!=='Deposit'}
       }
     }});
@@ -7321,7 +7341,7 @@ function renderFsChart(chartKey){
     const ddWrap=el('fs-dd-wrap');ddWrap.style.display='flex';
     const ddCtx=el('fs-dd-canvas');
     const fsDdDatasets=[{data:ddData,fill:false,borderColor:'#ffc120',borderWidth:1.5,pointRadius:0,tension:.3}];
-    for(let si=0;si<3;si++){if(!bhResults[si])continue;fsDdDatasets.push({data:bhResults[si].ddData,fill:false,borderColor:SIM_COLORS[si],borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:.3,spanGaps:true});}
+    for(let si=0;si<bhResults.length;si++){if(!bhResults[si])continue;fsDdDatasets.push({data:bhResults[si].ddData,fill:false,borderColor:SIM_COLORS[si],borderWidth:1.5,borderDash:[5,3],pointRadius:0,tension:.3,spanGaps:true});}
     fsDDChart=new Chart(ddCtx.getContext('2d'),{type:'line',
       data:{labels,datasets:fsDdDatasets},
       options:{responsive:true,maintainAspectRatio:false,
@@ -7481,6 +7501,27 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
+    {date:'2026-09-15 · v30', groups:[
+      {title:'ป้ายเส้น Sim: DIY → อัตราส่วนจริง', items:[
+        '<b>เส้น Sim ที่กรอก DIY เอง เคยขึ้นว่า <code>Sim1: DIY</code></b> ในหัวกราฟ Portfolio Value ซึ่งดูไม่ออกว่าเป็นแผนอะไร · เปลี่ยนเป็น<b>อัตราส่วนจริง</b> เช่น <code>Sim1: F75:G25</code>, <code>Sim2: TH50:PR25:F25</code>, <code>Sim4: MM60:B40</code>',
+        'เพิ่ม helper <code>_allocLabel(alloc)</code> แปลง alloc object → ป้าย โดยใช้ <code>allocToIntPct()</code> (รวม 100% เสมอ + เคารพ cap G≤25%) เรียงสัดส่วนมาก→น้อย ใช้ short code ของกอง (<code>FM[f].s</code>) ให้ตรงรูปแบบชื่อแผนในชีต · <b>refactor <code>_currentPlanFromHold()</code> มาใช้ helper ตัวเดียวกัน</b> (เดิม format ซ้ำกันคนละที่)',
+        '<b>state เก่าที่เซฟคำว่า DIY ไว้</b> แปลงให้อัตโนมัติตอนโหลด (<code>_loadBhSims</code>) — ไม่ต้องกรอกใหม่',
+        '<b>ไม่กระทบ Mixed Plan</b> — กดปุ่มแผนสำเร็จรูปยังขึ้นชื่อแผนเหมือนเดิม (เช่น <code>Sim3: A65</code>)',
+        '<b>verify (browser จริง):</b> <code>_allocLabel</code> 7 เคส (2-3 กอง, กองเดียว, เศษ 33/33/34 ปัดรวม 100, G เกิน cap, ว่าง) ถูกทุกเคส · legend กราฟขึ้น <code>Sim1: F75:G25 · Sim2: TH50:PR25:F25 · Sim3: A65 · Sim4: MM60:B40 · Sim5: F40:TH35:G25</code> · โหลด state เก่า lbl=DIY → แปลงเป็น <code>F75:G25</code>/<code>PR60:B40</code> ได้ · การ์ด แผนลงทุนปัจจุบัน ยังทำงานปกติ · ไม่มี console error'
+      ]},
+      {title:'ค่า default ของกราฟ → 3M', items:[
+        '<b>กราฟ Portfolio Value</b> เปิดมาเป็น <b>3M</b> แทน 1M (<code>curPeriod 30 → 90</code> + ย้าย class <code>active</code> ไปปุ่ม 3M) · ฝั่งแท็บ NAV Analysis เปลี่ยนพร้อมกัน 3 การ์ด ดู changelog แท็บ 📊 NAV Analysis',
+        '<b>★ Bug fix พ่วง — กดช่วงเวลากราฟ Portfolio Value ไปลบ active ของ Correlation Matrix</b> · ปุ่ม Correlation สร้างด้วย <code>className=&quot;pbtn&quot;</code> (ใน <code>renderCorrPeriodBtns</code>) <b>คลาสเดียวกับ</b>ปุ่มของกราฟ Portfolio Value → <code>setPeriod()</code> ที่เรียก <code>document.querySelectorAll(&quot;.pbtn&quot;)</code> กวาดทั้งหน้า เลยไปลบ <code>active</code> ของ Correlation ด้วย → พอสลับไปแท็บ NAV Analysis จะเห็นปุ่ม Correlation ไม่มีตัวไหนถูกเลือก · แก้เป็น <code>btn.closest(&quot;.pbtns&quot;)</code> จำกัดขอบเขตไว้ในกลุ่มปุ่มของตัวเอง · verify: กด 6M ที่ Portfolio Value → Correlation ยังคง active ที่ 3M'
+      ]},
+      {title:'★ Portfolio Sim 3 → 5 ตัว', items:[
+        '<b>★ เพิ่ม Sim 4 + Sim 5</b> — เทียบแผนพร้อมกันได้ <b>5 แบบ</b> ในกราฟเดียว · <b>Sim 4 = 🟠 ส้ม <code>#f59e0b</code></b> (amber-500) · <b>Sim 5 = ⚪ ขาว <code>#e2e8f0</code></b> (slate-200) · เลือกสีโดยเลี่ยงสีที่กราฟใช้อยู่แล้ว: Port ทอง <code>#ffc120</code>, เงินลงทุนสะสม <code>#e879f9</code>, จุด deposit เขียว <code>#22c55e</code>, จุด rebalance แดง',
+        '<b>เลิก hardcode เลข 3 ทั้งหมด</b> — จำนวน sim มาจาก <code>BH_THEMES.length</code> <b>ที่เดียว</b> · <code>bhSims</code> สร้างด้วย <code>Array.from({length:BH_SIM_N})</code> · <code>SIM_COLORS</code> = <code>BH_THEMES.map(t=>t.main)</code> (ทั้งกราฟปกติ + เต็มจอ) · <code>bhResults</code> = <code>BH_THEMES.map((_,i)=>_calcBhForSim(i,l))</code> · loop <code>si&lt;3</code> → <code>si&lt;bhResults.length</code> (<b>10 จุด</b>) · เพิ่ม <code>BH_SIM_EMOJI</code> เป็นแหล่งเดียวของ marker ใน tooltip แทน <code>_SIM_E</code> ที่ hardcode ไว้ 2 ที่',
+        '<b>ลบโค้ดซ้ำ:</b> ตาราง style ของปุ่ม tab เคย hardcode สีไว้ <b>2 ที่</b> (<code>_restoreActiveSimUI</code> + <code>switchBhSim</code>) → เปลี่ยนเป็น <code>BH_THEMES.map(...)</code> ทั้งคู่ · <b>ครั้งหน้าเพิ่ม sim = เพิ่ม theme 1 บรรทัด + emoji 1 ตัว + ปุ่มใน HTML เท่านั้น</b>',
+        '<b>ไม่ทำให้ค่าเดิมหาย</b> — <code>_loadBhSims()</code> เดิมเช็ค <code>sims.length!==3</code> แล้ว return false (ถ้าปล่อยไว้ คนที่ตั้ง Sim 1-3 ไว้จะโดนล้างทิ้งตอนอัปเดต) → เปลี่ยนเป็นรับ state เก่าที่สั้นกว่าได้ แล้วเติม Sim ที่เกินมาเป็นค่าว่าง',
+        '<b>ปุ่ม tab ตัดบรรทัดได้</b> (<code>flex-wrap:wrap</code>) — 5 ปุ่มบนจอ 375px จัดเป็น <code>[1,2,3,4] [5]</code> ไม่ดันหน้าล้น',
+        '<b>verify (browser จริง, data สด):</b> เส้น Sim ในกราฟมูลค่า <b>5 เส้น</b> สีถูกทุกเส้น · กราฟ DD <b>6 เส้น</b> (Port + 5 Sim) · tooltip ครบ 5 บรรทัด P&L + 5 DD + 5 Diff · สลับ tab ครบ 5 theme เปลี่ยนถูก state แยกกัน · save/load 5 ตัวคืนค่าครบ · <b>โหลด state เก่า 3 ตัว → Sim 1-3 คืนค่าเดิม Sim 4-5 ว่าง</b> · <code>bhSimClear</code> ล้างเฉพาะตัว active · โหมด "เลือกวันที่" บน Sim 5 clip ถูก (160/454 จุด) · กราฟเต็มจอครบ 5 เส้น · ไม่มี console error'
+      ]}
+    ]},
     {date:'2026-09-07 · v30', groups:[
       {title:'★ Audit ทั้งระบบ — รวมแหล่งเงินนำส่งให้เหลือแหล่งเดียว', items:[
         '<b>★ เจอจาก audit:</b> <b>Portfolio Sim</b> กับ <b>ROI ต่อการเปลี่ยนแผน</b> ยังอ่าน<b>คอลัมน์ <code>Total</code></b> ขณะที่การ์ด/กราฟ/สรุปรายปี อ่าน<b>4 คอลัมน์เงินสมทบ</b> (ชดเชย+สะสม+สมทบ+ส่วนเพิ่ม) ผ่าน <code>_depositOf()</code> → <b>2 นิยามของ "เงินนำส่ง" ในแอปเดียวกัน</b> · พิสูจน์ด้วยการยิง typo <code>Total +9,000</code> บนแถวเงินนำส่ง: Sim invested เพี้ยน <code>+9,000</code> · Sim value เพี้ยน <code>+9,006</code> · ตาราง ROI เปลี่ยนไป ขณะที่ Port ไม่ขยับเลย → เส้น Port กับ Sim ในกราฟเดียวกันจะเทียบกันไม่ได้',
@@ -7695,6 +7736,18 @@ const CHANGELOG_DATA = {
     ]}
   ],
   nav: [
+    {date:'2026-09-15 · v30', groups:[
+      {title:'ค่า default — กองทุนที่ติ๊กไว้', items:[
+        '<b>NAV Performance — Normalized</b> เปิดมาติ๊กไว้ <b>6 กอง: TH · PR · F · G · A75 · Shr</b> (เดิมติ๊กทั้ง 13 กอง อ่านยาก) · เพิ่มค่าคงที่ <code>NAV_PERF_DEFAULT_FUNDS</code> เป็นแหล่งเดียว ใช้ FM key (<code>Shr</code> = <code>Shariah</code>) · กรองเฉพาะกองที่มีข้อมูลจริง และถ้าไม่ตรงสักกอง fallback เป็นทุกกองเพื่อกันกราฟว่าง',
+        '<b>กระทบ Risk / Return และ NAV Drawdown ด้วย</b> — ทั้ง 3 การ์ดใช้ Set <code>navPerfFunds</code> ร่วมกัน (<code>navPerfRefresh()</code> sync ให้อยู่แล้ว) จึงเหลือ 6 กองเหมือนกัน · ปุ่ม toggle ยังกดเพิ่ม/ลดได้ตามปกติ',
+        '<b>หมายเหตุ:</b> กราฟ <b>Portfolio Value</b> ไม่มีตัวเลือกกองทุน — เส้นในกราฟคือ มูลค่า Portfolio / เงินลงทุนสะสม / จุด Rebalance / จุด Deposit / เส้น Sim 1-5 จึงไม่มีอะไรให้ตั้ง default',
+        '<b>verify (browser จริง):</b> เปิดหน้ามา <code>navPerfFunds</code> = <code>TH,PR,F,G,A75,Shariah</code> · ปุ่มที่ติ๊ก = <code>TH PR F G A75 Shr</code> ทั้ง NAV Performance และ Risk/Return · เส้นในกราฟ 6 เส้น · จุดใน Risk/Return 6 จุด · NAV Drawdown 6 เส้น · กดเพิ่ม MM → 7 กอง sync ทั้ง 2 การ์ด · ปุ่ม All toggle ครบ (6→0→13→0) · ไม่มี console error'
+      ]},
+      {title:'ค่า default ของกราฟ → 3M', items:[
+        'เปลี่ยนช่วงเวลาที่เปิดมาเป็นค่าเริ่มต้นของ <b>3 การ์ดในแท็บนี้</b> จาก <b>1Y → 3M</b>: <b>NAV Performance — Normalized</b> (<code>navPerfPeriod</code>), <b>Risk / Return</b> (<code>navScatPeriod</code>), <b>Correlation Matrix</b> (<code>navCorrPeriod</code>) · ปุ่ม <code>active</code> ใน HTML ย้ายตามให้ตรงกับค่าจริง (Correlation สร้างปุ่มจากตัวแปรอยู่แล้วจึงตามอัตโนมัติ)',
+        '<b>verify (browser จริง):</b> เปิดหน้ามาปุ่มที่ active = <b>3M ทั้ง 4 การ์ด</b> (รวมกราฟ Portfolio Value ในแท็บ Portfolio) · <code>navSlice(90)</code> = 59 วันทำการ → Portfolio Value 59 จุด · Risk/Return 13 กอง · Correlation matrix ขึ้นครบ · ไม่มี console error'
+      ]}
+    ]},
     {date:'2026-09-07 · v30', groups:[
       {title:'★ Bug fix — Risk / Return ปุ่ม 1M ไม่ทำงาน', items:[
         '<b>★ อาการ:</b> กดปุ่ม <code>1M</code> ในการ์ด <b>Risk / Return</b> (แท็บ NAV Analysis) แล้วกราฟไม่เปลี่ยน — ปุ่มติด active แต่จุดยังเป็นของช่วงเดิม',
