@@ -239,6 +239,9 @@ body::before {
 .cfg-row.ok    { border-color: rgba(0,230,118,.3); background: rgba(0,230,118,.025); }
 .cfg-row.err   { border-color: rgba(255,61,90,.3);  background: rgba(255,61,90,.025); }
 .cfg-lbl { font-size: 10px; font-weight: 600; color: var(--t2); font-family: var(--mono); line-height: 1.6; }
+/* บรรทัดบอกว่าดึง NAV จากแท็บไหนของชีต — เต็มความกว้าง อยู่ใต้ช่องกรอก */
+.cfg-src { grid-column: 1/-1; font-size: 10px; font-family: var(--mono); color: var(--t3); line-height: 1.5; }
+.cfg-src:empty { display: none; }
 .sinput {
   background: var(--bg-2);
   border: 1px solid var(--b2);
@@ -1106,6 +1109,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
       <span id="tst-db-txt">🔗 ทดสอบ</span>
     </button>
     <div class="cbadge idle" id="badge-db">○ ยังไม่ทดสอบ</div>
+    <div class="cfg-src" id="cfg-db-src"></div>
   </div>
 
   <div class="cfg-row" id="cfg-row-tx">
@@ -1845,8 +1849,6 @@ const fmtDateMono = d => {
 };
 const getId = url => { const m=(url||'').match(/\/spreadsheets\/d\/([a-zA-Z0-9_-]+)/); return m?m[1]:url.trim(); };
 function bdays(d1,d2){let count=0;const cur=new Date(d1);cur.setHours(0,0,0,0);const end=new Date(d2);end.setHours(0,0,0,0);while(cur<end){cur.setDate(cur.getDate()+1);const day=cur.getDay();if(day!==0&&day!==6)count++;}return count;}
-function addBdays(d,n){const cur=new Date(d);cur.setHours(0,0,0,0);let added=0;while(added<n){cur.setDate(cur.getDate()+1);if(cur.getDay()!==0&&cur.getDay()!==6)added++;}return cur;}
-function fmtLocalDate(d){const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day;}
 
 // ================================================================
 //  CSV PARSER
@@ -3316,8 +3318,44 @@ function loadCfg(){
     if(d.fredId && el('cfg-fred-id')) el('cfg-fred-id').value = d.fredId;
   }catch(e){}
 }
+// ── แสดงว่า NAV ดึงมาจากแท็บไหนของชีต ───────────────────────────
+//  อ่านจาก gid ใน URL เท่านั้น — เป็นตัวเดียวที่ระบุแท็บได้แน่นอน
+//  (เนื้อ CSV บอกไม่ได้ เพราะทุกแท็บหน้าตาเหมือนกันหมด)
+//  gid สำรวจไว้ 2026-09-23 ด้วย listSheets() ใน Apps Script
+const NAV_TAB_BY_GID = {
+  '656173985' : {n:'ALLDatabase',        d:'กรอกมือ',              full:true},
+  '1504962260': {n:'ALLDatabase Online', d:'auto จาก API กบข.',    full:true},
+  '952791331' : {n:'Database',           d:'กรอกมือ · 2020+',      full:false},
+  '206511512' : {n:'Database Online',    d:'auto · 2020+',         full:false}
+};
+function renderNavSrc(){
+  const box=el('cfg-db-src');if(!box)return;
+  const url=(el('cfg-db-id').value||'').trim();
+  if(!url){box.innerHTML='';return;}
+
+  const m=url.match(/[?&]gid=(\d+)/);
+  if(!m){
+    // ★ URL แบบไม่มี gid → Google คืน "แท็บแรกที่ publish" ซึ่งเปลี่ยนได้โดยเราไม่รู้ตัว
+    box.innerHTML='<span style="color:var(--amber)">⚠️ URL ไม่ระบุ <code>gid</code> → '
+      +'Google จะคืน<b>แท็บแรกที่ publish</b> ไม่การันตีว่าเป็นแท็บไหน '
+      +'· ใส่ URL ที่มี <code>gid</code> เพื่อระบุแท็บให้ชัด</span>';
+    return;
+  }
+  const gid=m[1], t=NAV_TAB_BY_GID[gid];
+  if(!t){
+    box.innerHTML='📄 แท็บ: <b>gid '+gid+'</b> <span style="color:var(--t3)">(ไม่รู้จัก — '
+      +'ถ้าเพิ่งสร้างแท็บใหม่ ให้เพิ่มลง <code>NAV_TAB_BY_GID</code>)</span>';
+    return;
+  }
+  const col=t.n.indexOf('Online')>=0?'var(--green)':'var(--gold)';
+  box.innerHTML='📄 แท็บ: <b style="color:'+col+'">'+t.n+'</b> '
+    +'<span style="color:var(--t3)">('+t.d+' · gid '+gid+')</span>'
+    +(t.full?'':' <span style="color:var(--amber)">⚠️ แท็บนี้มีข้อมูลตั้งแต่ 2020 เท่านั้น ไม่ใช่ทั้งประวัติ</span>');
+}
+
 function onCfgInput(){
   saveCfg();
+  renderNavSrc();
   setBadgeCfg('db','idle','ยังไม่ทดสอบ');
   setBadgeCfg('tx','idle','ยังไม่ทดสอบ');
   if(el('badge-fred')) setBadgeCfg('fred','idle','ยังไม่ทดสอบ');
@@ -5980,25 +6018,6 @@ Chart.Tooltip.positioners.navArea = function(elements, eventPosition) {
 // Sort tooltip items by value descending
 const ttSortDesc = (a,b) => (b.parsed?.y ?? b.parsed ?? 0) - (a.parsed?.y ?? a.parsed ?? 0);
 const fmtDateChart=d=>d.toLocaleDateString('th-TH-u-ca-gregory',{month:'short',day:'numeric'});
-// Emoji-as-canvas pointStyle helper (cached)
-const _emojiCache={};
-function emojiPoint(emoji,size){
-  size=size||18;
-  const k=emoji+'_'+size;
-  if(_emojiCache[k])return _emojiCache[k];
-  const c=document.createElement('canvas');
-  const dpr=(window.devicePixelRatio||1);
-  c.width=size*dpr; c.height=size*dpr;
-  c.style.width=size+'px'; c.style.height=size+'px';
-  const ctx=c.getContext('2d');
-  ctx.scale(dpr,dpr);
-  ctx.font=(size*0.85)+'px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif';
-  ctx.textAlign='center';
-  ctx.textBaseline='middle';
-  ctx.fillText(emoji,size/2,size/2);
-  _emojiCache[k]=c;
-  return c;
-}
 const fmtDateTooltip=d=>{const s=d.toLocaleDateString('th-TH-u-ca-gregory',{year:'numeric',month:'short',day:'numeric'});return s;};
 function destroyChart(key){if(portCharts[key]){try{portCharts[key].destroy();}catch(e){}delete portCharts[key];}}
 
@@ -6163,46 +6182,6 @@ function renderPortChart(days){
     // Sync hover between port chart and DD chart
     _portSyncAC=setupPairSync(el('port-chart'),()=>portCharts.port,ddCtx,()=>portCharts.dd);
   }
-}
-// Cash Flow Composition: deposits as filled area + portfolio value as line.
-// Gap between line and area = market gain (or loss if line below area).
-function renderCashFlowComposition(tx,nav){
-  const ctx=el('cashflow-chart');if(!ctx)return;
-  destroyChart('cashflow');
-  const txSorted=[...tx].sort((a,b)=>a.date-b.date);
-  const lbls=[],depositData=[],valueData=[];
-  let txIdx=0,runDeposit=0;
-  for(const n of nav){
-    while(txIdx<txSorted.length&&txSorted[txIdx].date<=n.date){
-      const t=txSorted[txIdx];
-      if(t.type==='เงินนำส่ง')runDeposit+=_depositOf(t);
-      txIdx++;
-    }
-    const u={};for(const t of txSorted){if(t.date>n.date)break;for(const[f,a]of Object.entries(t.amounts))u[f]=(u[f]||0)+a.u;}
-    let val=0;for(const[f,un]of Object.entries(u)){if(Math.abs(un)<0.0001)continue;const nv=n.funds[f];if(nv)val+=un*nv;}
-    if(val>0||valueData.length>0){
-      lbls.push(fmtDateChart(n.date));
-      depositData.push(runDeposit);
-      valueData.push(val);
-    }
-  }
-  portCharts.cashflow=new Chart(ctx.getContext('2d'),{type:'line',data:{labels:lbls,datasets:[
-    {label:'มูลค่า Portfolio',data:valueData,borderColor:'#ffc120',borderWidth:2.5,pointRadius:0,tension:.3,fill:false,order:1},
-    {label:'เงินลงทุนสะสม (ต้นทุนจริง)',data:depositData,backgroundColor:'rgba(59,130,246,0.35)',borderColor:'#3b82f6',borderWidth:1.5,borderDash:[4,3],fill:'origin',pointRadius:0,tension:.3,order:2}
-  ]},
-  options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-    plugins:{
-      legend:{position:'top',labels:{color:'#c8d6f0',font:{family:'Sarabun',size:11},usePointStyle:true,boxWidth:14,padding:10}},
-      tooltip:{mode:'index',intersect:false,backgroundColor:'rgba(9,17,31,.95)',padding:10,
-        callbacks:{
-          label:c=>' '+c.dataset.label+': ฿'+c.parsed.y.toLocaleString('th-TH',{maximumFractionDigits:0}),
-          afterBody:items=>{const i=items[0]?.dataIndex;if(i==null)return[];const dep=depositData[i],val=valueData[i];const gain=val-dep;const pct=dep>0?(gain/dep*100):0;const clr=gain>=0?'🟢':'🔴';return[' ─────────',' '+clr+' กำไร: ฿'+gain.toLocaleString('th-TH',{maximumFractionDigits:0})+' ('+fmtS(pct)+'%)'];}
-        }}},
-    scales:{
-      x:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',maxTicksLimit:10,font:{size:9,family:'IBM Plex Mono'}}},
-      y:{grid:{color:'rgba(26,32,48,.5)'},ticks:{color:'#4e6a8a',font:{size:10,family:'IBM Plex Mono'},callback:v=>'฿'+(v/1000).toFixed(0)+'K'}}
-    }
-  }});
 }
 function renderAlloc(hold,nav){
   const ln=nav[nav.length-1];const ls=[],data=[],cs=[],fkeys=[];
@@ -6602,7 +6581,6 @@ function _calcBhForSim(simIdx, l){
   const dd=calcDDSeries(s.value, s.invested);
   return {value:s.value, invested:s.invested, ddData:dd, lbl:sim.lbl};
 }
-function setFundPeriod(btn,days){document.querySelectorAll('.fpbtn').forEach(b=>b.classList.remove('active'));btn.classList.add('active');fundPeriod=days;if(NAV_PORT.length>0){destroyChart('fund');renderFund(NAV_PORT,days);}}
 
 // ================================================================
 //  NAV ANALYSIS TAB — All 7 sections
@@ -7502,6 +7480,23 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
+    {date:'2026-09-23 · v30', groups:[
+      {title:'การ์ดตั้งค่า — บอกว่า NAV ดึงมาจากแท็บไหนของชีต', items:[
+        '<b>เพิ่มบรรทัดใต้ช่อง 📊 DATABASE</b> บอกชื่อแท็บที่กำลังใช้จริง เช่น <code>📄 แท็บ: ALLDatabase (กรอกมือ · gid 656173985)</code> หรือ <code>📄 แท็บ: ALLDatabase Online (auto จาก API กบข. · gid 1504962260)</code> · <b>ตัว Online ขึ้นสีเขียว ตัวกรอกมือขึ้นสีทอง</b> แยกออกตั้งแต่เหลือบตา',
+        '<b>ทำไมต้องมี:</b> ตั้งแต่ 2026-09-23 มี Apps Script ดึง NAV จาก API ของ กบข. มาเติมแท็บ <code>ALLDatabase Online</code> ให้อัตโนมัติทุกวัน 13:00 น. ส่วน <code>ALLDatabase</code> เป็นตัวที่กรอกมือ · <b>2 แท็บหน้าตาเหมือนกันเป๊ะ</b> (หัวคอลัมน์ 16 ช่องเหมือนกัน) เปิด CSV มาดูก็แยกไม่ออกว่าอันไหนเป็นอันไหน',
+        '<b>★ อ่านจาก <code>gid</code> ใน URL เท่านั้น</b> — เป็นตัวเดียวที่ระบุแท็บได้แน่นอน · เนื้อ CSV บอกไม่ได้เพราะทุกแท็บโครงสร้างเหมือนกันหมด · ตาราง <code>NAV_TAB_BY_GID</code> สำรวจไว้ด้วย <code>listSheets()</code> ใน Apps Script (2026-09-23 · ชีตมี 35 แท็บ)',
+        '<b>★★ เตือนกรณี URL ไม่มี <code>gid</code></b> — <code>pub?output=csv</code> เฉยๆ Google จะคืน<b>แท็บแรกที่ publish</b> ซึ่งเปลี่ยนได้โดยเราไม่รู้ตัว · ตอนนี้ <code>DATABASE</code> กับ <code>ALL_DATABASE</code> ใน <code>.env</code> <b>ชี้ที่เดียวกันทั้งคู่</b> (diff แล้วเหมือนกันทุกบรรทัด) เพราะเหตุนี้ · บรรทัดใหม่จะขึ้นเตือนสีเหลืองทันทีถ้าเจอ URL แบบนี้',
+        '<b>เตือนแท็บที่ข้อมูลไม่ครบด้วย</b> — <code>Database</code>/<code>Database Online</code> มีแค่ 2020 เป็นต้นมา (1,628 วัน) ไม่ใช่ทั้งประวัติเหมือน <code>ALLDatabase</code> (6,058 วัน) · ถ้าเผลอชี้ไปแท็บพวกนี้จะขึ้น ⚠️ บอกทันที · gid ที่ไม่รู้จักก็บอกว่าไม่รู้จัก ไม่เดามั่ว',
+        '<b>verify (browser จริง):</b> ยิงทดสอบ 6 เคส (ว่าง / ไม่มี gid / ALLDatabase / ALLDatabase Online / Database Online / gid มั่ว) ขึ้นถูกทุกเคส · พิมพ์ URL ใหม่แล้วอัปเดตเองผ่าน <code>onCfgInput</code> · reload หน้าแล้วยังขึ้นถูก (อ่านจาก localStorage) · <b>1280px</b> เต็มความกว้างแถวพอดี (796 จาก 826) ไม่ดันปุ่ม · <b>375px</b> ไม่มี element ล้นจอ <code>scrollWidth 375 = clientWidth 375</code> · โหลด data จริงผ่าน NAV 6,058 / TX 53 · P&L 17,207.25 · cost 166,233.00 · MaxDD −7.99% · ไม่มี console error'
+      ]},
+      {title:'ลบ dead code 5 ตัว (ที่ audit 2026-09-07 ชี้ไว้)', items:[
+        '<b>ลบฟังก์ชันที่ไม่มีใครเรียกเลย 5 ตัว</b> · <code>addBdays</code> + <code>fmtLocalDate</code> (date helper เก่า) · <code>emojiPoint</code> (helper วาด emoji ลง canvas เพื่อใช้เป็น <code>pointStyle</code> ของ Chart.js — ปัจจุบัน marker ใช้ emoji เป็นข้อความใน tooltip อย่างเดียว) · <code>renderCashFlowComposition</code> (กราฟ Cash Flow Composition ถูกถอดออกไปแล้ว — <code>cashflow-chart</code> ไม่มีใน HTML แล้ว) · <code>setFundPeriod</code> (ปุ่มช่วงเวลากราฟกองทุนผูก handler ใน <code>buildFsPeriodBtns</code> แทนไปแล้ว)',
+        '<b>ลบ <code>_emojiCache</code> ด้วย</b> — cache object ที่มี <code>emojiPoint</code> ใช้คนเดียว พอลบฟังก์ชันก็กลายเป็น dead ตามไป',
+        '<b>pure deletion 62 บรรทัด</b> (โค้ดหายไป −3,819 bytes) — <b>ไม่มีบรรทัดไหนถูกแก้หรือเพิ่ม</b> (diff มีแต่ฝั่งลบ) · พฤติกรรมทุกอย่างเหมือนเดิมทุกประการ',
+        '<b>สิ่งที่คงไว้ (ไม่ใช่ dead):</b> ตัวแปร <code>fundPeriod</code>, ฟังก์ชัน <code>renderFund</code>, คลาส CSS <code>.fpbtn</code> — ทั้ง 3 ตัวยังถูกใช้จากจุดอื่น',
+        '<b>verify:</b> grep ทั้งไฟล์ → ชื่อทั้ง 5 ตัวเหลือแค่ในข้อความ changelog ไม่มี call site และไม่มี <code>onclick=</code> ใน HTML · <code>node --check</code> ผ่าน · โหลดหน้าจริง data สด ครบทุกแท็บ ไม่มี console error'
+      ]}
+    ]},
     {date:'2026-09-15 · v30', groups:[
       {title:'ป้ายเส้น Sim: DIY → อัตราส่วนจริง', items:[
         '<b>เส้น Sim ที่กรอก DIY เอง เคยขึ้นว่า <code>Sim1: DIY</code></b> ในหัวกราฟ Portfolio Value ซึ่งดูไม่ออกว่าเป็นแผนอะไร · เปลี่ยนเป็น<b>อัตราส่วนจริง</b> เช่น <code>Sim1: F75:G25</code>, <code>Sim2: TH50:PR25:F25</code>, <code>Sim4: MM60:B40</code>',
@@ -7539,7 +7534,7 @@ const CHANGELOG_DATA = {
         '<b>invariant ผ่านหมด:</b> Σ กำไรรายปี = กำไรรวม · Σ เงินเข้ารายปี = เงินลงทุนสะสม · แถวรวม = การ์ด (มูลค่า/เงินเข้า/กำไร/MaxDD) · P&L by Asset (unrealized+realized) = กำไรรวม · คู่เปลี่ยนแผนเข้า=ออก สมดุลครบ <b>15 วัน</b> · ไม่มีหน่วยลงทุนติดลบ · allocation grid รวม 100%',
         '<b>กฎ กบข:</b> G ≤ 25% บังคับตั้งแต่ UI (dropdown มีแค่ 0-25%) · engine V29 ไม่เคยเสนอ G เกิน 25% · allocation ที่ engine เสนอรวม 100.00% พอดี · quota 12/ปี',
         '<b>โครงสร้างโค้ด:</b> 176 top-level function · <b>ไม่มีนิยามซ้ำ</b> · syntax ผ่าน · ไม่มี window error ตลอดการทดสอบ',
-        '<b>dead code 5 ตัว</b> (ไม่มีใครเรียกเลย): <code>addBdays</code>, <code>fmtLocalDate</code>, <code>emojiPoint</code>, <code>renderCashFlowComposition</code>, <code>setFundPeriod</code> — ไม่กระทบการทำงาน ยังไม่ลบ',
+        '<b>dead code 5 ตัว</b> (ไม่มีใครเรียกเลย): <code>addBdays</code>, <code>fmtLocalDate</code>, <code>emojiPoint</code>, <code>renderCashFlowComposition</code>, <code>setFundPeriod</code> — ไม่กระทบการทำงาน · <b>ลบออกแล้ว 2026-09-23</b>',
         '<b>ตรวจแล้วไม่ใช่บั๊ก:</b> <code>histPosPeak</code> (peak มูลค่าดิบ ได้รับผลจากเงินฝาก) ใช้เฉพาะ <code>makeDecisionV22</code> ซึ่ง <b>V29 override ทับ</b> เสมอ และ <code>makeDecisionV29</code> ไม่รับ peak/trailing เลย → ไม่กระทบสัญญาณจริง'
       ]}
     ]},
@@ -8225,7 +8220,7 @@ function renderV29ScoreCard(decision) {
 window.addEventListener('DOMContentLoaded',function(){
   buildGrid('grid-diy',DIY);
   buildGrid('grid-mix',MIX_BUTTONS);
-  loadCfg();load();bindSave();onAllocChange();updateQuotaBar();
+  loadCfg();load();bindSave();onAllocChange();updateQuotaBar();renderNavSrc();
   el('quota-used').addEventListener('change',function(){updateQuotaBar();save();});
   const prev=el('step-prev'),next=el('step-next');
   if(prev)prev.addEventListener('click',()=>stepHistDate(-1));
