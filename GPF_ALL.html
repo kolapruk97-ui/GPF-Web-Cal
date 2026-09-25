@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://*.googleusercontent.com https://api.stlouisfed.org https://fred.stlouisfed.org https://api.allorigins.win https://corsproxy.io https://api.codetabs.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://cdnjs.cloudflare.com https://docs.google.com https://*.googleusercontent.com; script-src 'self' 'unsafe-inline' https://cdnjs.cloudflare.com;">
 <title>GPF Live Trade v30</title>
 <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
@@ -165,8 +165,6 @@ body::before {
 .cl-tab { background:transparent; border:1px solid transparent; color:var(--t2); padding:8px 14px; border-radius:6px 6px 0 0; cursor:pointer; font-size:13px; font-weight:600; border-bottom:none; }
 .cl-tab.active { background:var(--b1); color:var(--text); border-color:var(--b2); }
 .cl-body { padding:18px; overflow-y:auto; flex:1; font-size:13px; line-height:1.55; }
-.cl-section { display:none; }
-.cl-section.active { display:block; }
 .cl-version { font-weight:800; color:var(--gold); margin:18px 0 0; padding:8px 12px; background:linear-gradient(90deg,rgba(255,193,32,.15),rgba(255,193,32,.02)); border-left:3px solid var(--gold); border-radius:4px 0 0 4px; font-family:var(--mono); font-size:14px; letter-spacing:.04em; }
 .cl-version:first-child { margin-top:0; }
 .cl-version-body { padding-left:14px; border-left:1px dashed var(--b2); margin-left:6px; }
@@ -400,25 +398,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7) sepia
 .rebal-quota-row { display:flex; gap:10px; margin-bottom:10px; }
 .rebal-quota-row > div { flex:1; min-width:0; }
 .rebal-quota-row input[type="date"], .rebal-quota-row .quota-select { width:100%; box-sizing:border-box; }
-.btn-test-sig {
-  width: 100%;
-  padding: 10px;
-  background: var(--bg-2);
-  border: 1px solid var(--acc);
-  border-radius: 8px;
-  color: var(--acc);
-  font-family: var(--sans);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all .15s;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-}
-.btn-test-sig:hover:not(:disabled) { background: rgba(0,200,240,.10); }
-.btn-test-sig:disabled { opacity: .4; cursor: not-allowed; }
 #run-btn {
   width: 100%;
   padding: 14px;
@@ -507,13 +486,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7) sepia
 .stat-val.amber { color: var(--amber); }
 /* Score table */
 /* score-tbl removed in V28 — legacy momentum scores no longer used */
-.pkey { font-family: var(--mono); font-weight: 600; color: #e8f4ff; }
-.pkey.tgt { color: var(--green); }
-.pkey.cur { color: var(--acc); }
-.bar-wrap  { display: flex; align-items: center; gap: 5px; }
-.bar-track { width: 55px; height: 4px; background: var(--bg-3); border-radius: 2px; position: relative; overflow: hidden; }
-.bar-fill  { position: absolute; top: 0; left: 0; height: 100%; border-radius: 2px; background: linear-gradient(90deg,#1260aa,#00c8f0); }
-.score-num { font-family: var(--mono); font-size: 12px; color: #e8f4ff; min-width: 42px; text-align: right; }
 .pos { color: var(--green); }
 .neg { color: var(--red); }
 #results-section { display: none; flex-direction: column; gap: 10px; }
@@ -536,10 +508,6 @@ input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(.7) sepia
 .date-step:hover { background: rgba(255,255,255,.06); color: var(--text); }
 #hist-banner { display: none; padding: 10px 14px; border-radius: 8px; background: rgba(255,170,0,.07); border: 1px solid rgba(255,170,0,.3); font-size: 12px; color: var(--amber); font-family: var(--mono); }
 #hist-banner b { color: var(--gold); }
-.info-badge { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 600; background: rgba(0,200,240,.08); border: 1px solid rgba(0,200,240,.2); color: var(--acc); font-family: var(--mono); margin-top: 6px; }
-.guide { background: var(--bg-2); border: 1px solid var(--b2); border-radius: 8px; padding: 12px 14px; font-size: 11px; color: var(--t2); line-height: 1.8; }
-.guide b { color: var(--text); }
-.guide code { font-family: var(--mono); color: var(--acc); background: rgba(0,200,240,.08); padding: 1px 5px; border-radius: 3px; }
 details summary { cursor: pointer; user-select: none; padding: 4px 0; list-style: none; color: var(--amber); font-size: 11px; }
 details summary::-webkit-details-marker { display: none; }
 .divider { border: 0; border-top: 1px solid var(--b2); margin: 12px 0; }
@@ -578,33 +546,12 @@ details summary::-webkit-details-marker { display: none; }
 .pos-stat-val.green { color: var(--green); }
 .pos-stat-val.red { color: var(--red); }
 .pos-stat-val.acc { color: var(--acc); }
-.pos-sensor { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 6px; font-size: 10px; font-weight: 700; font-family: var(--mono); }
-.pos-sensor.on  { background: rgba(255,170,0,.12); border: 1px solid rgba(255,170,0,.3); color: var(--amber); }
-.pos-sensor.off { background: rgba(0,200,240,.08); border: 1px solid rgba(0,200,240,.2); color: var(--t2); }
 /* V21: Acceleration table */
-.accel-tbl { width: 100%; border-collapse: collapse; font-size: 12px; }
-.accel-tbl th { text-align: left; padding: 7px 8px; font-size: 9px; font-weight: 600; letter-spacing: .07em; color: var(--t2); border-bottom: 1px solid var(--b2); text-transform: uppercase; }
-.accel-tbl th:not(:first-child) { text-align: right; }
-.accel-tbl td { padding: 7px 8px; border-bottom: 1px solid rgba(26,32,48,.7); }
-.accel-tbl td:not(:first-child) { text-align: right; font-family: var(--mono); }
-.accel-tbl tr:hover td { background: rgba(255,255,255,.018); }
-.accel-tbl tr.cur-row td { background: rgba(0,200,240,.05); }
-.accel-tbl tr.best-row td { background: rgba(0,230,118,.05); }
-.accel-tag { display: inline-block; padding: 2px 7px; border-radius: 4px; font-size: 9px; font-weight: 700; font-family: var(--mono); }
-.accel-tag.accel { background: rgba(0,230,118,.15); color: var(--green); }
-.accel-tag.decel { background: rgba(255,61,90,.15); color: var(--red); }
-.accel-tag.flat  { background: rgba(200,214,240,.08); color: var(--t2); }
 /* Mix plan buttons */
 .mix-plan-btn { padding:6px 12px;border-radius:6px;font-size:11px;font-family:var(--sans);font-weight:500;cursor:pointer;border:1px solid var(--b2);background:var(--bg-3);color:var(--t2);transition:all .15s;white-space:nowrap; }
 .mix-plan-btn:hover { border-color:var(--acc);color:var(--acc); }
 .mix-plan-btn.active { border-color:rgba(0,230,118,.5);background:rgba(0,230,118,.1);color:var(--green);font-weight:700; }
 .port-manual .mix-plan-btn.active { border-color:rgba(244,114,182,.5);background:rgba(244,114,182,.1);color:#f472b6; }
-.quota-chip { width:28px;height:26px;border-radius:5px;font-size:11px;font-family:var(--mono);font-weight:500;cursor:pointer;border:1px solid var(--b2);background:var(--bg-3);color:var(--t2);transition:all .15s;display:flex;align-items:center;justify-content:center;padding:0; }
-.quota-chip:hover { border-color:var(--acc);color:var(--acc); }
-.quota-chip.active { border-color:rgba(244,114,182,.5);background:rgba(244,114,182,.15);color:#f472b6;font-weight:700; }
-#quota-used.quota-no-spin::-webkit-outer-spin-button,
-#quota-used.quota-no-spin::-webkit-inner-spin-button { -webkit-appearance:none;margin:0; }
-#quota-used.quota-no-spin { -moz-appearance:textfield;cursor:pointer; }
 /* Allocation grid styling */
 .alloc-key-span { color: var(--acc); }
 .alloc-grid-input { border: 1px solid var(--b2); }
@@ -625,21 +572,10 @@ input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { po
 .sim-panel.show { display: block; }
 .sim-title { font-size: 10px; font-weight: 700; letter-spacing: .10em; text-transform: uppercase; color: var(--purple); font-family: var(--mono); margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
 .sim-title::before { content: ''; display: block; width: 3px; height: 11px; background: var(--purple); border-radius: 2px; }
-.sim-alloc-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
-.sim-alloc-btn { padding: 6px 14px; border-radius: 7px; border: 1px solid var(--b2); background: var(--bg-2); color: var(--t2); font-family: var(--mono); font-size: 11px; font-weight: 600; cursor: pointer; transition: all .15s; }
-.sim-alloc-btn:hover { border-color: var(--purple); color: var(--purple); }
-.sim-alloc-btn.active { background: rgba(139,92,246,.15); border-color: rgba(139,92,246,.5); color: var(--purple); }
 .sim-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
 .sim-banner { display: none; padding: 10px 14px; border-radius: 8px; background: rgba(139,92,246,.07); border: 1px solid rgba(139,92,246,.3); font-size: 12px; color: var(--purple); font-family: var(--mono); }
 .sim-banner b { color: #c4b5fd; }
 /* Menu table */
-.menu-tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
-.menu-tbl th { text-align: left; padding: 5px 6px; font-size: 9px; font-weight: 600; letter-spacing: .06em; color: var(--t2); border-bottom: 1px solid var(--b2); }
-.menu-tbl th:not(:first-child) { text-align: right; }
-.menu-tbl td { padding: 5px 6px; border-bottom: 1px solid rgba(26,32,48,.5); }
-.menu-tbl td:not(:first-child) { text-align: right; font-family: var(--mono); font-size: 11px; }
-.menu-tbl tr:hover td { background: rgba(255,255,255,.015); }
-.menu-tbl .rank1 { background: rgba(0,230,118,.05); }
 /* App instructions card */
 .app-instr {
   background: rgba(0,230,118,.06);
@@ -678,9 +614,8 @@ input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { po
 .pcards6 { grid-template-columns: repeat(6,1fr); }
 .pcards5 { grid-template-columns: repeat(5,1fr); }
 .pcards4 { grid-template-columns: repeat(4,1fr); }
-.pcards3 { grid-template-columns: repeat(3,1fr); }
 @media(max-width:1100px) { .pcards6, .pcards5 { grid-template-columns: repeat(3,1fr); } .pcards4 { grid-template-columns: repeat(2,1fr); } }
-@media(max-width:700px)  { .pcards6, .pcards5, .pcards4, .pcards3 { grid-template-columns: repeat(2,1fr); } }
+@media(max-width:700px)  { .pcards6, .pcards5, .pcards4 { grid-template-columns: repeat(2,1fr); } }
 .pc {
   background: var(--bg-1);
   border: 1px solid var(--b1);
@@ -701,12 +636,10 @@ input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { po
 .clbl { font-size: 10px; color: var(--t3); font-family: var(--mono); letter-spacing: .5px; text-transform: uppercase; margin-bottom: 4px; }
 .cval { font-size: 19px; font-weight: 700; font-family: var(--mono); letter-spacing: -.5px; line-height: 1.2; }
 .csub { font-size: 11px; color: var(--t2); margin-top: 3px; }
-.cgrid { display: grid; grid-template-columns: 2fr 1fr; gap: 12px; margin-bottom: 12px; }
-@media(max-width:900px) { .cgrid { grid-template-columns: 1fr; } .pie-grid { grid-template-columns: 1fr !important; } }
+@media(max-width:900px) { .pie-grid { grid-template-columns: 1fr !important; } }
 .ccrd { background: var(--bg-1); border: 1px solid var(--b1); border-radius: 12px; padding: 15px; }
 .chart-box { position: relative; width: 100%; }
 .chart-box.h220 { height: 220px; }
-.chart-box.h200 { height: 200px; }
 .chart-box canvas { position: absolute; inset: 0; }
 .ctitle {
   font-size: 10px; font-weight: 600; color: var(--t2);
@@ -716,14 +649,11 @@ input.auto-readonly, input[type="date"].auto-readonly, select.auto-readonly { po
 .pbtns { display: flex; gap: 3px; }
 .pbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 8px; font-size: 11px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
 .pbtn.active, .pbtn:hover { background: var(--gold-glow); border-color: rgba(255,193,32,.4); color: var(--gold); }
-.bh-select { background: var(--bg-2); border: 1px solid var(--b1); color: var(--t2); border-radius: 5px; padding: 3px 6px; font-size: 11px; font-family: var(--sans); letter-spacing: normal; text-transform: none; cursor: pointer; transition: all .15s; max-width: 185px; }
-.bh-select:hover, .bh-select:focus { border-color: #a855f7; color: #c8d6f0; outline: none; }
-.bh-select option { background: var(--bg-2); color: #c8d6f0; }
 #fs-bh-select { font-size: 12px; padding: 4px 8px; max-width: 210px; }
 .fpbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 7px; font-size: 10px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
 .fpbtn.active, .fpbtn:hover { background: rgba(0,200,240,.1); border-color: rgba(0,200,240,.4); color: var(--acc); }
-.navpbtn, .scatpbtn, .ddpbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 7px; font-size: 10px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
-.navpbtn.active, .navpbtn:hover, .scatpbtn.active, .scatpbtn:hover, .ddpbtn.active, .ddpbtn:hover { background: rgba(139,92,246,.1); border-color: rgba(139,92,246,.4); color: var(--purple); }
+.navpbtn, .scatpbtn { background: none; border: 1px solid var(--b1); color: var(--t3); border-radius: 5px; padding: 2px 7px; font-size: 10px; font-family: var(--mono); cursor: pointer; transition: all .15s; }
+.navpbtn.active, .navpbtn:hover, .scatpbtn.active, .scatpbtn:hover { background: rgba(139,92,246,.1); border-color: rgba(139,92,246,.4); color: var(--purple); }
 .tcrd { background: var(--bg-1); border: 1px solid var(--b1); border-radius: 12px; overflow: hidden; margin-bottom: 12px; }
 .ttabs {
   display: flex; flex-wrap: nowrap;
@@ -897,34 +827,19 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   .pos-card { padding: 10px; gap: 8px; justify-content: space-around; }
   .pos-stat-val { font-size: 13px; }
   .pos-stat-label { font-size: 8px; }
-  .pos-sensor { font-size: 9px; padding: 3px 8px; }
   .pos-row3 { grid-template-columns: 1fr !important; gap: 6px; }
 
   /* ACCELERATION TABLE — horizontal scroll */
-  .accel-tbl { font-size: 10px; min-width: 420px; }
-  .accel-tbl th { padding: 5px 6px; font-size: 8px; }
-  .accel-tbl td { padding: 5px 6px; font-size: 10px; }
-  .accel-tag { font-size: 8px; padding: 1px 5px; }
 
   /* MENU TABLE */
-  .menu-tbl { font-size: 10px; min-width: 380px; }
-  .menu-tbl th { padding: 4px 5px; font-size: 8px; }
-  .menu-tbl td { padding: 4px 5px; font-size: 10px; }
 
   /* Wrap tables in scroll container */
-  .card:has(.accel-tbl),
-  .card:has(.menu-tbl) {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
 
   /* SIMULATION */
-  .sim-alloc-grid { gap: 4px; }
-  .sim-alloc-btn { padding: 5px 10px; font-size: 10px; }
   .sim-row2 { grid-template-columns: 1fr; gap: 6px; }
 
   /* PORTFOLIO TAB */
-  .pcards6, .pcards3 { grid-template-columns: repeat(2,1fr) !important; gap: 6px; }
+  .pcards6 { grid-template-columns: repeat(2,1fr) !important; gap: 6px; }
   .pcards { grid-template-columns: repeat(2,1fr) !important; gap: 6px; }
   .pc { padding: 10px 12px; border-radius: 10px; }
   .clbl { font-size: 9px; }
@@ -932,14 +847,11 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   .csub { font-size: 10px; }
 
   /* CHARTS */
-  .cgrid { grid-template-columns: 1fr !important; gap: 8px; }
   .ccrd { padding: 10px; }
   .chart-box.h220 { height: 180px; }
-  .chart-box.h200 { height: 160px; }
   .ctitle { font-size: 9px; flex-wrap: wrap; gap: 4px; }
   .pbtns { gap: 2px; flex-wrap: wrap; }
   .pbtn { padding: 2px 6px; font-size: 10px; }
-  .bh-select { font-size: 10px; max-width: 150px; padding: 2px 4px; }
   .fpbtn { padding: 2px 5px; font-size: 9px; }
 
   /* TRANSACTION TABLES */
@@ -961,7 +873,6 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   .sec { font-size: 9px; margin: 16px 0 8px; }
 
   /* GUIDE */
-  .guide { padding: 10px 12px; font-size: 10px; }
   details summary { font-size: 10px; }
 }
 
@@ -969,7 +880,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
    SMALL MOBILE (≤360px) — very small phones
    ================================================================ */
 @media(max-width:360px) {
-  .pcards6, .pcards3, .pcards { grid-template-columns: 1fr !important; }
+  .pcards6, .pcards { grid-template-columns: 1fr !important; }
   .cval { font-size: 14px; }
   .tab-btn { padding: 4px 9px; font-size: 10px; }
   .pos-card { flex-direction: column; align-items: stretch; }
@@ -983,8 +894,6 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   .hdr-inner { gap: 10px; }
   .tab-btn { padding: 5px 14px; font-size: 12px; }
   .pcards6 { grid-template-columns: repeat(3,1fr) !important; }
-  .pcards3 { grid-template-columns: repeat(3,1fr); }
-  .cgrid { grid-template-columns: 1fr; }
   .chart-box.h220 { height: 200px; }
 }
 /* ================================================================
@@ -1019,9 +928,6 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 .fred-card .fred-detail .fd-row { margin-bottom: 3px; }
 .fred-card .fred-detail .fd-label { color: var(--t3); }
 .fred-card .fred-detail .fd-impact { color: var(--acc); font-weight: 600; }
-.fred-card .fc-label { font-size: 9px; color: var(--t3); text-transform: uppercase; letter-spacing: 0.5px; }
-.fred-card .fc-value { font-size: 16px; font-weight: 600; color: var(--t1); margin: 2px 0; }
-.fred-card .fc-unit  { font-size: 9px; color: var(--t3); }
 .role-badge {
   display: inline-block;
   font-size: 8px;
@@ -1031,40 +937,6 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
-.role-bond     { background: rgba(59,130,246,.2); color: #60a5fa; }
-.role-credit   { background: rgba(249,115,22,.2);  color: #fb923c; }
-.role-real,
-.role-infl     { background: rgba(16,185,129,.2);  color: #34d399; }
-.role-dollar   { background: rgba(250,204,21,.2);  color: #fde047; }
-.role-liquidity{ background: rgba(139,92,246,.2);  color: #a78bfa; }
-.role-risk     { background: rgba(239,68,68,.2);   color: #f87171; }
-.role-vol      { background: rgba(236,72,153,.2);  color: #f472b6; }
-.role-commod   { background: rgba(132,204,22,.2);  color: #a3e635; }
-.role-curve    { background: rgba(45,212,191,.2);  color: #2dd4bf; }
-.regime-flow {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
-  padding: 10px 12px;
-  background: var(--bg-3);
-  border: 1px solid var(--b2);
-  border-radius: 8px;
-  margin: 8px 0;
-  font-family: var(--mono);
-  font-size: 11px;
-}
-.regime-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 3px;
-  min-width: 90px;
-}
-.regime-step .rs-label { font-size: 9px; color: var(--t3); text-transform: uppercase; }
-.regime-step .rs-value { font-size: 12px; font-weight: 600; color: var(--t1); }
-.regime-step .rs-sub   { font-size: 9px; color: var(--t3); }
-.regime-arrow { color: var(--t3); font-size: 16px; }
 </style>
 </head>
 <body>
@@ -1124,7 +996,7 @@ tbody td:not(:first-child) { text-align: right; font-family: var(--mono); }
 
   <div class="cfg-row" id="cfg-row-fred">
     <div class="cfg-lbl">📈 FRED / MACRO<br><span style="font-size:9px;color:var(--t3)">regime (ตัวเลือก)</span></div>
-    <input class="sinput" id="cfg-fred-id"  placeholder="Publish URL ของแท็บ FRED (IMPORTDATA) — ว่างไว้ = ใช้ proxy" oninput="onCfgInput()" style="grid-column:span 2">
+    <input class="sinput" id="cfg-fred-id"  placeholder="Publish URL ของแท็บ FRED (IMPORTDATA) — ว่างไว้ = ไม่มีข้อมูล regime" oninput="onCfgInput()" style="grid-column:span 2">
     <button class="btn-tst" id="btn-tst-fred" onclick="testCfgSheet('fred')">
       <span class="tst-spinner" id="tsp-fred"></span>
       <span id="tst-fred-txt">🔗 ทดสอบ</span>
@@ -1650,7 +1522,6 @@ const G_CAP         = 0.25;
 const QUOTA_PER_YR  = 12;
 const T_DELAY       = 2;
 const MIN_HIST_DAYS = 120;
-const CHANGE_THRESH = 0.05;
 // V29: Core signal parameters (kept for computeSignalV26 backward compat)
 const ACCEL_SPAN    = 5;
 const ACCEL_TP_THRESHOLD = 0.05;
@@ -1665,16 +1536,12 @@ const BULL_TH       = 0.05;
 const BEAR_TH       = -0.05;
 const MAX_HOLD_DAYS      = 60;
 const STALE_PROFIT_TH    = 0.01;
-const STALE_VEL_DAYS     = 20;
 let MONTHLY_CAP        = 2;
 const CRITICAL_RESERVE   = 2;
 const MIN_HOLD_DAYS      = 30;
-const MDP_REGIME_LOOKBACK = 60;
 const MDP_BULL_TH = 0.05;
 const MDP_BEAR_TH = -0.05;
-const MDP_COMPOSITE_WEIGHTS = {Base_Plan: 0.4, A65: 0.3, equity: 0.3};
 // V29: FRED API
-const FRED_KEY = 'e418123de2e0f4185f555a6b379169eb';
 const FRED_SERIES = ['DGS10','DFII10','T10YIE','BAMLH0A0HYM2','BAMLC0A0CM','DTWEXBGS','DCOILWTICO','DTB3','T10Y3M','WALCL','NFCI','DPSACBW027SBOG','OVXCLS'];
 const FRED_CACHE_KEY = 'gpf_fred_v29';
 const FRED_TTL = 3600000;
@@ -1729,7 +1596,6 @@ const REGIME_LEVELS = {
 // Legacy (kept for menu scoring display)
 const MOM_LOOKBACKS = [20, 60, 120];
 const MOM_WEIGHTS   = [0.5, 0.3, 0.2];
-const CUSTOM_FUNDS = ['Money_Market', 'B', 'Global_Bond', 'G', 'PR', 'F', 'TH'];
 const PRESET_PLANS = {
   'MM_100':      {Money_Market: 1.00},
   'B_100':       {B: 1.00},
@@ -1887,19 +1753,30 @@ function buildCsvUrl(input, sheetName){
 //   URL ที่ยิงเหมือนเดิมทุกครั้ง + Google/proxy ส่ง header ที่ cache ได้
 //   → fetch() ธรรมดาคืน response เก่าจาก disk cache แม้ข้าม localStorage cache ไปแล้ว
 //   = แก้ข้อมูลในชีตแล้วกด Force Refresh ก็ยังเห็นค่าเก่า (เจอจริง 2026-08-05)
+// ── ดึง CSV จาก Google Sheets (publish to web) ─────────────────
+//  ★ 2026-09-25 เลิกใช้ CORS proxy สาธารณะ — ตายหมดทั้ง 3 ตัว
+//    (corsproxy.io 401 ต้องมี API key, allorigins/codetabs timeout)
+//    และไม่จำเป็นอีกแล้ว: Google ส่ง Access-Control-Allow-Origin:* มาเสมอ
+//    ตัวที่เคยบล็อกคือ CSP ของหน้าเราเอง (แก้แล้ว 2026-08-25)
+//  ★ มี timeout — เดิมไม่มีเลย ถ้าดึงตรงไม่ได้จะไปค้างรอ proxy ที่ตายแล้วนานมาก
+//  ★ throw พร้อมเหตุผลสั้นๆ แทนคืน null เงียบๆ (ป้ายสถานะตัดเหลือ ~30 ตัวอักษร)
+const FETCH_TIMEOUT_MS = 30000;
 async function tryFetch(url,noCache){
-  const opt=noCache?{cache:'no-store'}:{};
+  const ac=new AbortController();
+  const timer=setTimeout(()=>ac.abort(),FETCH_TIMEOUT_MS);
+  const why=e=>(e&&e.name==='AbortError')?'หมดเวลา '+(FETCH_TIMEOUT_MS/1000)+' วิ':null;
   try{
-    const r=await fetch(url,Object.assign({mode:'cors'},opt));
-    if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.trim().startsWith('<'))return t;}
-  }catch(e){}
-  for(const proxy of['https://corsproxy.io/?url=','https://api.allorigins.win/raw?url=','https://api.codetabs.com/v1/proxy?quest=']){
-    try{
-      const r=await fetch(proxy+encodeURIComponent(url),opt);
-      if(r.ok){const t=await r.text();if(t&&t.length>20&&!t.trim().startsWith('<')&&!t.includes('"error"'))return t;}
-    }catch(e){}
-  }
-  return null;
+    let r;
+    try{ r=await fetch(url,Object.assign({mode:'cors',signal:ac.signal},noCache?{cache:'no-store'}:{})); }
+    catch(e){ throw new Error(why(e)||'เชื่อมต่อไม่ได้ (เน็ต/URL)'); }
+    if(!r.ok) throw new Error('HTTP '+r.status+' (URL ผิด/ไม่ publish)');
+    let t;
+    try{ t=await r.text(); }
+    catch(e){ throw new Error(why(e)||'อ่านข้อมูลไม่ได้'); }
+    if(!t||t.length<=20) throw new Error('ได้ข้อมูลว่าง');
+    if(t.trim().startsWith('<')) throw new Error('ได้ HTML ไม่ใช่ CSV (ไม่ publish?)');
+    return t;
+  }finally{ clearTimeout(timer); }
 }
 // ================================================================
 //  SMART CACHE — NAV update วันละครั้ง ไม่ต้อง fetch ใหม่ทุกครั้ง
@@ -1954,8 +1831,9 @@ async function fetchSheet(sheetId,sheetName,forceRefresh){
       return cached.csv;
     }
   }
-  const text=await tryFetch(url,forceRefresh);
-  if(!text)throw new Error('เชื่อมต่อไม่ได้ผ่านทุก proxy\n\nวิธีแก้: File → Share → Publish to web → CSV');
+  let text;
+  try{ text=await tryFetch(url,forceRefresh); }
+  catch(e){ throw new Error(e.message+' — เช็ค File → Share → Publish to web → CSV'); }
   // Save to cache
   setCache(sheetId,sheetName,text);
   console.log('Cache updated: '+sheetName+' ('+Math.round(text.length/1024)+'KB)');
@@ -1987,33 +1865,6 @@ function setFredCache(data) {
     localStorage.setItem(FRED_CACHE_KEY, JSON.stringify({data, ts: Date.now()}));
   } catch(e) {}
 }
-async function fetchFredSeries(seriesId) {
-  // Use FRED API via CORS proxies — key='demo' gives last 2 years of public data
-  const fredUrl = 'https://fred.stlouisfed.org/graph/fredgraph.csv?id=' + seriesId;
-  const proxies = [
-    'https://corsproxy.io/?url=' + encodeURIComponent(fredUrl),
-    'https://api.allorigins.win/raw?url=' + encodeURIComponent(fredUrl),
-    'https://api.codetabs.com/v1/proxy?quest=' + encodeURIComponent(fredUrl),
-  ];
-  for (const proxy of proxies) {
-    try {
-      const resp = await fetch(proxy, {signal: AbortSignal.timeout ? AbortSignal.timeout(8000) : undefined});
-      if (!resp.ok) continue;
-      const text = await resp.text();
-      if (!text || !text.includes(',')) continue;
-      // Parse CSV: DATE,VALUE
-      const rows = text.trim().split('\n').slice(1);
-      const pts = [];
-      for (const row of rows) {
-        const [d, v] = row.split(',');
-        const val = parseFloat(v);
-        if (d && !isNaN(val)) pts.push({date: d.trim(), value: val});
-      }
-      if (pts.length > 0) return pts;
-    } catch(e) { /* try next proxy */ }
-  }
-  return null; // all proxies failed
-}
 // V30: FRED via Google Sheet (IMPORTDATA) — เลี่ยงปัญหา CORS proxy สาธารณะที่ตายเรื่อยๆ
 // แท็บ FRED ในชีตใช้ =IMPORTDATA(fredgraph.csv?id=...) วางคอลัมน์คู่ (date,value) เรียง
 // series ตาม header. Google ดึง server-side จึงไม่มีปัญหา CORS แล้ว publish CSV (ACAO:*)
@@ -2036,8 +1887,7 @@ function _fredCellDate(cell){
 async function fetchFredFromSheet(rawUrl,noCache){
   const url = buildCsvUrl(rawUrl, 'FRED');
   if(!url) throw new Error('FRED URL ไม่ถูกต้อง');
-  const text = await tryFetch(url,noCache);
-  if(!text) throw new Error('โหลดแท็บ FRED ไม่ได้');
+  const text = await tryFetch(url,noCache);          // ดึงไม่ได้ = throw พร้อมเหตุผล
   const lines = text.replace(/\r/g,'').split('\n').filter(l=>l.length);
   if(lines.length < 2) throw new Error('แท็บ FRED ว่าง');
   const header = lines[0].split(',');
@@ -2060,32 +1910,22 @@ async function fetchFredFromSheet(rawUrl,noCache){
 async function fetchAllFred(forceRefresh) {
   if (!isFredCacheStale()) {
     const cached = getFredCached();
-    if (cached) { console.log('FRED cache hit'); return cached; }
+    // cache ที่ไม่มี series ไหนเลย (เหลือจากรุ่นก่อน) ถือว่าไม่มี cache
+    if (cached && Object.keys(cached).some(k => cached[k] && cached[k].length)) {
+      console.log('FRED cache hit'); return cached;
+    }
   }
-  // V30: ถ้ากรอก URL แท็บ FRED (IMPORTDATA) ไว้ → ใช้ก่อน (ไม่ต้องพึ่ง proxy)
+  // ★ 2026-09-25 เอาทางสำรองผ่าน proxy ออก (fetchFredSeries) — proxy ตายหมด
+  //   ทางเดียวคือแท็บ FRED (IMPORTDATA) ในชีต · ไม่มี URL = ไม่มีข้อมูล regime (→ NEUTRAL)
   const fredSheetUrl = (el('cfg-fred-id') && el('cfg-fred-id').value || '').trim();
-  if (fredSheetUrl) {
-    try {
-      const r = await fetchFredFromSheet(fredSheetUrl,forceRefresh);
-      const ok = Object.keys(r).filter(k=>r[k].length>0).length;
-      if (ok > 0) {
-        console.log('FRED from Sheet:', ok + '/' + FRED_SERIES.length + ' series OK');
-        setFredCache(r);
-        return r;
-      }
-      console.warn('FRED sheet คืน 0 series — fallback ไป proxy');
-    } catch(e) { console.warn('FRED sheet fetch failed:', e.message, '— fallback ไป proxy'); }
-  }
-  console.log('Fetching FRED data (proxy)...');
-  const result = {};
-  const fetches = FRED_SERIES.map(async s => {
-    const pts = await fetchFredSeries(s);
-    result[s] = pts || [];
-  });
-  await Promise.allSettled(fetches);
-  setFredCache(result);
-  console.log('FRED fetch done:', Object.keys(result).filter(k=>result[k].length>0).length + '/' + FRED_SERIES.length + ' series OK');
-  return result;
+  if (!fredSheetUrl) { console.warn('ยังไม่ได้ใส่ URL แท็บ FRED — regime จะเป็น NEUTRAL'); return {}; }
+  const r = await fetchFredFromSheet(fredSheetUrl, forceRefresh);   // ดึงไม่ได้ = throw พร้อมเหตุผล
+  const ok = Object.keys(r).filter(k => r[k].length > 0).length;
+  console.log('FRED from Sheet:', ok + '/' + FRED_SERIES.length + ' series OK');
+  // ★ cache เฉพาะตอนได้ข้อมูลจริง — เดิมทางสำรองผ่าน proxy cache "ผลว่าง" ไว้ 1 ชม.
+  //   ทำให้แก้ URL ถูกแล้วก็ยังได้ค่าว่างจาก cache จนกว่าจะกด Force Refresh
+  if (ok > 0) setFredCache(r);
+  return r;
 }
 
 // ================================================================
@@ -4796,73 +4636,6 @@ function renderPositionCard(d, entryOverride, curOverride, peakOverride, navDDOv
   card.innerHTML = html;
 }
 
-// V21: Acceleration Dashboard Table
-function renderAccelTable(d, allocVel, allocAccel){
-  const tbody=el('accel-body');
-  if(!tbody) return;
-  tbody.innerHTML='';
-
-  // V26: Show top optimizer candidates from 217 menus
-  const ranked = d.allocRanking || [];
-  const curMenu = d.targetMenu || '';
-
-  // Show top 10 + any defensive
-  const toShow = ranked.slice(0, 12);
-
-  toShow.forEach((item, idx) => {
-    const k = item.name;
-    const vel = item.vel;
-    const acc = item.accel;
-    const velS = item.velSlow;
-    const type = item.type || '';
-    const velBp = vel!==null && vel!==undefined ? (vel*10000).toFixed(1) : '—';
-    const accBp = acc!==null && acc!==undefined ? (acc*10000).toFixed(1) : '—';
-
-    // Status tag
-    let tag='', tagCls='flat';
-    if(acc!==null && acc!==undefined && vel!==null && vel!==undefined){
-      if(vel>0 && acc>0){ tag='🚀 เร่งตัว'; tagCls='accel'; }
-      else if(vel>0 && acc<0){ tag='⚠️ ชะลอ'; tagCls='decel'; }
-      else if(vel<=0 && acc>0){ tag='↗ ฟื้นตัว'; tagCls='accel'; }
-      else { tag='📉 ลง'; tagCls='decel'; }
-    } else { tag='—'; }
-
-    // Signal column
-    let signal = '';
-    const v22bOk = item.v22bPass !== false;
-    if(type === 'OFFENSIVE' || type === 'MODERATE'){
-      if(vel>0 && acc>0 && v22bOk) signal = '<span style="color:var(--green)">✓ Entry</span>';
-      else if(!v22bOk) signal = '<span style="color:var(--red)">✕ V22B</span>';
-      else if(acc!==null && acc < ACCEL_EXIT_LEVEL) signal = '<span style="color:var(--red)">✕ Exit</span>';
-      else signal = '<span style="color:var(--t3)">—</span>';
-    } else {
-      signal = '<span style="color:var(--t3)">DEF</span>';
-    }
-
-    const isCur = (k === curMenu);
-    const isBest = (idx === 0 && vel > 0 && acc > 0);
-    const rowCls = isCur ? ' class="cur-row"' : (isBest ? ' class="best-row"' : '');
-    const nameStyle = isCur ? 'color:var(--acc);font-weight:700' : (isBest ? 'color:var(--green);font-weight:700' : 'color:#e8f4ff;font-weight:600');
-    const nameSuffix = isCur ? ' ◀' : (isBest ? ' ★' : '');
-    const typeBadge = '';
-
-    const velClr = vel>0 ? 'color:var(--green)' : vel<0 ? 'color:var(--red)' : 'color:var(--t2)';
-    const accClr = acc>0 ? 'color:var(--green)' : acc<0 ? 'color:var(--red)' : 'color:var(--t2)';
-
-    tbody.insertAdjacentHTML('beforeend',
-      '<tr'+rowCls+'>'
-      +'<td><span style="font-family:var(--mono);'+nameStyle+'">'+k+nameSuffix+'</span>'+typeBadge+'</td>'
-      +'<td style="'+velClr+'">'+velBp+'</td>'
-      +'<td style="'+accClr+'">'+accBp+'</td>'
-      +'<td><span class="accel-tag '+tagCls+'">'+tag+'</span></td>'
-      +'<td>'+signal+'</td>'
-      +'</tr>');
-  });
-
-  // Show menu count
-  const statMenus = el('stat-menus');
-  if(statMenus) statMenus.textContent = ranked.length + ' scored';
-}
 
 // Auto-update peak tracking
 function autoUpdatePeak(){
@@ -4910,26 +4683,6 @@ function renderAppInstr(d){
 }
 
 
-function renderMenuRanking(topMenus){
-  const tbody=el('menu-body');tbody.innerHTML='';
-  if(!topMenus||topMenus.length===0){
-    tbody.innerHTML='<tr><td colspan="4" style="text-align:center;color:var(--t3)">รันก่อนเพื่อดู ranking</td></tr>';
-    return;
-  }
-  const MENU = getMenuCached();
-  topMenus.slice(0,15).forEach(([name,score],i)=>{
-    const alloc=MENU[name]||{};
-    const allocStr=Object.entries(alloc).sort((a,b)=>b[1]-a[1])
-      .map(([k,v])=>k+':'+(v*100).toFixed(0)+'%').join(' + ');
-    const cls=i===0?'rank1':'';
-    const scoreClr=score>0?'color:var(--green)':'color:var(--red)';
-    tbody.insertAdjacentHTML('beforeend',
-      '<tr class="'+cls+'"><td style="font-family:var(--mono);font-weight:600;color:var(--gold)">'+(i+1)+'</td>'
-      +'<td style="font-family:var(--mono);font-weight:600;color:#e8f4ff;text-align:left">'+esc(name)+'</td>'
-      +'<td style="font-size:10px;color:var(--t2);text-align:left">'+allocStr+'</td>'
-      +'<td style="'+scoreClr+';font-weight:600">'+score.toFixed(4)+'</td></tr>');
-  });
-}
 
 // ================================================================
 //  SIGNAL HELPERS
@@ -5080,24 +4833,6 @@ function _fundCostBasis(txList){
     }
   }
   return m;
-}
-// Shared: compute effective invested capital using moving-average cost basis
-// Returns the "effective deposits" — what the investor actually put in (cash + carry-in cost)
-function calcEffectiveCost(txList, holdObj, latestNav) {
-  const cb=_fundCostBasis(txList);
-  let costBasis=0,realized=0;
-  const allF=new Set([...Object.keys(cb),...Object.keys(holdObj||{})]);
-  for(const f of allF){
-    const r=cb[f]||{heldUnits:0,heldCost:0,realizedPnL:0};
-    const cu=(holdObj&&holdObj[f])||0;
-    const nv=latestNav?.funds?.[f];
-    // Fallback: holding units but no recorded cost (carry-in) → use current NAV as basis (unrealized PnL≈0)
-    let basis=r.heldCost;
-    if(basis<=0&&cu>0.0001&&nv)basis=nv*cu;
-    if(cu>0.0001)costBasis+=basis;
-    realized+=r.realizedPnL;
-  }
-  return{costBasis,realized,effectiveDeposits:costBasis-realized};
 }
 function calcPort(nav,tx,days){
   const cut=days>0?new Date(Date.now()-days*864e5):new Date(0);
@@ -6270,30 +6005,6 @@ function renderContribPie(tx,nav,hold){
     +'<tr><td style="padding:6px 0;font-weight:700">รวมทั้งสิ้น</td><td style="text-align:right;padding:6px 0;font-weight:700;color:var(--gold)">฿'+fmt(s.total,2)+'</td></tr>'
     +'</table>';
 }
-function renderFund(nav, days){
-  if(!el('fund-chart'))return;
-  if(days===undefined)days=fundPeriod;
-  const fs=ALL_PLANS.filter(f=>FM[f]);
-  const av=fs.filter(f=>nav.some(n=>n.funds[f]!=null));
-  let rc;if(days===0){rc=[...nav];}else{const cut=new Date(Date.now()-days*864e5);rc=nav.filter(n=>n.date>=cut);}
-  // For ALL: start from the date where all displayed funds have data
-  if(days===0&&av.length>1){let ci=0;av.forEach(f=>{const i=rc.findIndex(n=>n.funds[f]!=null);if(i>ci)ci=i;});if(ci>0)rc=rc.slice(ci);}
-  if(rc.length<2)return;
-  const lbls=rc.map(n=>fmtDateChart(n.date));
-  const ds=av.map(f=>{const fv=rc.find(n=>n.funds[f]!=null)?.funds[f];if(!fv)return null;const data=rc.map(n=>n.funds[f]!=null?((n.funds[f]-fv)/fv)*100:null);const m=FM[f]||{l:f,c:'#888'};return{label:m.l,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};}).filter(Boolean);
-  const ctx=el('fund-chart').getContext('2d');destroyChart('fund');
-  portCharts.fund=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{title:items=>{const i=items[0]?.dataIndex;return i!=null&&rc[i]?fmtDateTooltip(rc[i].date):items[0]?.label||'';},label:c=>{if(c.parsed.y==null)return null;return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%';}},filter:c=>c.parsed.y!=null}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
-}
-function renderNavCh(nav,hold){
-  if(!el('nav-chart'))return;
-  const active=Object.keys(hold).filter(f=>FM[f]&&nav.some(n=>n.funds[f]));
-  const rc=nav.slice(-90);const fn={};
-  for(const f of active){const v=rc.find(n=>n.funds[f]!=null)?.funds[f];if(v)fn[f]=v;}
-  const ds=active.map(f=>{const m=FM[f]||{s:f,c:'#888'};const data=rc.map(n=>n.funds[f]!=null&&fn[f]?((n.funds[f]-fn[f])/fn[f])*100:null);return{label:m.s,data,borderColor:m.c,borderDash:m.dash||[],borderWidth:1.5,pointRadius:0,tension:.3,fill:false,spanGaps:true};});
-  const lbls=rc.map(n=>fmtDateChart(n.date));
-  const ctx=el('nav-chart').getContext('2d');destroyChart('navchart');
-  portCharts.navchart=new Chart(ctx,{type:'line',data:{labels:lbls,datasets:ds},options:Object.assign({},CD,{interaction:{mode:'index',intersect:false},plugins:Object.assign({},CD.plugins,{tooltip:{mode:'index',intersect:false,position:'smartFlip',itemSort:ttSortDesc,backgroundColor:'rgba(9,17,31,.95)',borderColor:'rgba(26,32,48,.8)',borderWidth:1,padding:10,caretSize:0,callbacks:{title:items=>{const i=items[0]?.dataIndex;return i!=null&&rc[i]?fmtDateTooltip(rc[i].date):items[0]?.label||'';},label:c=>{if(c.parsed.y==null)return null;const f=active[c.datasetIndex];const navVal=rc[c.dataIndex]?.funds[f];return' '+c.dataset.label+': '+fmtS(c.parsed.y)+'%'+(navVal?' (NAV '+fmt(navVal,4)+')':'')}},filter:c=>c.parsed.y!=null}}),scales:Object.assign({},CD.scales,{y:Object.assign({},CD.scales.y,{ticks:Object.assign({},CD.scales.y.ticks,{callback:v=>v.toFixed(1)+'%'})})})})});
-}
 function setPeriod(btn,days){
   // จำกัดขอบเขตไว้ในกลุ่มปุ่มของตัวเอง — ปุ่ม Correlation Matrix ก็ใช้ class 'pbtn'
   // ถ้ากวาดทั้งหน้าจะไปลบ active ของ Correlation ด้วย (ปุ่มนั้นค้างไม่มีตัวไหน active)
@@ -7165,12 +6876,6 @@ let fsDDChart = null;
 let fsCurrentKey = '';
 let fsPeriod = 0;
 
-// Tooltip positioner: always top-right corner, never overlapping chart lines
-const fsTooltipPos = {
-  position:'average',
-  xAlign:'right',
-  yAlign:'top',
-};
 function fsTTOpts(extra){
   return{
     mode:'index',intersect:false,
@@ -7480,6 +7185,28 @@ function renderFsChart(chartKey){
 // "date" can be YYYY-MM-DD or null (for releases without tracked date)
 const CHANGELOG_DATA = {
   port: [
+    {date:'2026-09-25 · v30', groups:[
+      {title:'★ ลบ API key ของ FRED ที่หลุดอยู่บนเว็บ public', items:[
+        '<b>★ <code>const FRED_KEY</code> เป็น API key จริง</b> (ตัวเดียวกับใน <code>.env</code>) ฝังอยู่ในไฟล์ที่ deploy ขึ้น GitHub Pages — ใครเปิด view-source ก็เห็น · <b>และไม่มีโค้ดไหนใช้มันเลย</b> ตั้งแต่เปลี่ยนไปดึง FRED ผ่านแท็บ IMPORTDATA ในชีต · ลบทิ้ง',
+        '<b>ยังต้องทำเอง:</b> key เคยขึ้นเว็บไปแล้ว (และอยู่ในประวัติ git ของ repo) → ควรขอ key ใหม่ที่ fred.stlouisfed.org แล้วยกเลิกตัวเก่า · แอปไม่ได้ใช้ key เลย เปลี่ยนแล้วไม่กระทบอะไร'
+      ]},
+      {title:'ถอด CORS proxy ที่ตายแล้ว + ใส่ timeout + บอกเหตุผลเวลาดึงไม่ได้', items:[
+        '<b>proxy สาธารณะ 3 ตัวตายหมด</b> (ทดสอบ 2026-09-25): <code>corsproxy.io</code> 401 ต้องมี API key แล้ว · <code>allorigins.win</code> timeout · <code>codetabs.com</code> timeout · และไม่จำเป็นอีกแล้วเพราะ Google ส่ง <code>Access-Control-Allow-Origin:*</code> มาเสมอ (ตัวที่เคยบล็อกคือ CSP ของหน้าเราเอง แก้แล้ว 2026-08-25)',
+        '<b>★ อาการเดิม:</b> ถ้าดึงตรงไม่ได้ (เช่น URL ผิด) แอปจะไปรอ proxy ที่ตายแล้ว<b>โดยไม่มี timeout</b> · วัดจริง: ใส่ URL แท็บที่ไม่ได้ publish แล้วกด 🔗 ทดสอบ → <b>ค้าง กำลังทดสอบ... เกิน 60 วินาที</b> ไม่ขึ้นอะไรเลย',
+        '<b>แก้ <code>tryFetch</code>:</b> ดึงตรงอย่างเดียว + timeout 30 วิ (<code>FETCH_TIMEOUT_MS</code>) ครอบทั้งตอนเชื่อมต่อและตอนอ่านข้อมูล + <b>throw พร้อมเหตุผล</b> แทนคืน null เงียบๆ: <code>หมดเวลา 30 วิ</code> · <code>เชื่อมต่อไม่ได้ (เน็ต/URL)</code> · <code>HTTP 404 (URL ผิด/ไม่ publish)</code> · <code>ได้ HTML ไม่ใช่ CSV (ไม่ publish?)</code>',
+        '<b>ผลหลังแก้ (วัดจริง):</b> แท็บไม่ได้ publish → <b>0.5 วิ</b> ขึ้นเหตุผล · pub id ผิด → <b>0.3 วิ</b> <code>HTTP 404</code> · URL ถูก → 0.8 วิ <code>13/13 series</code>',
+        '<b>ลบ <code>fetchFredSeries</code></b> (ทางสำรองดึง FRED ผ่าน proxy) · เอาโดเมน proxy + <code>stlouisfed.org</code> ออกจาก CSP · ข้อความในช่อง FRED เปลี่ยนจาก ว่างไว้ = ใช้ proxy เป็น ว่างไว้ = ไม่มีข้อมูล regime',
+        '<b>★ บั๊กพ่วงที่เจอระหว่างทาง — cache FRED ค่าว่าง:</b> ทางสำรองผ่าน proxy <code>setFredCache()</code> ผลลัพธ์ทุกครั้ง<b>แม้จะว่างทั้ง 13 series</b> แล้ว cache อยู่ 1 ชม. → แก้ URL ให้ถูกแล้วก็ยังได้ค่าว่างจาก cache (regime = NEUTRAL เงียบๆ) จนกว่าจะกด Force Refresh · แก้: cache เฉพาะตอนได้ข้อมูลจริง + cache เก่าที่ว่างทุก series ถือว่าไม่มี cache',
+        '<b>verify:</b> ช่อง FRED ว่าง → คืนทันที 1 ms ไม่เขียน cache · cache ว่างค้าง → ไม่ใช้ ดึงใหม่ได้ 13 series · cache ดี → hit 6 ms · URL ผิด → throw + ไม่เขียน cache · เทส <code>tryFetch</code> ตัวจริงใน node 6 กรณี (ค้างตอนเชื่อมต่อ / ค้างตอนอ่าน body / CSP บล็อก / ได้ HTML / HTTP 500 / สำเร็จ) ได้ข้อความถูกทุกกรณี timeout ยิงตรงเวลา'
+      ]},
+      {title:'ลบ dead code 12 ตัว + CSS 99 selector ที่ไม่มีใครใช้', items:[
+        '<b>ตรวจด้วย AST จริง</b> (acorn) นับการอ้างถึงเฉพาะในโค้ด ไม่นับชื่อที่อยู่ใน string/comment + ยืนยันซ้ำด้วย grep แบบ word-boundary · <b>เลิกใช้ grep ธรรมดา</b> เพราะรอบ 2026-09-23 เคยพลาดจากชื่อที่ขึ้นต้นเหมือนกัน',
+        '<b>ฟังก์ชัน 5 ตัว:</b> <code>renderAccelTable</code> (66 บรรทัด) · <code>renderMenuRanking</code> (20) · <code>calcEffectiveCost</code> (16) · <code>renderFund</code> (14) · <code>renderNavCh</code> (10) — element ที่มันวาดลง (<code>accel-body</code>, <code>menu-body</code>, <code>fund-chart</code>, <code>nav-chart</code>) <b>ไม่มีใน HTML แล้ว</b> ถอดหน้าจอไปนานแล้ว เหลือแต่โค้ดลอย',
+        '<b>ค่าคงที่ 7 ตัว:</b> <code>CHANGE_THRESH</code> <code>STALE_VEL_DAYS</code> <code>MDP_REGIME_LOOKBACK</code> <code>MDP_COMPOSITE_WEIGHTS</code> <code>CUSTOM_FUNDS</code> <code>fsTooltipPos</code> + <code>FRED_KEY</code> · audit ซ้ำหลังลบ: <b>ไม่เกิด dead code ต่อเนื่อง</b>',
+        '<b>CSS:</b> class ที่ไม่มีใครใช้ 45 จาก 241 (4 ตัวเพิ่งตายหลังลบฟังก์ชันด้านบน: <code>accel-tag</code> <code>best-row</code> <code>cur-row</code> <code>rank1</code>) → ลบ 89 rule ทั้งก้อน + ตัด selector ออกจากอีก 5 rule · ใช้ <b>postcss</b> แยก CSS (ตัวที่เขียนเองรอบแรกโดน comment หลอก — dry run จับได้ก่อนเขียนจริง)',
+        '<b>★ verify แบบเทียบก่อน-หลังบนข้อมูลจริง:</b> เปิดไฟล์ก่อนแก้กับหลังแก้ โหลด NAV/TX/FRED + รัน Signal + render ทุกแท็บ แล้วเทียบ <b>computed style ของทุก element</b> (46 property) → <b>63,173 element · ต่างกัน 0</b> · ข้อความแท็บ Signal และ Portfolio <b>ตรงกันทุกตัวอักษร</b> · NAV 6,058 / TX 53 / FRED 13 / cost 166,233.00 / P&amp;L 17,207.25 / MaxDD −7.99% เท่ากันหมด · ไฟล์เล็กลง 16 KB · ไม่มี console error'
+      ]}
+    ]},
     {date:'2026-09-23 · v30', groups:[
       {title:'การ์ดตั้งค่า — บอกว่า NAV ดึงมาจากแท็บไหนของชีต', items:[
         '<b>เพิ่มบรรทัดใต้ช่อง 📊 DATABASE</b> บอกชื่อแท็บที่กำลังใช้จริง เช่น <code>📄 แท็บ: ALLDatabase (กรอกมือ · gid 656173985)</code> หรือ <code>📄 แท็บ: ALLDatabase Online (auto จาก API กบข. · gid 1504962260)</code> · <b>ตัว Online ขึ้นสีเขียว ตัวกรอกมือขึ้นสีทอง</b> แยกออกตั้งแต่เหลือบตา',
@@ -7493,7 +7220,7 @@ const CHANGELOG_DATA = {
         '<b>ลบฟังก์ชันที่ไม่มีใครเรียกเลย 5 ตัว</b> · <code>addBdays</code> + <code>fmtLocalDate</code> (date helper เก่า) · <code>emojiPoint</code> (helper วาด emoji ลง canvas เพื่อใช้เป็น <code>pointStyle</code> ของ Chart.js — ปัจจุบัน marker ใช้ emoji เป็นข้อความใน tooltip อย่างเดียว) · <code>renderCashFlowComposition</code> (กราฟ Cash Flow Composition ถูกถอดออกไปแล้ว — <code>cashflow-chart</code> ไม่มีใน HTML แล้ว) · <code>setFundPeriod</code> (ปุ่มช่วงเวลากราฟกองทุนผูก handler ใน <code>buildFsPeriodBtns</code> แทนไปแล้ว)',
         '<b>ลบ <code>_emojiCache</code> ด้วย</b> — cache object ที่มี <code>emojiPoint</code> ใช้คนเดียว พอลบฟังก์ชันก็กลายเป็น dead ตามไป',
         '<b>pure deletion 62 บรรทัด</b> (โค้ดหายไป −3,819 bytes) — <b>ไม่มีบรรทัดไหนถูกแก้หรือเพิ่ม</b> (diff มีแต่ฝั่งลบ) · พฤติกรรมทุกอย่างเหมือนเดิมทุกประการ',
-        '<b>สิ่งที่คงไว้ (ไม่ใช่ dead):</b> ตัวแปร <code>fundPeriod</code>, ฟังก์ชัน <code>renderFund</code>, คลาส CSS <code>.fpbtn</code> — ทั้ง 3 ตัวยังถูกใช้จากจุดอื่น',
+        '<b>สิ่งที่คงไว้ (ไม่ใช่ dead):</b> ตัวแปร <code>fundPeriod</code>, คลาส CSS <code>.fpbtn</code> — ยังถูกใช้จากจุดอื่น · <b>⚠️ แก้ไข 2026-09-25:</b> เดิมเขียนว่า <code>renderFund</code> ก็ยังใช้อยู่ — <b>ผิด</b> (grep ธรรมดาไปเจอ <code>renderFundHeatmap</code>/<code>renderFundScores</code> ที่ชื่อขึ้นต้นเหมือนกัน) คนเดียวที่เรียกมันคือ <code>setFundPeriod</code> ซึ่งตายอยู่แล้ว → ลบในรอบ 2026-09-25',
         '<b>verify:</b> grep ทั้งไฟล์ → ชื่อทั้ง 5 ตัวเหลือแค่ในข้อความ changelog ไม่มี call site และไม่มี <code>onclick=</code> ใน HTML · <code>node --check</code> ผ่าน · โหลดหน้าจริง data สด ครบทุกแท็บ ไม่มี console error'
       ]}
     ]},
